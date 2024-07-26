@@ -1,0 +1,59 @@
+name: Android Build and Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Extract repository name
+        id: repo-name
+        run: echo "REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)" >> $GITHUB_ENV
+        
+      - name: Extract version name
+        id: version_name
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' ./app/build.gradle.kts)
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+    
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        
+      - name: Install Android Build Tools
+        run: sdkmanager "build-tools;29.0.3"
+
+      - uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 8.6
+          arguments: assembleRelease
+      
+      - uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+      - run: mv ${{ steps.sign_app.outputs.signedReleaseFile }} ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-${{ github.run_number }}.apk
+
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "*.apk"
+          token: ${{ github.token }}
+          generateReleaseNotes: true
+          tag: v${{ env.VERSION_NAME }}-${{ github.run_number }}
+          prerelease: true

@@ -1,0 +1,60 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="192dp"
+    android:height="192dp"
+    android:autoMirrored="true"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+
+    <path android:pathData="M0,0h192v192h-192z">
+
+        <aapt:attr name="android:fillColor">
+
+            <gradient
+                android:endX="192"
+                android:endY="0"
+                android:startX="0"
+                android:startY="192"
+                android:type="linear">
+
+                <item
+                    android:color="#FF0E88CB"
+                    android:offset="0" />
+
+                <item
+                    android:color="#FF32A3DB"
+                    android:offset="1" />
+
+            </gradient>
+
+        </aapt:attr>
+
+    </path>
+
+    <path
+        android:fillColor="#fff"
+        android:pathData="M76.2,97.6l25.5,-18l-11.1,23.3l-14.4,-5.3z" />
+
+    <path
+        android:fillAlpha="0.8"
+        android:fillColor="#fff"
+        android:pathData="M101.7,79.6l-11.1,23.3l0.6,3.2l3.1,-2.3l7.4,-24.2z"
+        android:strokeAlpha="0.8" />
+
+    <path
+        android:fillColor="#fff"
+        android:pathData="M101.7,79.6l-7.4,24.2l13.5,4.8l-6.1,-29z" />
+
+    <path
+        android:fillColor="#fff"
+        android:pathData="M128.7,70.3l-5.4,9.1c-2.7,-4.4 -6.4,-8.2 -11.1,-11s-9.9,-4.2 -15,-4.4l5.4,-9.1c3.5,-6 11.4,-8.1 17.4,-4.5l4.2,2.4c6,3.5 8.1,11.4 4.5,17.4Z" />
+
+    <path
+        android:fillColor="#fff"
+        android:pathData="M79.8,123.5c4.7,2.8 9.9,4.2 15,4.4l-5.4,9.1c-3.5,6 -11.4,8.1 -17.4,4.5l-4.2,-2.4c-6,-3.5 -8.1,-11.4 -4.5,-17.4l5.4,-9.1c2.6,4.4 6.4,8.2 11.1,11h0Z" />
+
+    <path
+        android:fillColor="#fff"
+        android:pathData="M123.3,79.4c-2.7,-4.4 -6.4,-8.2 -11.1,-11s-9.9,-4.2 -15,-4.4c-11.3,-0.4 -22.6,5.2 -28.7,15.7s-5.7,23 0.2,32.7c2.6,4.4 6.4,8.2 11.1,11s9.9,4.2 15,4.4c11.3,0.4 22.6,-5.2 28.7,-15.7s5.7,-23 -0.2,-32.7h0ZM83.9,116.6c-11.4,-6.7 -15.2,-21.4 -8.5,-32.7 6.7,-11.4 21.4,-15.2 32.7,-8.5 11.4,6.7 15.2,21.4 8.5,32.7 -6.7,11.4 -21.4,15.2 -32.7,8.5Z" />
+
+</vector>
