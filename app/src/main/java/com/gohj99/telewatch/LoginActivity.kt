@@ -8,24 +8,8 @@ import android.util.TypedValue
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.gohj99.telewatch.ui.login.*
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.google.zxing.BarcodeFormat
 import org.drinkless.td.libcore.telegram.Client
@@ -35,12 +19,12 @@ import java.util.Properties
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class LoginActivity : ComponentActivity() {
     private lateinit var client: Client
     private var qrCodeLink by mutableStateOf<String?>(null)
+    private var showPasswordScreen by mutableStateOf(false)
+    private var passwordHint by mutableStateOf("")
 
     override fun onDestroy() {
         super.onDestroy()
@@ -53,7 +37,16 @@ class LoginActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TelewatchTheme {
-                SplashScreen(qrCodeLink = qrCodeLink)
+                if (showPasswordScreen) {
+                    SplashPasswordScreen(
+                        onDoneClick = { password ->
+                            client.send(TdApi.CheckAuthenticationPassword(password), { authRequestHandler(it) })
+                        },
+                        passwordHint = passwordHint
+                    )
+                } else {
+                    SplashLoginScreen(qrCodeLink = qrCodeLink)
+                }
             }
         }
 
@@ -83,15 +76,15 @@ class LoginActivity : ComponentActivity() {
                     TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {
                         //获取API ID和API Hash
                         val config = loadConfig(this) // 传递 context
-                        val api_Id = config.getProperty("api_id").toInt()
-                        val api_Hash = config.getProperty("api_hash")
+                        val tdapiId = config.getProperty("api_id").toInt()
+                        val tdapiHash = config.getProperty("api_hash")
                         // 设置 TDLib 参数
                         val parameters = TdApi.TdlibParameters().apply {
                             databaseDirectory = applicationContext.filesDir.absolutePath + "/tdlib"
                             useMessageDatabase = true
                             useSecretChats = true
-                            apiId = api_Id
-                            apiHash = api_Hash
+                            apiId = tdapiId
+                            apiHash = tdapiHash
                             systemLanguageCode = "en"
                             deviceModel = "Desktop"
                             systemVersion = "Unknown"
@@ -113,7 +106,7 @@ class LoginActivity : ComponentActivity() {
                         println(link)
                         // 展示二维码
                         runOnUiThread {
-                            this.qrCodeLink = link
+                            qrCodeLink = link
                         }
                     }
                     TdApi.AuthorizationStateReady.CONSTRUCTOR -> {
@@ -138,10 +131,12 @@ class LoginActivity : ComponentActivity() {
                     TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR -> {
                         //当需要输入密码时执行
                         val passwordState = authorizationState as TdApi.AuthorizationStateWaitPassword
-                        val passwordHint = passwordState.passwordHint
+                        passwordHint = passwordState.passwordHint
 
-                        // 进入密码输入函数
-                        InputPassword(passwordHint)
+                        // 进入密码输入处理
+                        runOnUiThread {
+                            showPasswordScreen = true
+                        }
                     }
                     // 处理其他授权状态...
                 }
@@ -153,11 +148,6 @@ class LoginActivity : ComponentActivity() {
     // 处理认证请求的函数
     private fun authRequestHandler(result: TdApi.Object) {
         // 处理认证请求结果
-    }
-
-    // 输入密码的函数
-    private fun InputPassword(passwordHint: String) {
-        // 输入密码
     }
 }
 
@@ -191,95 +181,4 @@ fun Context.dpToPx(dp: Int): Int {
         dp.toFloat(),
         this.resources.displayMetrics
     ).toInt()
-}
-
-// 显示二维码
-@Composable
-fun QrCodeDisplay(qrCodeLink: String?, sizeInDp: Int = 200) {
-    val context = LocalContext.current
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-
-    // 如果 qrCodeLink 不为空，生成二维码
-    LaunchedEffect(qrCodeLink) {
-        qrCodeLink?.let {
-            withContext(Dispatchers.Default) {
-                bitmap = generateQrCode(context, it, sizeInDp)
-            }
-        }
-    }
-
-    if (bitmap != null) {
-        // 绘制二维码
-        Image(
-            bitmap = bitmap!!.asImageBitmap(),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp),
-            contentScale = ContentScale.Crop
-        )
-    } else {
-        // 使用占位符图像
-        Image(
-            painter = painterResource(id = R.drawable.qr_tg),
-            contentDescription = null,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(6.dp),
-            contentScale = ContentScale.Crop
-        )
-    }
-}
-
-@Composable
-fun SplashScreen(qrCodeLink: String?) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(id = R.string.scan_qr),
-            color = Color.White,
-            fontSize = 15.sp,
-            modifier = Modifier
-                .padding(top = 7.dp, bottom = 4.dp)
-                .fillMaxWidth(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(8.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            QrCodeDisplay(qrCodeLink = qrCodeLink, sizeInDp = 120)
-
-            if (qrCodeLink == null) {
-                Text(
-                    text = stringResource(id = R.string.loading),
-                    color = Color(0xFF757575),
-                    fontSize = 16.sp,
-                    modifier = Modifier
-                        .padding(top = 45.dp, bottom = 4.dp)
-                        .fillMaxSize(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview3() {
-    TelewatchTheme {
-        SplashScreen(qrCodeLink = "https://www.gohj99.site/")
-    }
 }
