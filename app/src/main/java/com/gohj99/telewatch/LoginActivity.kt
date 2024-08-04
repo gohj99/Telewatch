@@ -1,5 +1,6 @@
 package com.gohj99.telewatch
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,23 +9,27 @@ import android.util.TypedValue
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.*
-import com.gohj99.telewatch.ui.login.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.gohj99.telewatch.ui.login.SplashLoginScreen
+import com.gohj99.telewatch.ui.login.SplashPasswordScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
 import java.io.IOException
 import java.util.Properties
-import com.google.zxing.EncodeHintType
-import com.google.zxing.MultiFormatWriter
-import com.google.zxing.WriterException
 
 class LoginActivity : ComponentActivity() {
     private lateinit var client: Client
     private var qrCodeLink by mutableStateOf<String?>(null)
     private var showPasswordScreen by mutableStateOf(false)
     private var passwordHint by mutableStateOf("")
+    private var doneStr = mutableStateOf("")
 
     override fun onDestroy() {
         super.onDestroy()
@@ -42,7 +47,8 @@ class LoginActivity : ComponentActivity() {
                         onDoneClick = { password ->
                             client.send(TdApi.CheckAuthenticationPassword(password), { authRequestHandler(it) })
                         },
-                        passwordHint = passwordHint
+                        passwordHint = passwordHint,
+                        doneStr = doneStr
                     )
                 } else {
                     SplashLoginScreen(qrCodeLink = qrCodeLink)
@@ -50,8 +56,8 @@ class LoginActivity : ComponentActivity() {
             }
         }
 
-        // 初始化 TDLib 客户端
         client = Client.create({ update -> handleUpdate(update) }, null, null)
+        doneStr.value = getString(R.string.Done) // 初始化 doneStr
     }
 
     // 加载配置文件
@@ -148,6 +154,25 @@ class LoginActivity : ComponentActivity() {
     // 处理认证请求的函数
     private fun authRequestHandler(result: TdApi.Object) {
         // 处理认证请求结果
+        when (result.constructor) {
+            TdApi.Error.CONSTRUCTOR -> {
+                val error = result as TdApi.Error
+                println("${getString(R.string.Request_error)} : ${error.message}")
+                when (error.message) {
+                    "PASSWORD_HASH_INVALID" -> {
+                        doneStr.value = getString(R.string.Password_Error)
+                    }
+
+                    else -> runOnUiThread {
+                        AlertDialog.Builder(this)
+                            .setMessage("${getString(R.string.Request_error)}\ncode:${error.code}\n${error.message}")
+                            .setPositiveButton(getString(R.string.OK)) { dialog, which -> }
+                            .show()
+                    }
+                }
+            }
+            // 处理其他结果...
+        }
     }
 }
 

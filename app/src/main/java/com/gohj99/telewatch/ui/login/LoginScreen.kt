@@ -62,14 +62,23 @@ fun QrCodeDisplay(qrCodeLink: String?, sizeInDp: Int = 200) {
             contentScale = ContentScale.Crop
         )
     } else {
-        // 使用占位符图像
+        // 使用占位符图像和文字s
         Image(
             painter = painterResource(id = R.drawable.qr_tg),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(6.dp),
+                .padding(8.dp),
             contentScale = ContentScale.Crop
+        )
+        Text(
+            text = stringResource(id = R.string.loading),
+            color = Color(0xFF757575),
+            fontSize = 16.sp,
+            modifier = Modifier
+                .padding(top = 45.dp, bottom = 4.dp)
+                .fillMaxSize(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }
@@ -86,9 +95,9 @@ fun SplashLoginScreen(qrCodeLink: String?) {
         Text(
             text = stringResource(id = R.string.scan_qr),
             color = Color.White,
-            fontSize = 15.sp,
+            fontSize = 16.sp,
             modifier = Modifier
-                .padding(top = 7.dp, bottom = 4.dp)
+                .padding(top = 6.dp, bottom = 4.dp)
                 .fillMaxWidth(),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
@@ -102,19 +111,7 @@ fun SplashLoginScreen(qrCodeLink: String?) {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            QrCodeDisplay(qrCodeLink = qrCodeLink, sizeInDp = 120)
-
-            if (qrCodeLink == null) {
-                Text(
-                    text = stringResource(id = R.string.loading),
-                    color = Color(0xFF757575),
-                    fontSize = 16.sp,
-                    modifier = Modifier
-                        .padding(top = 45.dp, bottom = 4.dp)
-                        .fillMaxSize(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
+            QrCodeDisplay(qrCodeLink = qrCodeLink, sizeInDp = 200)
         }
     }
 }
