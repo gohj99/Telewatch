@@ -10,6 +10,7 @@ android {
     defaultConfig {
         applicationId = "com.gohj99.telewatch"
         minSdk = 24
+        //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
@@ -60,6 +61,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
+    //noinspection UseTomlInstead
     implementation("com.google.zxing:core:3.4.1")
     implementation(project(":libtd"))
     androidTestImplementation(libs.androidx.junit)

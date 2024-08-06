@@ -16,169 +16,30 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Main class for interaction with the TDLib.
  */
 public final class Client implements Runnable {
-    private static final int MAX_EVENTS = 1000;
-    private static AtomicLong clientCount = new AtomicLong();
-    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private final Lock readLock = readWriteLock.readLock();
-    private final Lock writeLock = readWriteLock.writeLock();
-    private final long nativeClientId;
-    private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
-    private final AtomicLong currentQueryId = new AtomicLong();
-    private final long[] eventIds = new long[MAX_EVENTS];
-    private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
-    private volatile boolean stopFlag = false;
-    private volatile boolean isClientDestroyed = false;
-    private volatile ExceptionHandler defaultExceptionHandler = null;
-
-    private Client(ResultHandler updateHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
-        clientCount.incrementAndGet();
-        nativeClientId = NativeClient.createClient();
-        handlers.put(0L, new Handler(updateHandler, updateExceptionHandler));
-        this.defaultExceptionHandler = defaultExceptionHandler;
+    /**
+     * Interface for handler for results of queries to TDLib and incoming updates from TDLib.
+     */
+    public interface ResultHandler {
+        /**
+         * Callback called on result of query to TDLib or incoming update from TDLib.
+         *
+         * @param object Result of query or update of type TdApi.Update about new events.
+         */
+        void onResult(TdApi.Object object);
     }
 
     /**
-     * Synchronously executes a TDLib request. Only a few marked accordingly requests can be executed synchronously.
-     *
-     * @param query Object representing a query to the TDLib.
-     * @return request result.
-     * @throws NullPointerException if query is null.
+     * Interface for handler of exceptions thrown while invoking ResultHandler.
+     * By default, all such exceptions are ignored.
+     * All exceptions thrown from ExceptionHandler are ignored.
      */
-    public static TdApi.Object execute(TdApi.Function query) {
-        if (query == null) {
-            throw new NullPointerException("query is null");
-        }
-        return NativeClient.clientExecute(query);
-    }
-
-    /**
-     * Creates new Client.
-     *
-     * @param updateHandler           Handler for incoming updates.
-     * @param updateExceptionHandler  Handler for exceptions thrown from updateHandler. If it is null, exceptions will be iggnored.
-     * @param defaultExceptionHandler Default handler for exceptions thrown from all ResultHandler. If it is null, exceptions will be iggnored.
-     * @return created Client
-     */
-    public static Client create(ResultHandler updateHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
-        Client client = new Client(updateHandler, updateExceptionHandler, defaultExceptionHandler);
-        new Thread(client, "TDLib thread").start();
-        return client;
-    }
-
-    /**
-     * Changes TDLib log verbosity.
-     *
-     * @param newLogVerbosity New value of log verbosity. Must be non-negative.
-     *                        Value 0 corresponds to android.util.Log.ASSERT,
-     *                        value 1 corresponds to android.util.Log.ERROR,
-     *                        value 2 corresponds to android.util.Log.WARNING,
-     *                        value 3 corresponds to android.util.Log.INFO,
-     *                        value 4 corresponds to android.util.Log.DEBUG,
-     *                        value 5 corresponds to android.util.Log.VERBOSE,
-     *                        value greater than 5 can be used to enable even more logging.
-     *                        Default value of the log verbosity is 5.
-     * @throws IllegalArgumentException if newLogVerbosity is negative.
-     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogVerbosityLevel}, to be removed in the future.
-     */
-    @Deprecated
-    public static void setLogVerbosityLevel(int newLogVerbosity) {
-        if (newLogVerbosity < 0) {
-            throw new IllegalArgumentException("newLogVerbosity can't be negative");
-        }
-        NativeClient.setLogVerbosityLevel(newLogVerbosity);
-    }
-
-    /**
-     * Sets file path for writing TDLib internal log.
-     * By default TDLib writes logs to the Android Log.
-     * Use this method to write the log to a file instead.
-     *
-     * @param filePath Path to a file for writing TDLib internal log. Use an empty path to
-     *                 switch back to logging to the Android Log.
-     * @return whether opening the log file succeeded
-     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
-     */
-    @Deprecated
-    public static boolean setLogFilePath(String filePath) {
-        return NativeClient.setLogFilePath(filePath);
-    }
-
-    /**
-     * Changes maximum size of TDLib log file.
-     *
-     * @param maxFileSize Maximum size of the file to where the internal TDLib log is written
-     *                    before the file will be auto-rotated. Must be positive. Defaults to 10 MB.
-     * @throws IllegalArgumentException if max_file_size is non-positive.
-     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
-     */
-    @Deprecated
-    public static void setLogMaxFileSize(long maxFileSize) {
-        if (maxFileSize <= 0) {
-            throw new IllegalArgumentException("maxFileSize should be positive");
-        }
-        NativeClient.setLogMaxFileSize(maxFileSize);
-    }
-
-    /**
-     * This function is called from the JNI when a fatal error happens to provide a better error message.
-     * It shouldn't return. Do not call it directly.
-     *
-     * @param errorMessage Error message.
-     */
-    static void onFatalError(String errorMessage) {
-        final class ThrowError implements Runnable {
-            private final String errorMessage;
-
-            private ThrowError(String errorMessage) {
-                this.errorMessage = errorMessage;
-            }
-
-            @Override
-            public void run() {
-                if (isExternalError(errorMessage)) {
-                    processExternalError();
-                    return;
-                }
-
-                throw new ClientException("TDLib fatal error (" + clientCount.get() + "): " + errorMessage);
-            }
-
-            private void processExternalError() {
-                throw new ClientException("Fatal error (" + clientCount.get() + "): " + errorMessage);
-            }
-        }
-
-        new Thread(new ThrowError(errorMessage), "TDLib fatal error thread").start();
-        while (true) {
-            try {
-                Thread.sleep(1000 /* milliseconds */);
-            } catch (InterruptedException ignore) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    private static boolean isDatabaseBrokenError(String message) {
-        return message.contains("Wrong key or database is corrupted") ||
-                message.contains("SQL logic error or missing database") ||
-                message.contains("database disk image is malformed") ||
-                message.contains("file is encrypted or is not a database") ||
-                message.contains("unsupported file format") ||
-                (message.contains("Database was deleted during execution and can't be recreated") &&
-                        message.contains("PosixError : No such file or directory"));
-    }
-
-    private static boolean isDiskFullError(String message) {
-        return message.contains("PosixError : No space left on device") ||
-                message.contains("database or disk is full");
-    }
-
-    private static boolean isDiskError(String message) {
-        return message.contains("I/O error") || message.contains("Structure needs cleaning");
-    }
-
-    private static boolean isExternalError(String message) {
-        return isDatabaseBrokenError(message) || isDiskFullError(message) || isDiskError(message);
+    public interface ExceptionHandler {
+        /**
+         * Callback called on exceptions thrown while invoking ResultHandler.
+         *
+         * @param e Exception thrown by ResultHandler.
+         */
+        void onException(Throwable e);
     }
 
     /**
@@ -229,6 +90,20 @@ public final class Client implements Runnable {
     }
 
     /**
+     * Synchronously executes a TDLib request. Only a few marked accordingly requests can be executed synchronously.
+     *
+     * @param query Object representing a query to the TDLib.
+     * @return request result.
+     * @throws NullPointerException if query is null.
+     */
+    public static TdApi.Object execute(TdApi.Function query) {
+        if (query == null) {
+            throw new NullPointerException("query is null");
+        }
+        return NativeClient.clientExecute(query);
+    }
+
+    /**
      * Overridden method from Runnable, do not call it directly.
      */
     @Override
@@ -236,6 +111,74 @@ public final class Client implements Runnable {
         while (!stopFlag) {
             receiveQueries(300.0 /*seconds*/);
         }
+    }
+
+    /**
+     * Creates new Client.
+     *
+     * @param updateHandler           Handler for incoming updates.
+     * @param updateExceptionHandler  Handler for exceptions thrown from updateHandler. If it is null, exceptions will be iggnored.
+     * @param defaultExceptionHandler Default handler for exceptions thrown from all ResultHandler. If it is null, exceptions will be iggnored.
+     * @return created Client
+     */
+    public static Client create(ResultHandler updateHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
+        Client client = new Client(updateHandler, updateExceptionHandler, defaultExceptionHandler);
+        new Thread(client, "TDLib thread").start();
+        return client;
+    }
+
+    /**
+     * Changes TDLib log verbosity.
+     *
+     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogVerbosityLevel}, to be removed in the future.
+     * @param newLogVerbosity New value of log verbosity. Must be non-negative.
+     *                        Value 0 corresponds to android.util.Log.ASSERT,
+     *                        value 1 corresponds to android.util.Log.ERROR,
+     *                        value 2 corresponds to android.util.Log.WARNING,
+     *                        value 3 corresponds to android.util.Log.INFO,
+     *                        value 4 corresponds to android.util.Log.DEBUG,
+     *                        value 5 corresponds to android.util.Log.VERBOSE,
+     *                        value greater than 5 can be used to enable even more logging.
+     *                        Default value of the log verbosity is 5.
+     * @throws IllegalArgumentException if newLogVerbosity is negative.
+     */
+    @Deprecated
+    public static void setLogVerbosityLevel(int newLogVerbosity) {
+        if (newLogVerbosity < 0) {
+            throw new IllegalArgumentException("newLogVerbosity can't be negative");
+        }
+        NativeClient.setLogVerbosityLevel(newLogVerbosity);
+    }
+
+    /**
+     * Sets file path for writing TDLib internal log.
+     * By default TDLib writes logs to the Android Log.
+     * Use this method to write the log to a file instead.
+     *
+     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
+     * @param filePath Path to a file for writing TDLib internal log. Use an empty path to
+     *                 switch back to logging to the Android Log.
+     * @return whether opening the log file succeeded
+     */
+    @Deprecated
+    public static boolean setLogFilePath(String filePath) {
+        return NativeClient.setLogFilePath(filePath);
+    }
+
+    /**
+     * Changes maximum size of TDLib log file.
+     *
+     * @deprecated As of TDLib 1.4.0 in favor of {@link TdApi.SetLogStream}, to be removed in the future.
+     * @param maxFileSize Maximum size of the file to where the internal TDLib log is written
+     *                    before the file will be auto-rotated. Must be positive. Defaults to 10 MB.
+     * @throws IllegalArgumentException if max_file_size is non-positive.
+     */
+    @Deprecated
+    public static void setLogMaxFileSize(long maxFileSize) {
+        if (maxFileSize <= 0) {
+            throw new IllegalArgumentException("maxFileSize should be positive");
+        }
+        NativeClient.setLogMaxFileSize(maxFileSize);
     }
 
     /**
@@ -268,6 +211,110 @@ public final class Client implements Runnable {
         } finally {
             writeLock.unlock();
         }
+    }
+
+    /**
+     * This function is called from the JNI when a fatal error happens to provide a better error message.
+     * It shouldn't return. Do not call it directly.
+     *
+     * @param errorMessage Error message.
+     */
+    static void onFatalError(String errorMessage) {
+        final class ThrowError implements Runnable {
+            private final String errorMessage;
+
+            private ThrowError(String errorMessage) {
+                this.errorMessage = errorMessage;
+            }
+
+            @Override
+            public void run() {
+                if (isExternalError(errorMessage)) {
+                    processExternalError();
+                    return;
+                }
+
+                throw new ClientException("TDLib fatal error (" + clientCount.get() + "): " + errorMessage);
+            }
+
+            private void processExternalError() {
+                throw new ClientException("Fatal error (" + clientCount.get() + "): " + errorMessage);
+            }
+        }
+
+        new Thread(new ThrowError(errorMessage), "TDLib fatal error thread").start();
+        while (true) {
+            try {
+                Thread.sleep(1000 /* milliseconds */);
+            } catch (InterruptedException ignore) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    private static boolean isDatabaseBrokenError(String message) {
+        return message.contains("Wrong key or database is corrupted") ||
+                message.contains("SQL logic error or missing database") ||
+                message.contains("database disk image is malformed") ||
+                message.contains("file is encrypted or is not a database") ||
+                message.contains("unsupported file format") ||
+                (message.contains("Database was deleted during execution and can't be recreated") &&
+                message.contains("PosixError : No such file or directory"));
+    }
+
+    private static boolean isDiskFullError(String message) {
+        return message.contains("PosixError : No space left on device") ||
+                message.contains("database or disk is full");
+    }
+
+    private static boolean isDiskError(String message) {
+        return message.contains("I/O error") || message.contains("Structure needs cleaning");
+    }
+
+    private static boolean isExternalError(String message) {
+        return isDatabaseBrokenError(message) || isDiskFullError(message) || isDiskError(message);
+    }
+
+    private static final class ClientException extends RuntimeException {
+        private ClientException(String message) {
+            super(message);
+        }
+    }
+
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock readLock = readWriteLock.readLock();
+    private final Lock writeLock = readWriteLock.writeLock();
+
+    private static AtomicLong clientCount = new AtomicLong();
+
+    private volatile boolean stopFlag = false;
+    private volatile boolean isClientDestroyed = false;
+    private final long nativeClientId;
+
+    private final ConcurrentHashMap<Long, Handler> handlers = new ConcurrentHashMap<Long, Handler>();
+    private final AtomicLong currentQueryId = new AtomicLong();
+
+    private volatile ExceptionHandler defaultExceptionHandler = null;
+
+    private static final int MAX_EVENTS = 1000;
+    private final long[] eventIds = new long[MAX_EVENTS];
+    private final TdApi.Object[] events = new TdApi.Object[MAX_EVENTS];
+
+    private static class Handler {
+        final ResultHandler resultHandler;
+        final ExceptionHandler exceptionHandler;
+
+        Handler(ResultHandler resultHandler, ExceptionHandler exceptionHandler) {
+            this.resultHandler = resultHandler;
+            this.exceptionHandler = exceptionHandler;
+        }
+    }
+
+    private Client(ResultHandler updateHandler, ExceptionHandler updateExceptionHandler, ExceptionHandler defaultExceptionHandler) {
+        clientCount.incrementAndGet();
+        nativeClientId = NativeClient.createClient();
+        handlers.put(0L, new Handler(updateHandler, updateExceptionHandler));
+        this.defaultExceptionHandler = defaultExceptionHandler;
     }
 
     @Override
@@ -325,48 +372,6 @@ public final class Client implements Runnable {
         for (int i = 0; i < resultN; i++) {
             processResult(eventIds[i], events[i]);
             events[i] = null;
-        }
-    }
-
-    /**
-     * Interface for handler for results of queries to TDLib and incoming updates from TDLib.
-     */
-    public interface ResultHandler {
-        /**
-         * Callback called on result of query to TDLib or incoming update from TDLib.
-         *
-         * @param object Result of query or update of type TdApi.Update about new events.
-         */
-        void onResult(TdApi.Object object);
-    }
-
-    /**
-     * Interface for handler of exceptions thrown while invoking ResultHandler.
-     * By default, all such exceptions are ignored.
-     * All exceptions thrown from ExceptionHandler are ignored.
-     */
-    public interface ExceptionHandler {
-        /**
-         * Callback called on exceptions thrown while invoking ResultHandler.
-         *
-         * @param e Exception thrown by ResultHandler.
-         */
-        void onException(Throwable e);
-    }
-
-    private static final class ClientException extends RuntimeException {
-        private ClientException(String message) {
-            super(message);
-        }
-    }
-
-    private static class Handler {
-        final ResultHandler resultHandler;
-        final ExceptionHandler exceptionHandler;
-
-        Handler(ResultHandler resultHandler, ExceptionHandler exceptionHandler) {
-            this.resultHandler = resultHandler;
-            this.exceptionHandler = exceptionHandler;
         }
     }
 }

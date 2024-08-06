@@ -1,5 +1,6 @@
 package com.gohj99.telewatch
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -8,55 +9,77 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import com.gohj99.telewatch.telegram.TgApi
+import com.gohj99.telewatch.ui.main.ErrorScreen
+import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import org.drinkless.td.libcore.telegram.TdApi
 
 class MainActivity : ComponentActivity() {
+    private var tgApi: TgApi? = null
+    private var isLoggedIn: Boolean = false
+    private var exceptionState by mutableStateOf<Exception?>(null)
+    @SuppressLint("MutableCollectionMutableState")
+    private var chatsList = mutableStateOf(mutableListOf<TdApi.Chat>())
+
+    override fun onDestroy() {
+        super.onDestroy()
+        tgApi?.close()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
+
         val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
-        val isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
+        isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
 
         if (!isLoggedIn) {
-            // 如果未登录，打开WelcomeActivity
             Handler(Looper.getMainLooper()).postDelayed({
-                // 跳转逻辑
                 startActivity(Intent(this, WelcomeActivity::class.java))
                 finish()
-            }, 0) //启动画面显示的时间
-        }
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            TelewatchTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+            }, 0)
+        } else {
+            try {
+                initMain()
+            } catch (e: Exception) {
+                exceptionState = e
+                setContent {
+                    TelewatchTheme {
+                        ErrorScreen(
+                            onRetry = { retryInitialization() },
+                            onSetting = {
+                                startActivity(Intent(this, SettingActivity::class.java))
+                            }
+                        )
+                    }
                 }
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    private fun initMain() {
+        //println("start")
+        tgApi = TgApi(this)
+        tgApi?.getChats(
+            limit = 10,
+            chatsList = chatsList
+        )
+        setContent {
+            TelewatchTheme {
+                MainScreen(chatsList)
+            }
+        }
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TelewatchTheme {
-        Greeting("Android")
+    private fun retryInitialization() {
+        exceptionState = null
+        try {
+            initMain()
+        } catch (e: Exception) {
+            exceptionState = e
+        }
     }
 }

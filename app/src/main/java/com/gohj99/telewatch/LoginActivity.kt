@@ -4,7 +4,10 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.TypedValue
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,6 +29,8 @@ import java.util.Properties
 
 class LoginActivity : ComponentActivity() {
     private lateinit var client: Client
+    private lateinit var LanguageCode: String
+    private lateinit var appVersion: String
     private var qrCodeLink by mutableStateOf<String?>(null)
     private var showPasswordScreen by mutableStateOf(false)
     private var passwordHint by mutableStateOf("")
@@ -40,6 +45,8 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        LanguageCode = this.resources.configuration.locales[0].language
+        appVersion = getAppVersion(this)
         setContent {
             TelewatchTheme {
                 if (showPasswordScreen) {
@@ -73,6 +80,15 @@ class LoginActivity : ComponentActivity() {
         return properties
     }
 
+    private fun getAppVersion(context: Context): String {
+        return try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName
+        } catch (e: Exception) {
+            "1.0.0"
+        }
+    }
+
     // 处理 TDLib 更新的函数
     private fun handleUpdate(update: TdApi.Object) {
         when (update.constructor) {
@@ -91,17 +107,33 @@ class LoginActivity : ComponentActivity() {
                             useSecretChats = true
                             apiId = tdapiId
                             apiHash = tdapiHash
-                            systemLanguageCode = "en"
-                            deviceModel = "Desktop"
-                            systemVersion = "Unknown"
-                            applicationVersion = "1.0"
+                            systemLanguageCode = LanguageCode
+                            deviceModel = Build.MODEL
+                            systemVersion = Build.VERSION.RELEASE
+                            applicationVersion = appVersion
                             enableStorageOptimizer = true
                         }
                         client.send(TdApi.SetTdlibParameters(parameters), { })
                     }
                     TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {
-                        // 提供加密密钥
-                        client.send(TdApi.CheckDatabaseEncryptionKey(), { })
+                        // 检查本地是否有加密密钥
+                        val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+                        val encryptionKeyString = sharedPref.getString("encryption_key", null)
+                        val encryptionKey: TdApi.CheckDatabaseEncryptionKey = if (encryptionKeyString != null) {
+                            val keyBytes = encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+                            TdApi.CheckDatabaseEncryptionKey(keyBytes)
+                        } else {
+                            // 生成一个新的加密密钥并保存
+                            val newKeyBytes = ByteArray(32).apply { (0..31).forEach { this[it] = (it * 7).toByte() } }
+                            val newKeyString = newKeyBytes.joinToString("") { "%02x".format(it) }
+                            with(sharedPref.edit()) {
+                                putString("encryption_key", newKeyString)
+                                apply()
+                            }
+                            TdApi.CheckDatabaseEncryptionKey(newKeyBytes)
+                        }
+
+                        client.send(encryptionKey, { })
                     }
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
                         // 请求二维码认证
@@ -118,6 +150,7 @@ class LoginActivity : ComponentActivity() {
                     TdApi.AuthorizationStateReady.CONSTRUCTOR -> {
                         // 登录成功
                         println("Login Successful")
+                        doneStr.value = getString(R.string.Login_Successful)
                         // 发送广播通知 WelcomeActivity 销毁自己
                         /*LocalBroadcastManager.getInstance(this).sendBroadcast(
                             Intent("ACTION_DESTROY_WELCOME_ACTIVITY")
@@ -129,9 +162,9 @@ class LoginActivity : ComponentActivity() {
                             apply()
                         }
                         runOnUiThread {
-                            // 启动新的页面
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
+                            // 重启软件
+                            resetSelf()
+                            //finish()
                         }
                     }
                     TdApi.AuthorizationStateWaitPassword.CONSTRUCTOR -> {
@@ -173,6 +206,16 @@ class LoginActivity : ComponentActivity() {
             }
             // 处理其他结果...
         }
+    }
+
+    // 重启软件
+    private fun resetSelf(){
+        Handler(Looper.getMainLooper()).postDelayed({
+            val intent = packageManager.getLaunchIntentForPackage(packageName)
+            intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            startActivity(intent)
+            android.os.Process.killProcess(android.os.Process.myPid())
+        }, 1000)
     }
 }
 
