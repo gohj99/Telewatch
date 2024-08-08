@@ -3,6 +3,11 @@ package com.gohj99.telewatch.telegram
 import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.MutableState
+import com.gohj99.telewatch.ui.main.Chat
+import com.gohj99.telewatch.ui.main.add
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
 import java.io.IOException
@@ -52,10 +57,12 @@ class TgApi(private val context: Context) {
         try {
             authLatch.await()
         } catch (e: InterruptedException) {
+            close()
             throw IllegalStateException("Interrupted while waiting for authorization", e)
         }
 
         if (!isAuthorized) {
+            close()
             throw IllegalStateException("Failed to authorize")
         }
     }
@@ -67,17 +74,24 @@ class TgApi(private val context: Context) {
                 val authorizationState = (update as TdApi.UpdateAuthorizationState).authorizationState
                 when (authorizationState.constructor) {
                     TdApi.AuthorizationStateReady.CONSTRUCTOR -> {
-                        isAuthorized = true
-                        authLatch.countDown()
                         println("TgApi: Authorization Ready")
                     }
                     TdApi.AuthorizationStateClosed.CONSTRUCTOR -> {
                         isAuthorized = false
                         authLatch.countDown()
                     }
+                    TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
+                        isAuthorized = false
+                        authLatch.countDown()
+                    }
+
+                    TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {}
+                    TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {}
                     else -> {
                         // 其他状态不进行处理
-                        //println("Authorization state: $authorizationState")
+                        isAuthorized = true
+                        authLatch.countDown()
+                        println("Authorization state: $authorizationState")
                     }
                 }
             }
@@ -134,47 +148,74 @@ class TgApi(private val context: Context) {
     }
 
     // 获取聊天列表
-    fun getChats(limit: Int = 10, chatsList: MutableState<MutableList<TdApi.Chat>>) {
+    suspend fun getChats(limit: Int = 10, chatsList: MutableState<List<Chat>>) {
+        val chatIds = getChatIds(limit)
+        fetchChatDetails(chatIds, chatsList)
+    }
+
+    private suspend fun getChatIds(limit: Int): List<Long> = withContext(Dispatchers.IO) {
         val chatIds = mutableListOf<Long>()
         val chatList = TdApi.GetChats().apply {
             this.limit = limit
         }
-        client.send(chatList) { result ->
-            println("GetChats result: $result")
-            if (result.constructor == TdApi.Error.CONSTRUCTOR) {
-                val error = result as TdApi.Error
-                println("Get Chats Error: ${error.message}")
-            } else {
-                val chats = result as TdApi.Chats
-                chatIds.addAll(chats.chatIds.toList())
-                println("Chats: ${chats.chatIds.joinToString(", ")}")
-                fetchChatDetails(chatIds, chatsList)
-            }
+        val result = sendRequest(chatList)
+        if (result.constructor == TdApi.Error.CONSTRUCTOR) {
+            val error = result as TdApi.Error
+            println("Get Chats Error: ${error.message}")
+        } else {
+            val chats = result as TdApi.Chats
+            chatIds.addAll(chats.chatIds.toList())
+            println("Chats: ${chats.chatIds.joinToString(", ")}")
         }
+        return@withContext chatIds
     }
 
-    // 获取聊天详情
-    private fun fetchChatDetails(chatIds: List<Long>, chatsList: MutableState<MutableList<TdApi.Chat>>) {
+    private suspend fun fetchChatDetails(chatIds: List<Long>, chatsList: MutableState<List<Chat>>) =
+        withContext(Dispatchers.IO) {
         for (chatId in chatIds) {
             println("Sending request for chat ID: $chatId")
-            client.send(TdApi.GetChat(chatId)) { result ->
-                println("Received result for chat ID $chatId: $result")
-                when (result.constructor) {
-                    TdApi.Error.CONSTRUCTOR -> {
-                        val error = result as TdApi.Error
-                        println("Get Chat Details Error for chat ID $chatId: ${error.message}")
+            val result = sendRequest(TdApi.GetChat(chatId))
+            println("Received result for chat ID $chatId: $result")
+            when (result.constructor) {
+                TdApi.Error.CONSTRUCTOR -> {
+                    val error = result as TdApi.Error
+                    println("Get Chat Details Error for chat ID $chatId: ${error.message}")
+                }
+
+                TdApi.Chat.CONSTRUCTOR -> {
+                    val chat = result as TdApi.Chat
+                    println("Chat Details for chat ID $chatId: $chat")
+                    withContext(Dispatchers.Main) {
+                        var message = ""
+                        val lastMessage = chat.lastMessage
+                        if (lastMessage != null) {
+                            val messageContent = lastMessage.content
+                            if (messageContent is TdApi.MessageText) {
+                                message = messageContent.text.text.toString()
+                            }
+                        }
+                        chatsList.add(
+                            Chat(
+                                id = chat.id,
+                                title = chat.title,
+                                message = message
+                            )
+                        )
                     }
-                    TdApi.Chat.CONSTRUCTOR -> {
-                        val chat = result as TdApi.Chat
-                        println("Chat Details for chat ID $chatId: $chat")
-                        chatsList.value.add(chat)
-                    }
-                    else -> {
-                        println("Unexpected result for chat ID $chatId: $result")
-                    }
+                }
+
+                else -> {
+                    println("Unexpected result for chat ID $chatId: $result")
                 }
             }
         }
+        }
+
+    private suspend fun sendRequest(request: TdApi.Function): TdApi.Object =
+        withContext(Dispatchers.IO) {
+            val result = CompletableDeferred<TdApi.Object>()
+            client.send(request) { result.complete(it) }
+            return@withContext result.await()
     }
 
     // 获取聊天记录

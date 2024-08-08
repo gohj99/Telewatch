@@ -26,7 +26,7 @@ fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
     ) {
-        Text(text = "An error occurred\nPlease try again", color = Color.White,)
+        Text(text = "An error occurred\nPlease try again", color = Color.White)
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onRetry) {
             Text(text = stringResource(id = R.string.Retry))

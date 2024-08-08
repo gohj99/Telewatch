@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-08-06T09:32:33.759209200Z">
+        <DropdownSelection timestamp="2024-08-08T17:01:25.697631500Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\28180\.android\avd\Galaxy_watch_6_API_33.avd" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.137.192:35249;connection=d61e217b" />
             </handle>
           </Target>
         </DropdownSelection>
@@ -38,6 +38,17 @@
       <SelectionState runConfigName="SplashSettingScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2024-08-05T05:45:37.517102Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\28180\.android\avd\Galaxy_watch_6_API_33.avd" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="MainScreenPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2024-08-07T16:10:58.310476Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\28180\.android\avd\Galaxy_watch_6_API_33.avd" />
