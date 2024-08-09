@@ -1,5 +1,14 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,6 +26,11 @@ import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+object TgApiManager {
+    @SuppressLint("StaticFieldLeak")
+    var tgApi: TgApi? = null
+}
 
 class MainActivity : ComponentActivity() {
     private var tgApi: TgApi? = null
@@ -52,15 +66,24 @@ class MainActivity : ComponentActivity() {
     private fun initMain() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                tgApi = TgApi(this@MainActivity)
-                tgApi?.getChats(
+                TgApiManager.tgApi = TgApi(this@MainActivity)
+                TgApiManager.tgApi?.getChats(
                     limit = 10,
                     chatsList = chatsList
                 )
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
-                            MainScreen(chatsList)
+                            MainScreen(
+                                chats = chatsList,
+                                chatPage = { chat ->
+                                    startActivity(
+                                        Intent(this@MainActivity, ChatActivity::class.java).apply {
+                                            putExtra("chat", chat)
+                                        }
+                                    )
+                                }
+                            )
                         }
                     }
                 }
@@ -73,10 +96,7 @@ class MainActivity : ComponentActivity() {
                                 onRetry = { retryInitialization() },
                                 onSetting = {
                                     startActivity(
-                                        Intent(
-                                            this@MainActivity,
-                                            SettingActivity::class.java
-                                        )
+                                        Intent(this@MainActivity, SettingActivity::class.java)
                                     )
                                 }
                             )
@@ -86,6 +106,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     private fun retryInitialization() {
         exceptionState = null

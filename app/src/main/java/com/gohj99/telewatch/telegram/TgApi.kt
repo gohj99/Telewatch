@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch.telegram
 
 import android.content.Context
@@ -210,6 +218,17 @@ class TgApi(private val context: Context) {
             }
         }
         }
+
+    // 添加获取当前用户 ID 的方法
+    suspend fun getCurrentUserId(): Long {
+        val result = sendRequest(TdApi.GetMe())
+        if (result.constructor == TdApi.User.CONSTRUCTOR) {
+            val user = result as TdApi.User
+            return user.id
+        } else {
+            throw IllegalStateException("Failed to get current user ID")
+        }
+    }
 
     private suspend fun sendRequest(request: TdApi.Function): TdApi.Object =
         withContext(Dispatchers.IO) {

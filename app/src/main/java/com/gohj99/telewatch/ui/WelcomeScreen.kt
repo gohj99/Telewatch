@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch.ui
 
 import androidx.compose.foundation.Image
@@ -94,7 +102,7 @@ fun SplashWelcomeScreen(
         Spacer(modifier = Modifier.height(14.dp))
 
         Text(
-            text = stringResource(id = R.string.Setting),
+            text = stringResource(id = R.string.Settings),
             color = Color(0xFF5F92D5),
             fontSize = 16.sp,
             modifier = Modifier

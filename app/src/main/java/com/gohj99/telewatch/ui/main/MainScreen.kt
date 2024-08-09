@@ -1,21 +1,33 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch.ui.main
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,18 +41,26 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 @Composable
-fun MainScreen(chats: MutableState<List<Chat>>) {
+fun MainScreen(chats: MutableState<List<Chat>>, chatPage: (Chat) -> Unit) {
+    var showMenu by remember { mutableStateOf(false) }
+    var nowPage by remember { mutableStateOf("home") }
+    val allPages = listOf(
+        stringResource(id = R.string.HOME),
+        stringResource(id = R.string.Contacts),
+        stringResource(id = R.string.Settings),
+    )
+
     // 使用 Column 包裹 Box 和 ChatLazyColumn
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .fillMaxWidth()
     ) {
         // 包含 Row 的 Box
         Box(
             modifier = Modifier
                 .fillMaxWidth() // 只填充宽度
                 .padding(top = 16.dp) // 添加顶部填充
+                .clickable { showMenu = !showMenu } // 点击时切换显示状态
         ) {
             Row(
                 modifier = Modifier
@@ -49,9 +69,13 @@ fun MainScreen(chats: MutableState<List<Chat>>) {
                 verticalAlignment = Alignment.CenterVertically // 垂直方向居中对齐
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.down),
+                    painter = if (showMenu) {
+                        painterResource(id = R.drawable.up)
+                    } else {
+                        painterResource(id = R.drawable.down)
+                    },
                     contentDescription = null,
-                    modifier = Modifier.size(21.8.dp) // 设置图片大小
+                    modifier = Modifier.size(20.114514.dp) // 设置图片大小
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
@@ -63,17 +87,28 @@ fun MainScreen(chats: MutableState<List<Chat>>) {
             }
         }
 
+        Spacer(modifier = Modifier.height(10.dp)) // 添加间距
+
         // ChatLazyColumn
-        Column(
-            modifier = Modifier
-                .fillMaxWidth() // 只填充宽度
-                .weight(1f) // 占据剩余空间
-                .padding(start = 14.dp, top = 2.6.dp, end = 14.dp, bottom = 0.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            ChatLazyColumn(chats) { chat ->
-                println("Clicked on chat: ${chat.id}")
+        if (showMenu) {
+            MenuLazyColumn(
+                allPages = allPages,
+                nowPage = { page ->
+                    nowPage = page
+                    showMenu = false
+                }
+            )
+        } else {
+            when (nowPage) {
+                stringResource(id = R.string.HOME) -> {
+                    ChatLazyColumn(
+                        itemsList = chats,
+                        callback = chatPage
+                    )
+                }
+
+                stringResource(id = R.string.Contacts) -> {}
+                stringResource(id = R.string.Settings) -> {}
             }
         }
     }
@@ -92,6 +127,6 @@ fun MainScreenPreview() {
     )
 
     TelewatchTheme {
-        MainScreen(sampleChats)
+        MainScreen(sampleChats) {/*TODO*/ }
     }
 }

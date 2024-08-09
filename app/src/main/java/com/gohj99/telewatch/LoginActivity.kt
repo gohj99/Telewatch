@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch
 
 import android.app.AlertDialog
@@ -29,7 +37,7 @@ import java.util.Properties
 
 class LoginActivity : ComponentActivity() {
     private lateinit var client: Client
-    private lateinit var LanguageCode: String
+    private lateinit var languageCode: String
     private lateinit var appVersion: String
     private var qrCodeLink by mutableStateOf<String?>(null)
     private var showPasswordScreen by mutableStateOf(false)
@@ -45,14 +53,18 @@ class LoginActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        LanguageCode = this.resources.configuration.locales[0].language
+        languageCode = this.resources.configuration.locales[0].language
         appVersion = getAppVersion(this)
         setContent {
             TelewatchTheme {
                 if (showPasswordScreen) {
                     SplashPasswordScreen(
                         onDoneClick = { password ->
-                            client.send(TdApi.CheckAuthenticationPassword(password), { authRequestHandler(it) })
+                            client.send(TdApi.CheckAuthenticationPassword(password)) {
+                                authRequestHandler(
+                                    it
+                                )
+                            }
                         },
                         passwordHint = passwordHint,
                         doneStr = doneStr
@@ -107,17 +119,17 @@ class LoginActivity : ComponentActivity() {
                             useSecretChats = true
                             apiId = tdapiId
                             apiHash = tdapiHash
-                            systemLanguageCode = LanguageCode
+                            systemLanguageCode = languageCode
                             deviceModel = Build.MODEL
                             systemVersion = Build.VERSION.RELEASE
                             applicationVersion = appVersion
                             enableStorageOptimizer = true
                         }
-                        client.send(TdApi.SetTdlibParameters(parameters), { })
+                        client.send(TdApi.SetTdlibParameters(parameters)) { }
                     }
                     TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {
                         // 检查本地是否有加密密钥
-                        val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+                        val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
                         val encryptionKeyString = sharedPref.getString("encryption_key", null)
                         val encryptionKey: TdApi.CheckDatabaseEncryptionKey = if (encryptionKeyString != null) {
                             val keyBytes = encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
@@ -133,11 +145,15 @@ class LoginActivity : ComponentActivity() {
                             TdApi.CheckDatabaseEncryptionKey(newKeyBytes)
                         }
 
-                        client.send(encryptionKey, { })
+                        client.send(encryptionKey) { }
                     }
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
                         // 请求二维码认证
-                        client.send(TdApi.RequestQrCodeAuthentication(LongArray(0)), { authRequestHandler(it) })
+                        client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
+                            authRequestHandler(
+                                it
+                            )
+                        }
                     }
                     TdApi.AuthorizationStateWaitOtherDeviceConfirmation.CONSTRUCTOR -> {
                         val link = (authorizationState as TdApi.AuthorizationStateWaitOtherDeviceConfirmation).link
@@ -156,7 +172,7 @@ class LoginActivity : ComponentActivity() {
                             Intent("ACTION_DESTROY_WELCOME_ACTIVITY")
                         )*/
                         // 存储登录成功信息
-                        val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+                        val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
                         with(sharedPref.edit()) {
                             putBoolean("isLoggedIn", true)
                             apply()
@@ -178,6 +194,25 @@ class LoginActivity : ComponentActivity() {
                         }
                     }
                     // 处理其他授权状态...
+                    TdApi.AuthorizationStateClosed.CONSTRUCTOR -> {
+                        TODO()
+                    }
+
+                    TdApi.AuthorizationStateClosing.CONSTRUCTOR -> {
+                        TODO()
+                    }
+
+                    TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR -> {
+                        TODO()
+                    }
+
+                    TdApi.AuthorizationStateWaitCode.CONSTRUCTOR -> {
+                        TODO()
+                    }
+
+                    TdApi.AuthorizationStateWaitRegistration.CONSTRUCTOR -> {
+                        TODO()
+                    }
                 }
             }
             // 处理其他更新...
