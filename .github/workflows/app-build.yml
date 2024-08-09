@@ -23,7 +23,7 @@ jobs:
           VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' ./app/build.gradle.kts)
           echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
     
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
