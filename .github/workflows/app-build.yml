@@ -39,7 +39,7 @@ jobs:
           echo "api_id=${{ secrets.API_ID }}" > app/src/main/assets/config.properties
           echo "api_hash=${{ secrets.API_HASH }}" >> app/src/main/assets/config.properties
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/gradle-build-action@v3
         with:
           gradle-version: 8.6
           arguments: assembleRelease
