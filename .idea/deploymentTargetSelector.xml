@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-08-10T04:01:16.978104300Z">
+        <DropdownSelection timestamp="2024-08-10T08:25:55.898406200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\28180\.android\avd\Galaxy_watch_6.avd" />
@@ -59,7 +59,7 @@
       </SelectionState>
       <SelectionState runConfigName="SplashLoadingScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-08-10T05:58:03.224523800Z">
+        <DropdownSelection timestamp="2024-08-10T08:17:10.401777400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\28180\.android\avd\Galaxy_watch_6.avd" />

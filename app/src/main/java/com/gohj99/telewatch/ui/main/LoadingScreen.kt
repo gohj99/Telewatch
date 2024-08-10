@@ -28,17 +28,17 @@ fun SplashLoadingScreen() {
         modifier = Modifier.fillMaxSize()
     ) {
         // 绘制透明度为30%的圆环
-        Canvas(modifier = Modifier.size(27.2.dp)) {
+        Canvas(modifier = Modifier.size(18.7.dp)) {
             drawCircle(
                 color = Color.White.copy(alpha = 0.3f),
-                style = Stroke(width = 3.5.dp.toPx()) // 圆环的宽度
+                style = Stroke(width = 2.9.dp.toPx()) // 圆环的宽度
             )
         }
         // 绘制旋转的进度指示器
         CircularProgressIndicator(
             color = Color.White,
-            strokeWidth = 3.6.dp,
-            modifier = Modifier.size(30.dp)
+            strokeWidth = 3.dp,
+            modifier = Modifier.size(22.dp)
         )
     }
 }

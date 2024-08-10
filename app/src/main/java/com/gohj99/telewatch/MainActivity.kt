@@ -34,14 +34,13 @@ object TgApiManager {
 }
 
 class MainActivity : ComponentActivity() {
-    private var tgApi: TgApi? = null
     private var isLoggedIn: Boolean = false
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
 
     override fun onDestroy() {
         super.onDestroy()
-        tgApi?.close()
+        TgApiManager.tgApi?.close()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,11 +73,13 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 println("开始启动Main")
-                TgApiManager.tgApi = TgApi(this@MainActivity)
+                TgApiManager.tgApi = TgApi(
+                    this@MainActivity,
+                    chatsList = chatsList
+                )
                 println("实例化TgApi")
                 TgApiManager.tgApi?.getChats(
-                    limit = 10,
-                    chatsList = chatsList
+                    limit = 10
                 )
                 println("获取消息列表")
                 launch(Dispatchers.Main) {

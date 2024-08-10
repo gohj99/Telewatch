@@ -11,6 +11,7 @@ package com.gohj99.telewatch.telegram
 import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.MutableState
+import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.add
 import kotlinx.coroutines.CompletableDeferred
@@ -22,7 +23,7 @@ import java.io.IOException
 import java.util.Properties
 import java.util.concurrent.CountDownLatch
 
-class TgApi(private val context: Context) {
+class TgApi(private val context: Context, private var chatsList: MutableState<List<Chat>>) {
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -78,40 +79,87 @@ class TgApi(private val context: Context) {
     // 处理 TDLib 更新的函数
     private fun handleUpdate(update: TdApi.Object) {
         when (update.constructor) {
-            TdApi.UpdateAuthorizationState.CONSTRUCTOR -> {
-                val authorizationState = (update as TdApi.UpdateAuthorizationState).authorizationState
-                when (authorizationState.constructor) {
-                    TdApi.AuthorizationStateReady.CONSTRUCTOR -> {
-                        println("TgApi: Authorization Ready")
-                        isAuthorized = true
-                        authLatch.countDown()
-                    }
-                    TdApi.AuthorizationStateClosed.CONSTRUCTOR -> {
-                        println("TgApi: Authorization Closed")
-                        isAuthorized = false
-                        authLatch.countDown()
-                    }
-                    TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
-                        println("TgApi: Waiting for Phone Number")
-                        isAuthorized = false
-                        authLatch.countDown()
-                    }
-
-                    TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {
-                        println("TgApi: Waiting for TDLib Parameters")
-                    }
-
-                    TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {
-                        println("TgApi: Waiting for Encryption Key")
-                    }
-                    else -> {
-                        //println("Authorization state: $authorizationState")
-                    }
-                }
-            }
-            // 处理其他更新...
+            TdApi.UpdateAuthorizationState.CONSTRUCTOR -> handleAuthorizationState(update as TdApi.UpdateAuthorizationState)
+            TdApi.UpdateNewMessage.CONSTRUCTOR -> handleNewMessage(update as TdApi.UpdateNewMessage)
+            TdApi.UpdateMessageContent.CONSTRUCTOR -> handleMessageContentUpdate(update as TdApi.UpdateMessageContent)
+            TdApi.UpdateMessageEdited.CONSTRUCTOR -> handleMessageEdited(update as TdApi.UpdateMessageEdited)
+            // 其他更新
             else -> {
                 //println("Received update: $update")
+            }
+        }
+    }
+
+    private fun handleAuthorizationState(update: TdApi.UpdateAuthorizationState) {
+        val authorizationState = update.authorizationState
+        when (authorizationState.constructor) {
+            TdApi.AuthorizationStateReady.CONSTRUCTOR -> {
+                println("TgApi: Authorization Ready")
+                isAuthorized = true
+                authLatch.countDown()
+            }
+
+            TdApi.AuthorizationStateClosed.CONSTRUCTOR -> {
+                println("TgApi: Authorization Closed")
+                isAuthorized = false
+                authLatch.countDown()
+            }
+
+            TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
+                println("TgApi: Waiting for Phone Number")
+                isAuthorized = false
+                authLatch.countDown()
+            }
+
+            else -> {
+                // 其他授权状态处理
+            }
+        }
+    }
+
+    private fun handleNewMessage(update: TdApi.UpdateNewMessage) {
+        val message = update.message
+        println("New message received in chat ID ${message.chatId}")
+        updateChatList(message)
+    }
+
+    private fun handleMessageContentUpdate(update: TdApi.UpdateMessageContent) {
+        val chatId = update.chatId
+        val messageId = update.messageId
+        //val newContent = update.newContent
+        println("Message content updated in chat ID $chatId for message ID $messageId")
+        // 更新消息内容逻辑
+    }
+
+    private fun handleMessageEdited(update: TdApi.UpdateMessageEdited) {
+        val chatId = update.chatId
+        val messageId = update.messageId
+        val editDate = update.editDate
+        println("Message edited in chat ID $chatId for message ID $messageId at $editDate")
+        // 更新消息编辑状态逻辑
+    }
+
+    private fun updateChatList(message: TdApi.Message) {
+        val chatId = message.chatId
+        val newMessageText = when (val content = message.content) {
+            is TdApi.MessageText -> {
+                val text = content.text.text
+                if (text.length > 20) text.take(20) + "..." else text
+            }
+
+            else -> context.getString(R.string.Unknown_Message)
+        }
+
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(message = newMessageText)
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
+            } else {
+                // 新增聊天到列表顶部
+                add(0, Chat(id = chatId, title = "New Chat", message = newMessageText))
             }
         }
     }
@@ -162,9 +210,9 @@ class TgApi(private val context: Context) {
     }
 
     // 获取聊天列表
-    suspend fun getChats(limit: Int = 10, chatsList: MutableState<List<Chat>>) {
+    suspend fun getChats(limit: Int = 10) {
         val chatIds = getChatIds(limit)
-        fetchChatDetails(chatIds, chatsList)
+        fetchChatDetails(chatIds)
     }
 
     private suspend fun getChatIds(limit: Int): List<Long> = withContext(Dispatchers.IO) {
@@ -184,7 +232,7 @@ class TgApi(private val context: Context) {
         return@withContext chatIds
     }
 
-    private suspend fun fetchChatDetails(chatIds: List<Long>, chatsList: MutableState<List<Chat>>) =
+    private suspend fun fetchChatDetails(chatIds: List<Long>) =
         withContext(Dispatchers.IO) {
         for (chatId in chatIds) {
             //println("Sending request for chat ID: $chatId")
@@ -200,14 +248,14 @@ class TgApi(private val context: Context) {
                     val chat = result as TdApi.Chat
                     //println("Chat Details for chat ID $chatId: $chat")
                     withContext(Dispatchers.Main) {
-                        var message = ""
                         val lastMessage = chat.lastMessage
-                        if (lastMessage != null) {
+                        val message = if (lastMessage != null) {
                             val messageContent = lastMessage.content
                             if (messageContent is TdApi.MessageText) {
-                                message = messageContent.text.text.toString()
-                            }
-                        }
+                                val text = messageContent.text.text.toString()
+                                if (text.length > 20) text.take(20) + "..." else text
+                            } else context.getString(R.string.Unknown_Message)
+                        } else context.getString(R.string.Unknown_Message)
                         println(chat.id)
                         println(chat.title)
                         chatsList.add(
@@ -246,7 +294,11 @@ class TgApi(private val context: Context) {
     }
 
     // 获取聊天记录
-    fun getChatMessages(chatId: Long, limit: Int = 10): List<TdApi.Message> {
+    fun getChatMessages(
+        chatId: Long,
+        limit: Int = 10,
+        chatList: MutableState<List<TdApi.Message>>
+    ) {
         val messagesList = mutableListOf<TdApi.Message>()
         val getChatMessages = TdApi.GetChatHistory().apply {
             this.chatId = chatId
@@ -260,10 +312,10 @@ class TgApi(private val context: Context) {
             } else {
                 val messages = result as TdApi.Messages
                 messagesList.addAll(messages.messages.toList())
+                chatList.value = messagesList
                 println("Messages: ${messages.messages.joinToString(", ")}")
             }
         }
-        return messagesList
     }
 
     // 关闭连接

@@ -53,9 +53,7 @@ class ChatActivity : ComponentActivity() {
         }
 
         // chat 不为 null 时，获取聊天消息
-        tgApi?.let {
-            chatList.value = it.getChatMessages(chat!!.id, 10)
-        }
+        tgApi!!.getChatMessages(chat!!.id, 10, chatList)
 
         setContent {
             TelewatchTheme {

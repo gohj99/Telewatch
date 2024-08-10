@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +36,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -44,6 +46,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -56,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import kotlinx.coroutines.launch
 import org.drinkless.td.libcore.telegram.TdApi
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -71,6 +75,7 @@ fun SplashChatScreen(
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -79,17 +84,24 @@ fun SplashChatScreen(
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
             .collect { (index, scrollOffset) ->
                 if (index != previousIndex) {
-                    isFloatingVisible = index >= previousIndex - 2
-                } else {
-                    if (scrollOffset < previousScrollOffset - 2) {
+                    if (index > previousIndex + 2) {
                         isFloatingVisible = false
-                    } else if (scrollOffset > previousScrollOffset) {
-                        isFloatingVisible = true
+                    }
+                } else {
+                    if (scrollOffset > previousScrollOffset) {
+                        isFloatingVisible = false
                     }
                 }
                 previousIndex = index
                 previousScrollOffset = scrollOffset
             }
+    }
+
+    LaunchedEffect(chatList.value) {
+        coroutineScope.launch {
+            // 滚动到列表的底部
+            listState.scrollToItem(0)
+        }
     }
 
     Box(
@@ -103,6 +115,7 @@ fun SplashChatScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            println("开始渲染")
             Text(
                 text = chatTitle,
                 color = Color.White,
@@ -116,9 +129,15 @@ fun SplashChatScreen(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
                     .weight(1f),
+                reverseLayout = true, // 反转布局，使列表从下往上打印
                 verticalArrangement = Arrangement.Top
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
+                }
                 items(chatList.value) { message ->
+                    println("开始渲染列表")
+                    println(message)
                     val isCurrentUser =
                         (message.senderId as? TdApi.MessageSenderUser)?.userId == currentUserId
                     val backgroundColor =
@@ -145,9 +164,6 @@ fun SplashChatScreen(
                             )
                         }
                     }
-                }
-                item {
-                    Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
                 }
             }
         }
@@ -176,40 +192,66 @@ fun SplashChatScreen(
             )
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 4.dp)
-                .alpha(if (isFloatingVisible) 1f else 0f),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
-                    keyboardController?.show() // 显示输入法
-                },
+        if (isFloatingVisible) {
+            Row(
                 modifier = Modifier
-                    .size(84.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 4.dp)
+                    .alpha(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_custom_keyboard),
-                    contentDescription = null,
-                    modifier = Modifier.size(82.dp)
-                )
-            }
+                IconButton(
+                    onClick = {
+                        textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
+                        keyboardController?.show() // 显示输入法
+                    },
+                    modifier = Modifier
+                        .size(84.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_custom_keyboard),
+                        contentDescription = null,
+                        modifier = Modifier.size(82.dp)
+                    )
+                }
 
-            IconButton(
-                onClick = { sendCallback(inputText.text) },
+                IconButton(
+                    onClick = { sendCallback(inputText.text) },
+                    modifier = Modifier
+                        .size(45.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_custom_send),
+                        contentDescription = null,
+                        modifier = Modifier.size(45.dp)
+                    )
+                }
+            }
+        } else {
+            Box(
                 modifier = Modifier
-                    .size(45.dp)
+                    .fillMaxHeight() // 使 Box 填满整个屏幕高度
+                    .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
+                contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_custom_send),
-                    contentDescription = null,
-                    modifier = Modifier.size(45.dp)
-                )
+                IconButton(
+                    onClick = {
+                        isFloatingVisible = true
+                    },
+                    modifier = Modifier
+                        .padding(3.dp) // 可选的内边距
+                        .size(20.dp) // 设置 IconButton 的大小
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(20.dp) // 设置 Image 的大小
+                            .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                    )
+                }
             }
         }
     }
