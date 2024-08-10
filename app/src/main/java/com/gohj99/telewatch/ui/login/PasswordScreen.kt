@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch.ui.login
 
 import androidx.compose.foundation.background
@@ -45,6 +53,8 @@ fun SplashPasswordScreen(
     doneStr: MutableState<String>
 ) {
     val loading = stringResource(id = R.string.loading)
+    val done = stringResource(id = R.string.Done)
+    val passwordError = stringResource(id = R.string.Password_Error)
     var password by remember { mutableStateOf("") }
 
     Column(
@@ -76,7 +86,10 @@ fun SplashPasswordScreen(
         ) {
             BasicTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    doneStr.value = done
+                },
                 visualTransformation = PasswordVisualTransformation(),
                 singleLine = true,
                 textStyle = TextStyle(
@@ -114,9 +127,11 @@ fun SplashPasswordScreen(
 
         CustomButton(
             onClick = {
-                onDoneClick(password)
+                if (password != "") {
+                    doneStr.value = loading
+                    onDoneClick(password)
+                } else doneStr.value = passwordError
                 password = ""
-                doneStr.value = loading
             },
             text = doneStr.value
         )

@@ -24,8 +24,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -35,12 +38,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,14 +58,19 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import org.drinkless.td.libcore.telegram.TdApi
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SplashChatScreen(
     chatTitle: String,
     chatList: MutableState<List<TdApi.Message>>,
-    currentUserId: Long
+    currentUserId: Long,
+    sendCallback: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
     var isFloatingVisible by remember { mutableStateOf(true) }
+    var inputText by remember { mutableStateOf(TextFieldValue("")) }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -64,11 +79,7 @@ fun SplashChatScreen(
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
             .collect { (index, scrollOffset) ->
                 if (index != previousIndex) {
-                    if (index < previousIndex - 2) {
-                        isFloatingVisible = false
-                    } else {
-                        isFloatingVisible = true
-                    }
+                    isFloatingVisible = index >= previousIndex - 2
                 } else {
                     if (scrollOffset < previousScrollOffset - 2) {
                         isFloatingVisible = false
@@ -141,17 +152,44 @@ fun SplashChatScreen(
             }
         }
 
+        // 隐藏的 TextField 用于触发输入法
+        val textFieldFocusRequester by remember { mutableStateOf(FocusRequester()) }
+
+        TextField(
+            value = inputText,
+            onValueChange = { inputText = it },
+            modifier = Modifier
+                .size(1.dp)
+                .alpha(0f)
+                .focusRequester(textFieldFocusRequester),
+            maxLines = 1,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    // TODO: Handle the input text (e.g., send message)
+                }
+            )
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter) // 将按钮置于底部中央
-                .padding(bottom = 4.dp) // 添加底部填充以将按钮稍微往下移动
-                .alpha(if (isFloatingVisible) 1f else 0f), // 根据 isFloatingVisible 控制透明度
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 4.dp)
+                .alpha(if (isFloatingVisible) 1f else 0f),
             horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically // 使内容在垂直方向上居中对齐
+            verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = {
+                    textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
+                    keyboardController?.show() // 显示输入法
+                },
                 modifier = Modifier
                     .size(84.dp)
             ) {
@@ -163,7 +201,7 @@ fun SplashChatScreen(
             }
 
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { sendCallback(inputText.text) },
                 modifier = Modifier
                     .size(45.dp)
             ) {
@@ -213,6 +251,12 @@ fun SplashChatScreenPreview() {
     }
 
     TelewatchTheme {
-        SplashChatScreen(chatTitle = "gohj99", chatList = sampleMessages, currentUserId = 1L)
+        SplashChatScreen(
+            chatTitle = "XCちゃん",
+            chatList = sampleMessages,
+            currentUserId = 1L
+        ) { text ->
+            println(text)
+        }
     }
 }

@@ -23,6 +23,7 @@ import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
+import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,6 +47,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setContent {
+            TelewatchTheme {
+                SplashLoadingScreen()
+            }
+        }
+
         enableEdgeToEdge()
 
         val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
@@ -66,11 +73,14 @@ class MainActivity : ComponentActivity() {
     private fun initMain() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                println("开始启动Main")
                 TgApiManager.tgApi = TgApi(this@MainActivity)
+                println("实例化TgApi")
                 TgApiManager.tgApi?.getChats(
                     limit = 10,
                     chatsList = chatsList
                 )
+                println("获取消息列表")
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {

@@ -43,12 +43,12 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 @Composable
 fun MainScreen(chats: MutableState<List<Chat>>, chatPage: (Chat) -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
-    var nowPage by remember { mutableStateOf("home") }
     val allPages = listOf(
         stringResource(id = R.string.HOME),
         stringResource(id = R.string.Contacts),
         stringResource(id = R.string.Settings),
     )
+    var nowPage by remember { mutableStateOf(allPages[0]) }
 
     // 使用 Column 包裹 Box 和 ChatLazyColumn
     Column(

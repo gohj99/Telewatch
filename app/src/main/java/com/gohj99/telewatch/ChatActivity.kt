@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +26,8 @@ class ChatActivity : ComponentActivity() {
     private var tgApi: TgApi? = null
     private var chat: Chat? = null
     private var chatList = mutableStateOf(emptyList<TdApi.Message>())
+
+    @SuppressLint("AutoboxingStateCreation")
     private var currentUserId = mutableStateOf(-1L) // 使用 MutableState 来持有当前用户 ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +54,7 @@ class ChatActivity : ComponentActivity() {
 
         // chat 不为 null 时，获取聊天消息
         tgApi?.let {
-            chatList.value = it.getChatMessages(chat!!.id, 10) ?: emptyList()
+            chatList.value = it.getChatMessages(chat!!.id, 10)
         }
 
         setContent {
@@ -59,8 +62,15 @@ class ChatActivity : ComponentActivity() {
                 SplashChatScreen(
                     chatTitle = chat!!.title,
                     chatList = chatList,
-                    currentUserId = currentUserId.value // 传递当前用户 ID
+                    currentUserId = currentUserId.value  // 传递当前用户 ID
                 )
+                { messageText ->
+                    println(messageText)
+                    tgApi?.sendMessage(
+                        chatId = chat!!.id,
+                        messageText = messageText
+                    )
+                }
             }
         }
     }

@@ -232,6 +232,7 @@ class LoginActivity : ComponentActivity() {
                     }
 
                     else -> runOnUiThread {
+                        doneStr.value = getString(R.string.Done)
                         AlertDialog.Builder(this)
                             .setMessage("${getString(R.string.Request_error)}\ncode:${error.code}\n${error.message}")
                             .setPositiveButton(getString(R.string.OK)) { dialog, which -> }

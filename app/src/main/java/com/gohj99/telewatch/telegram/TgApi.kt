@@ -46,7 +46,7 @@ class TgApi(private val context: Context) {
             enableStorageOptimizer = true
         }
         client.send(TdApi.SetTdlibParameters(parameters)) { result ->
-            //println("SetTdlibParameters result: $result")
+            println("SetTdlibParameters result: $result")
         }
 
         // 检查本地是否有加密密钥
@@ -83,23 +83,29 @@ class TgApi(private val context: Context) {
                 when (authorizationState.constructor) {
                     TdApi.AuthorizationStateReady.CONSTRUCTOR -> {
                         println("TgApi: Authorization Ready")
+                        isAuthorized = true
+                        authLatch.countDown()
                     }
                     TdApi.AuthorizationStateClosed.CONSTRUCTOR -> {
+                        println("TgApi: Authorization Closed")
                         isAuthorized = false
                         authLatch.countDown()
                     }
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
+                        println("TgApi: Waiting for Phone Number")
                         isAuthorized = false
                         authLatch.countDown()
                     }
 
-                    TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {}
-                    TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {}
+                    TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {
+                        println("TgApi: Waiting for TDLib Parameters")
+                    }
+
+                    TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {
+                        println("TgApi: Waiting for Encryption Key")
+                    }
                     else -> {
-                        // 其他状态不进行处理
-                        isAuthorized = true
-                        authLatch.countDown()
-                        println("Authorization state: $authorizationState")
+                        //println("Authorization state: $authorizationState")
                     }
                 }
             }
@@ -181,9 +187,9 @@ class TgApi(private val context: Context) {
     private suspend fun fetchChatDetails(chatIds: List<Long>, chatsList: MutableState<List<Chat>>) =
         withContext(Dispatchers.IO) {
         for (chatId in chatIds) {
-            println("Sending request for chat ID: $chatId")
+            //println("Sending request for chat ID: $chatId")
             val result = sendRequest(TdApi.GetChat(chatId))
-            println("Received result for chat ID $chatId: $result")
+            //println("Received result for chat ID $chatId: $result")
             when (result.constructor) {
                 TdApi.Error.CONSTRUCTOR -> {
                     val error = result as TdApi.Error
@@ -192,7 +198,7 @@ class TgApi(private val context: Context) {
 
                 TdApi.Chat.CONSTRUCTOR -> {
                     val chat = result as TdApi.Chat
-                    println("Chat Details for chat ID $chatId: $chat")
+                    //println("Chat Details for chat ID $chatId: $chat")
                     withContext(Dispatchers.Main) {
                         var message = ""
                         val lastMessage = chat.lastMessage
@@ -202,6 +208,8 @@ class TgApi(private val context: Context) {
                                 message = messageContent.text.text.toString()
                             }
                         }
+                        println(chat.id)
+                        println(chat.title)
                         chatsList.add(
                             Chat(
                                 id = chat.id,

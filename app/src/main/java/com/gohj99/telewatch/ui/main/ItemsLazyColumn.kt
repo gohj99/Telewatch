@@ -32,11 +32,27 @@ data class Chat(
     val message: String
 ) : Parcelable {
     override fun describeContents(): Int {
-        TODO("Not yet implemented")
+        return 0 // 通常返回0即可，除非有特殊情况需要返回其他值
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
-        TODO("Not yet implemented")
+        dest.writeLong(id)
+        dest.writeString(title)
+        dest.writeString(message)
+    }
+
+    companion object CREATOR : Parcelable.Creator<Chat> {
+        override fun createFromParcel(parcel: Parcel): Chat {
+            return Chat(
+                parcel.readLong(),
+                parcel.readString() ?: "",
+                parcel.readString() ?: ""
+            )
+        }
+
+        override fun newArray(size: Int): Array<Chat?> {
+            return arrayOfNulls(size)
+        }
     }
 }
 
