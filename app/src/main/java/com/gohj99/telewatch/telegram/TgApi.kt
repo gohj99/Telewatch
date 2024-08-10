@@ -11,6 +11,7 @@ package com.gohj99.telewatch.telegram
 import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.add
@@ -24,6 +25,8 @@ import java.util.Properties
 import java.util.concurrent.CountDownLatch
 
 class TgApi(private val context: Context, private var chatsList: MutableState<List<Chat>>) {
+    private var saveChatId = 1L
+    private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -142,24 +145,36 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
     private fun updateChatList(message: TdApi.Message) {
         val chatId = message.chatId
         val newMessageText = when (val content = message.content) {
-            is TdApi.MessageText -> {
-                val text = content.text.text
-                if (text.length > 20) text.take(20) + "..." else text
-            }
-
+            is TdApi.MessageText -> content.text.text
             else -> context.getString(R.string.Unknown_Message)
+        }
+
+        if (chatId == saveChatId) {
+            // 将新消息添加到保存的聊天列表的前面
+            saveChatList.value = saveChatList.value.toMutableList().apply {
+                add(0, message) // 新消息存储在最前面
+            }
         }
 
         chatsList.value = chatsList.value.toMutableList().apply {
             // 查找现有的聊天并更新
             val existingChatIndex = indexOfFirst { it.id == chatId }
             if (existingChatIndex >= 0) {
-                val updatedChat = get(existingChatIndex).copy(message = newMessageText)
+                val updatedChat = get(existingChatIndex).copy(
+                    message = if (newMessageText.length > 20) newMessageText.take(20) + "..." else newMessageText
+                )
                 removeAt(existingChatIndex)
                 add(0, updatedChat)
             } else {
                 // 新增聊天到列表顶部
-                add(0, Chat(id = chatId, title = "New Chat", message = newMessageText))
+                add(
+                    0,
+                    Chat(
+                        id = chatId,
+                        title = "New Chat",
+                        message = if (newMessageText.length > 20) newMessageText.take(20) + "..." else newMessageText
+                    )
+                )
             }
         }
     }
@@ -296,26 +311,41 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
     // 获取聊天记录
     fun getChatMessages(
         chatId: Long,
-        limit: Int = 10,
         chatList: MutableState<List<TdApi.Message>>
     ) {
-        val messagesList = mutableListOf<TdApi.Message>()
-        val getChatMessages = TdApi.GetChatHistory().apply {
-            this.chatId = chatId
-            this.limit = limit
-        }
-        client.send(getChatMessages) { result ->
-            println("GetChatMessages result: $result")
-            if (result.constructor == TdApi.Error.CONSTRUCTOR) {
-                val error = result as TdApi.Error
-                println("Get Chat Messages Error: ${error.message}")
-            } else {
-                val messages = result as TdApi.Messages
-                messagesList.addAll(messages.messages.toList())
-                chatList.value = messagesList
-                println("Messages: ${messages.messages.joinToString(", ")}")
+        saveChatList = chatList
+        saveChatId = chatId
+
+        // 定义一个内部函数用于异步递归获取消息
+        fun fetchMessages(fromMessageId: Long) {
+            val getChatMessages = TdApi.GetChatHistory().apply {
+                this.chatId = chatId
+                this.limit = 10 // 每次获取 10 条消息
+                this.fromMessageId = fromMessageId
+            }
+
+            client.send(getChatMessages) { result ->
+                println("GetChatMessages result: $result")
+                if (result.constructor == TdApi.Error.CONSTRUCTOR) {
+                    val error = result as TdApi.Error
+                    println("Get Chat Messages Error: ${error.message}")
+                } else {
+                    val messages = result as TdApi.Messages
+                    if (messages.messages.isNotEmpty()) {
+                        val sortedMessages =
+                            messages.messages.toList().sortedByDescending { it.date }
+                        saveChatList.value = saveChatList.value.toMutableList().apply {
+                            addAll(sortedMessages) // 将新消息添加到列表最后面
+                        }
+                        // 继续加载更旧的消息
+                        fetchMessages(messages.messages.last().id)
+                    }
+                }
             }
         }
+
+        // 从最新的消息开始获取
+        fetchMessages(0)
     }
 
     // 关闭连接

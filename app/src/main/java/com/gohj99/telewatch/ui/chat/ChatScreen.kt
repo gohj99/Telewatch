@@ -129,15 +129,13 @@ fun SplashChatScreen(
                     .fillMaxWidth()
                     .padding(top = 8.dp)
                     .weight(1f),
-                reverseLayout = true, // 反转布局，使列表从下往上打印
+                reverseLayout = true, // 反转布局
                 verticalArrangement = Arrangement.Top
             ) {
                 item {
                     Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
                 }
                 items(chatList.value) { message ->
-                    println("开始渲染列表")
-                    println(message)
                     val isCurrentUser =
                         (message.senderId as? TdApi.MessageSenderUser)?.userId == currentUserId
                     val backgroundColor =

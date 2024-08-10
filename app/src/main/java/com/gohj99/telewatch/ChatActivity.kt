@@ -45,29 +45,23 @@ class ChatActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
-        // 异步获取当前用户 ID
-        lifecycleScope.launch {
-            tgApi?.let {
-                currentUserId.value = it.getCurrentUserId()
-            }
-        }
+        // 清空旧的聊天消息
+        chatList.value = emptyList()
 
-        // chat 不为 null 时，获取聊天消息
-        tgApi!!.getChatMessages(chat!!.id, 10, chatList)
+        // 异步获取当前用户 ID 和聊天记录
+        lifecycleScope.launch {
+            currentUserId.value = tgApi!!.getCurrentUserId()
+            tgApi!!.getChatMessages(chat!!.id, chatList) // 异步加载全部聊天消息
+        }
 
         setContent {
             TelewatchTheme {
                 SplashChatScreen(
                     chatTitle = chat!!.title,
                     chatList = chatList,
-                    currentUserId = currentUserId.value  // 传递当前用户 ID
-                )
-                { messageText ->
-                    println(messageText)
-                    tgApi?.sendMessage(
-                        chatId = chat!!.id,
-                        messageText = messageText
-                    )
+                    currentUserId = currentUserId.value
+                ) { messageText ->
+                    tgApi?.sendMessage(chatId = chat!!.id, messageText = messageText)
                 }
             }
         }
