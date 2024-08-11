@@ -37,6 +37,7 @@ class MainActivity : ComponentActivity() {
     private var isLoggedIn: Boolean = false
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
+    private var settingList = mutableStateOf(listOf<String>())
 
     override fun onDestroy() {
         super.onDestroy()
@@ -45,14 +46,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        enableEdgeToEdge()
         setContent {
             TelewatchTheme {
                 SplashLoadingScreen()
             }
         }
 
-        enableEdgeToEdge()
+        settingList.value = listOf(
+            getString(R.string.About),
+            getString(R.string.setting_all)
+        )
 
         val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
         isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
@@ -72,16 +76,16 @@ class MainActivity : ComponentActivity() {
     private fun initMain() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                println("开始启动Main")
+                //println("开始启动Main")
                 TgApiManager.tgApi = TgApi(
                     this@MainActivity,
                     chatsList = chatsList
                 )
-                println("实例化TgApi")
+                //println("实例化TgApi")
                 TgApiManager.tgApi?.getChats(
                     limit = 10
                 )
-                println("获取消息列表")
+                //println("获取消息列表")
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
@@ -93,6 +97,28 @@ class MainActivity : ComponentActivity() {
                                             putExtra("chat", chat)
                                         }
                                     )
+                                },
+                                settingList = settingList,
+                                settingCallback = {
+                                    when (it) {
+                                        getString(R.string.setting_all) -> {
+                                            startActivity(
+                                                Intent(
+                                                    this@MainActivity,
+                                                    SettingActivity::class.java
+                                                )
+                                            )
+                                        }
+
+                                        getString(R.string.About) -> {
+                                            startActivity(
+                                                Intent(this@MainActivity, AboutActivity::class.java)
+                                            )
+                                        }
+                                    }
+                                },
+                                getContacts = { contacts ->
+                                    TgApiManager.tgApi!!.getContacts(contacts)
                                 }
                             )
                         }
@@ -117,7 +143,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
 
     private fun retryInitialization() {
         exceptionState = null

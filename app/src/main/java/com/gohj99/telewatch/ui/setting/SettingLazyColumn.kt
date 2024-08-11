@@ -6,7 +6,7 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.gohj99.telewatch.ui.main
+package com.gohj99.telewatch.ui.setting
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,19 +16,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.gohj99.telewatch.ui.main.MainCard
 
 @Composable
-fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
+fun SettingLazyColumn(itemsList: MutableState<List<String>>, callback: (String) -> Unit) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize() // 确保 LazyColumn 填满父容器
             .padding(horizontal = 16.dp) // 只在左右添加 padding
     ) {
-        items(allPages) { page ->
-            MenuView(page, nowPage)
+        items(itemsList.value) { item ->
+            SettingView(item, callback)
         }
         item {
             Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
@@ -37,14 +39,14 @@ fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
 }
 
 @Composable
-fun MenuView(page: String, nowPage: (String) -> Unit) {
+fun SettingView(item: String, callback: (String) -> Unit) {
     MainCard(
         column = {
-            Text(text = page, color = Color.White)
+            Text(text = item, color = Color.White)
         },
-        item = page,
+        item = item,
         callback = {
-            nowPage(page)
+            callback(item)
         }
     )
 }
