@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch
 
 import android.content.Context
@@ -9,30 +17,55 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.gohj99.telewatch.ui.SettingItem
-import com.gohj99.telewatch.ui.SplashSettingScreen
+import androidx.compose.runtime.mutableStateOf
+import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import java.io.File
 
 class SettingActivity : ComponentActivity() {
+    private var settingsList = mutableStateOf(listOf<String>())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
 
-        val settingsList = listOf(
-            SettingItem.NestedSetting(getString(R.string.Clearing_cache), onClick = {
-                cacheDir.deleteRecursively()
-                Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
-            }),
-            SettingItem.NestedSetting(getString(R.string.Reset_libtd), onClick = { reset_libtd() }),
-            SettingItem.NestedSetting(getString(R.string.Reset_self), onClick = { reset_self() })
+        settingsList.value = listOf(
+            getString(R.string.Clearing_cache),
+            getString(R.string.Reset_libtd),
+            getString(R.string.Reset_self),
+            getString(R.string.About)
         )
 
         setContent {
             TelewatchTheme {
                 SplashSettingScreen(
-                    settings = settingsList
+                    settings = settingsList,
+                    callback = { item ->
+                        when (item) {
+                            getString(R.string.Clearing_cache) -> {
+                                cacheDir.deleteRecursively()
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.Successful),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            getString(R.string.Reset_libtd) -> {
+                                reset_libtd()
+                            }
+
+                            getString(R.string.Reset_self) -> {
+                                reset_self()
+                            }
+
+                            getString(R.string.About) -> {
+                                val intent = Intent(this, AboutActivity::class.java)
+                                startActivity(intent)
+                            }
+                        }
+                    }
                 )
             }
         }

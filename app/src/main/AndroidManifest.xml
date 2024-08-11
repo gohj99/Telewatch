@@ -20,9 +20,14 @@
         android:theme="@style/Theme.Telewatch.Splash"
         tools:targetApi="31">
         <activity
+            android:name=".AboutActivity"
+            android:exported="false"
+            android:label="@string/about_activity_setting"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".ChatActivity"
             android:exported="false"
-            android:label="@string/title_activity_setting"
+            android:label="@string/chat_activity_main"
             android:theme="@style/Theme.Telewatch" />
         <activity
             android:name=".SettingActivity"

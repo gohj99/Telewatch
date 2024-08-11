@@ -79,6 +79,22 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
 }
 
 @Composable
+fun ContactsLazyColumn(itemsList: List<Chat>, callback: (Chat) -> Unit) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize() // 确保 LazyColumn 填满父容器
+            .padding(horizontal = 16.dp) // 只在左右添加 padding
+    ) {
+        items(itemsList) { item ->
+            ChatView(item, callback)
+        }
+        item {
+            Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
+        }
+    }
+}
+
+@Composable
 fun ChatView(chat: Chat, callback: (Chat) -> Unit) {
     MainCard(
         column = {

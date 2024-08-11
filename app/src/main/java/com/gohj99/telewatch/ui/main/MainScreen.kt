@@ -38,15 +38,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.ui.setting.SettingLazyColumn
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 @Composable
-fun MainScreen(chats: MutableState<List<Chat>>, chatPage: (Chat) -> Unit) {
+fun MainScreen(
+    chats: MutableState<List<Chat>>,
+    chatPage: (Chat) -> Unit,
+    settingList: MutableState<List<String>>,
+    settingCallback: (String) -> Unit,
+    getContacts: (MutableState<List<Chat>>) -> Unit,
+) {
+    val contact = stringResource(id = R.string.Contacts)
+    val home = stringResource(id = R.string.HOME)
+    val setting = stringResource(id = R.string.Settings)
+    val contacts = remember { mutableStateOf(listOf<Chat>()) }
     var showMenu by remember { mutableStateOf(false) }
     val allPages = listOf(
-        stringResource(id = R.string.HOME),
-        stringResource(id = R.string.Contacts),
-        stringResource(id = R.string.Settings),
+        home,
+        contact,
+        setting,
     )
     var nowPage by remember { mutableStateOf(allPages[0]) }
 
@@ -75,11 +86,11 @@ fun MainScreen(chats: MutableState<List<Chat>>, chatPage: (Chat) -> Unit) {
                         painterResource(id = R.drawable.down)
                     },
                     contentDescription = null,
-                    modifier = Modifier.size(20.114514.dp) // 设置图片大小
+                    modifier = Modifier.size(19.9114514.dp) // 设置图片大小
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
-                    text = stringResource(id = R.string.HOME),
+                    text = nowPage,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -96,19 +107,28 @@ fun MainScreen(chats: MutableState<List<Chat>>, chatPage: (Chat) -> Unit) {
                 nowPage = { page ->
                     nowPage = page
                     showMenu = false
+                    if (page == contact) getContacts(contacts)
                 }
             )
         } else {
             when (nowPage) {
-                stringResource(id = R.string.HOME) -> {
+                home -> {
                     ChatLazyColumn(
                         itemsList = chats,
                         callback = chatPage
                     )
                 }
 
-                stringResource(id = R.string.Contacts) -> {}
-                stringResource(id = R.string.Settings) -> {}
+                contact -> {
+                    ContactsLazyColumn(
+                        itemsList = contacts.value,
+                        callback = chatPage
+                    )
+                }
+
+                setting -> {
+                    SettingLazyColumn(settingList, settingCallback)
+                }
             }
         }
     }
@@ -127,6 +147,20 @@ fun MainScreenPreview() {
     )
 
     TelewatchTheme {
-        MainScreen(sampleChats) {/*TODO*/ }
+        MainScreen(
+            chats = sampleChats,
+            chatPage = {},
+            settingList = mutableStateOf(listOf("钱显康", "钱明", "康庆莉")),
+            settingCallback = {},
+            getContacts = {
+                listOf(
+                    Chat(
+                        id = 1,
+                        title = "钱显康",
+                        message = "我是傻逼"
+                    )
+                )
+            } // 修正了这里的语法
+        )
     }
 }
