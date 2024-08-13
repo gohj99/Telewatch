@@ -40,4 +40,8 @@
     <string name="little_jelly">немного желе</string>
     <string name="Version">Версия</string>
     <string name="Build_Date">Дата сборки:</string>
+    <string name="Photo">Фото</string>
+    <string name="Unknown_Photo">Неизвестное фото</string>
+    <string name="Restart">Перезапуск</string>
+    <string name="No_thumbnail_available">Миниатюра недоступна</string>
 </resources>

@@ -32,7 +32,7 @@ class SettingActivity : ComponentActivity() {
 
         settingsList.value = listOf(
             getString(R.string.Clearing_cache),
-            getString(R.string.Reset),
+            getString(R.string.Restart),
             getString(R.string.Reset_libtd),
             getString(R.string.Reset_self),
             getString(R.string.About)
@@ -53,7 +53,7 @@ class SettingActivity : ComponentActivity() {
                                 ).show()
                             }
 
-                            getString(R.string.Reset) -> {
+                            getString(R.string.Restart) -> {
                                 // 重启软件
                                 Handler(Looper.getMainLooper()).postDelayed({
                                     val intent = packageManager.getLaunchIntentForPackage(packageName)

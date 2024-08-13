@@ -19,6 +19,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
@@ -130,15 +131,17 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         println("Messages deleted in chat ID $chatId: $messageIds")
 
         if (chatId == saveChatId) {
+            val mutableChatListSize = saveChatList.value.size
+            val mutableChatList = saveChatList.value.toMutableList()
             for (messageId in messageIds) {
-                val message = saveChatList.value.find { it.id == messageId }
+                val message = mutableChatList.find { it.id == messageId }
                 if (message != null) {
                     // 更新保存的聊天列表
-                    saveChatList.value = saveChatList.value.toMutableList().apply {
-                        remove(message)
-                    }
+                    mutableChatList.remove(message)
                 }
             }
+            if (mutableChatListSize - mutableChatList.size <= 1) saveChatList.value =
+                mutableChatList
         }
 
         // 更新聊天列表（别看了，我没写好的）
@@ -325,42 +328,51 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
     }
 
      // 下载照片
-     fun downloadThumbnailPhoto(file: TdApi.File, completion: (Boolean) -> Unit) {
+     fun downloadThumbnailPhoto(file: TdApi.File, chatId: Long, completion: (Boolean) -> Unit) {
+         println("进入下载图片函数")
          if (file.local.isDownloadingCompleted) {
+             println("下载过直接返回")
+             runBlocking {
+                 reloadMessageById(chatId)
+             }
              // 文件已经下载完成，直接返回
              completion(true)
-         } else if (file.local.isDownloadingActive) {
-             // 文件正在下载中，等待下载完成
-             client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true), DownloadFileHandler(completion))
          } else {
+             println("哦，貌似没下载过，那就开始下载吧")
              // 文件未下载，开始下载
-             client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true), DownloadFileHandler(completion))
+             client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true)) { response ->
+                 when (response) {
+                     is TdApi.Error -> {
+                         // 下载失败
+                         println("下载失败")
+                         completion(false)
+                     }
+
+                     is TdApi.File -> {
+                         if (response.local.isDownloadingCompleted) {
+                             // 下载完成
+                             println("下载完成，在" + response.local.path)
+                             runBlocking {
+                                 reloadMessageById(chatId)
+                             }
+                             completion(true)
+                         } else {
+                             // 下载未完成或失败
+                             println("下载未完成")
+                             completion(false)
+                         }
+                     }
+
+                     else -> {
+                         println("下载失败")
+                         // 其他情况，下载失败
+                         completion(false)
+                     }
+                 }
+             }
          }
      }
 
-    private class DownloadFileHandler(val completion: (Boolean) -> Unit) : Client.ResultHandler {
-        override fun onResult(response: TdApi.Object) {
-            when (response) {
-                is TdApi.Error -> {
-                    // 下载失败
-                    completion(false)
-                }
-                is TdApi.File -> {
-                    if (response.local.isDownloadingCompleted) {
-                        // 下载完成
-                        completion(true)
-                    } else {
-                        // 下载未完成或失败
-                        completion(false)
-                    }
-                }
-                else -> {
-                    // 其他情况，下载失败
-                    completion(false)
-                }
-            }
-        }
-    }
 
     // 获取联系人
     fun getContacts(contacts: MutableState<List<Chat>>) {
@@ -431,6 +443,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         fetchChatDetails(chatIds)
     }
 
+    // 获取聊天列表ID
     private suspend fun getChatIds(limit: Int): List<Long> = withContext(Dispatchers.IO) {
         val chatIds = mutableListOf<Long>()
         val chatList = TdApi.GetChats().apply {
@@ -488,6 +501,35 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         }
     }
 
+    // 根据消息id更新消息
+    private suspend fun reloadMessageById(messageId: Long) {
+        println("Reloading message")
+        CoroutineScope(Dispatchers.IO).launch {
+            // 创建一个请求来获取指定 ID 的消息
+            val getMessageRequest = TdApi.GetMessage(saveChatId, messageId)
+            val result = sendRequest(getMessageRequest)
+            if (result.constructor == TdApi.Message.CONSTRUCTOR) {
+                val message = result as TdApi.Message
+
+                // 使用重新加载的消息更新 saveChatList
+                withContext(Dispatchers.Main) {
+                    saveChatList.value = saveChatList.value.toMutableList().apply {
+                        val index = indexOfFirst { it.id == messageId }
+                        if (index >= 0) {
+                            // 更新已存在的消息
+                            set(index, message)
+                        } else {
+                            // 如果列表中没有此消息，则将其添加到列表的开头
+                            add(0, message)
+                        }
+                    }
+                }
+            } else {
+                println("Failed to reload message with ID $messageId: $result")
+            }
+        }
+    }
+
     // 添加获取当前用户 ID 的方法
     suspend fun getCurrentUserId(): Long {
         val result = sendRequest(TdApi.GetMe())
@@ -499,6 +541,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         }
     }
 
+    // 发送请求并返回结果
     private suspend fun sendRequest(request: TdApi.Function): TdApi.Object =
         withContext(Dispatchers.IO) {
             val result = CompletableDeferred<TdApi.Object>()
@@ -506,6 +549,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
             return@withContext result.await()
     }
 
+    // 退出聊天页面
     fun exitChatPage(){
         isExitChatPage = true
     }
@@ -529,7 +573,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
 
             if (!isExitChatPage){
                 client.send(getChatMessages) { result ->
-                    println("GetChatMessages result: $result")
+                    //println("GetChatMessages result: $result")
                     if (result.constructor == TdApi.Error.CONSTRUCTOR) {
                         val error = result as TdApi.Error
                         println("Get Chat Messages Error: ${error.message}")

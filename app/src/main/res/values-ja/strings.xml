@@ -40,4 +40,8 @@
     <string name="little_jelly">小さなゼリー</string>
     <string name="Version">バージョン</string>
     <string name="Build_Date">ビルド日:</string>
+    <string name="Photo">写真</string>
+    <string name="Unknown_Photo">未知の写真</string>
+    <string name="Restart">再起動</string>
+    <string name="No_thumbnail_available">サムネイルはありません</string>
 </resources>

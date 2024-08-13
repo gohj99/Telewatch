@@ -42,5 +42,6 @@
     <string name="Build_Date">Build Date:</string>
     <string name="Photo">Photo</string>
     <string name="Unknown_Photo">Unknown Photo</string>
-    <string name="Reset">Reset</string>
+    <string name="Restart">Restart</string>
+    <string name="No_thumbnail_available">No thumbnail available</string>
 </resources>

@@ -40,4 +40,8 @@
     <string name="little_jelly">little jelly</string>
     <string name="Version">Versio</string>
     <string name="Build_Date">Konstrua Dato:</string>
+    <string name="Photo">Foto</string>
+    <string name="Unknown_Photo">Nekonata Foto</string>
+    <string name="Restart">Rekomencu</string>
+    <string name="No_thumbnail_available">Neniu bildeto havebla</string>
 </resources>

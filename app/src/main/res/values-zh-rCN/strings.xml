@@ -40,4 +40,8 @@
     <string name="little_jelly">一個小果冻</string>
     <string name="Version">版本号</string>
     <string name="Build_Date">编译日期：</string>
+    <string name="Photo">照片</string>
+    <string name="Unknown_Photo">未知照片</string>
+    <string name="Restart">启动</string>
+    <string name="No_thumbnail_available">没有可用的缩略图</string>
 </resources>

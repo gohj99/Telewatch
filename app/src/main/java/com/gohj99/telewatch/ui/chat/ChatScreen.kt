@@ -39,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
@@ -63,7 +62,6 @@ import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import org.drinkless.td.libcore.telegram.TdApi
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SplashChatScreen(
     chatTitle: String,
@@ -159,14 +157,19 @@ fun SplashChatScreen(
                                     val thumbnail = content.photo.sizes.minByOrNull { it.width * it.height }
                                     if (thumbnail != null) {
                                         ThumbnailImage(
+                                            message = message,
                                             thumbnail = thumbnail.photo,
                                             imageWidth = thumbnail.width,
                                             imageHeight = thumbnail.height,
-                                            modifier = Modifier.size(200.dp)
+                                            textColor = textColor
                                         )
                                     } else {
                                         // 处理没有缩略图的情况
-                                        Text("No thumbnail available")
+                                        Text(
+                                            text = stringResource(id = R.string.No_thumbnail_available),
+                                            color = textColor,
+                                            fontSize = 18.sp
+                                        )
                                     }
                                 }
                                 else -> {
@@ -274,17 +277,22 @@ fun SplashChatScreen(
 
 @Composable
 fun ThumbnailImage(
+    message: TdApi.Message,
     thumbnail: TdApi.File,
     imageWidth: Int,
     imageHeight: Int,
-    modifier: Modifier = Modifier
+    textColor: Color
 ) {
-    val isDownloaded = remember { mutableStateOf(thumbnail.local.isDownloadingCompleted) }
+    //println(imageWidth)
+    //println(imageHeight)
+    val isDownloaded = remember { mutableStateOf(false) }
     val heightDp = with(LocalDensity.current) { imageHeight.toDp() }
+    val widthDp = with(LocalDensity.current) { imageWidth.toDp() }
+    val chatId = message.id
 
     if (!isDownloaded.value) {
         LaunchedEffect(thumbnail.id) {
-            TgApiManager.tgApi!!.downloadThumbnailPhoto(thumbnail) { success ->
+            TgApiManager.tgApi!!.downloadThumbnailPhoto(thumbnail, chatId) { success ->
                 if (success) {
                     isDownloaded.value = true
                 } else {
@@ -295,24 +303,29 @@ fun ThumbnailImage(
     }
 
     if (isDownloaded.value) {
-        val aspectRatio = imageWidth.toFloat() / imageHeight.toFloat()
-        //val heightDp = 200.dp / aspectRatio  // 正确计算高度
-
-        val calculatedModifier = modifier
-            .size(width = 200.dp, height = heightDp)
-
-        Image(
-            painter = rememberAsyncImagePainter(model = thumbnail.local.path),
-            contentDescription = "Thumbnail",
-            modifier = calculatedModifier
-        )
+        if (message.content is TdApi.MessagePhoto) {
+            val content = message.content as TdApi.MessagePhoto
+            val thumbnailNew = content.photo.sizes.minByOrNull { it.width * it.height }
+            if (thumbnailNew != null) {
+                println(thumbnailNew.photo.local.path)
+                Image(
+                    painter = rememberAsyncImagePainter(model = thumbnailNew.photo.local.path),
+                    contentDescription = "Thumbnail",
+                    modifier = Modifier.size(width = widthDp, height = heightDp)
+                )
+            }
+        }
     } else {
         // 显示加载中状态或占位符
         Box(
-            modifier = modifier,
+            modifier = Modifier.size(width = widthDp, height = heightDp),
             contentAlignment = Alignment.Center
         ) {
-            Text("Loading...")
+            Text(
+                text = stringResource(id = R.string.loading),
+                color = textColor,
+                fontSize = 18.sp
+            )
         }
     }
 }
