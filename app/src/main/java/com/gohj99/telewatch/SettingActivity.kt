@@ -32,6 +32,7 @@ class SettingActivity : ComponentActivity() {
 
         settingsList.value = listOf(
             getString(R.string.Clearing_cache),
+            getString(R.string.Reset),
             getString(R.string.Reset_libtd),
             getString(R.string.Reset_self),
             getString(R.string.About)
@@ -50,6 +51,16 @@ class SettingActivity : ComponentActivity() {
                                     getString(R.string.Successful),
                                     Toast.LENGTH_SHORT
                                 ).show()
+                            }
+
+                            getString(R.string.Reset) -> {
+                                // 重启软件
+                                Handler(Looper.getMainLooper()).postDelayed({
+                                    val intent = packageManager.getLaunchIntentForPackage(packageName)
+                                    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                    startActivity(intent)
+                                    android.os.Process.killProcess(android.os.Process.myPid())
+                                }, 1000)
                             }
 
                             getString(R.string.Reset_libtd) -> {

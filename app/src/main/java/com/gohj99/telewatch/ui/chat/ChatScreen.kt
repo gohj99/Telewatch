@@ -36,7 +36,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -47,6 +46,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -57,9 +57,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
-import kotlinx.coroutines.launch
 import org.drinkless.td.libcore.telegram.TdApi
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -75,7 +76,6 @@ fun SplashChatScreen(
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -97,13 +97,6 @@ fun SplashChatScreen(
             }
     }
 
-    LaunchedEffect(chatList.value) {
-        coroutineScope.launch {
-            // 滚动到列表的底部
-            listState.scrollToItem(0)
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -115,7 +108,7 @@ fun SplashChatScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            println("开始渲染")
+            //println("开始渲染")
             Text(
                 text = chatTitle,
                 color = Color.White,
@@ -154,12 +147,36 @@ fun SplashChatScreen(
                                 .background(backgroundColor, shape = RoundedCornerShape(8.dp))
                                 .padding(8.dp)
                         ) {
-                            Text(
-                                text = (message.content as? TdApi.MessageText)?.text?.text
-                                    ?: stringResource(id = R.string.Unknown_Message),
-                                color = textColor,
-                                fontSize = 18.sp
-                            )
+                            when (val content = message.content) {
+                                is TdApi.MessageText -> {
+                                    Text(
+                                        text = content.text.text,
+                                        color = textColor,
+                                        fontSize = 18.sp
+                                    )
+                                }
+                                is TdApi.MessagePhoto -> {
+                                    val thumbnail = content.photo.sizes.minByOrNull { it.width * it.height }
+                                    if (thumbnail != null) {
+                                        ThumbnailImage(
+                                            thumbnail = thumbnail.photo,
+                                            imageWidth = thumbnail.width,
+                                            imageHeight = thumbnail.height,
+                                            modifier = Modifier.size(200.dp)
+                                        )
+                                    } else {
+                                        // 处理没有缩略图的情况
+                                        Text("No thumbnail available")
+                                    }
+                                }
+                                else -> {
+                                    Text(
+                                        text = stringResource(id = R.string.Unknown_Message),
+                                        color = textColor,
+                                        fontSize = 18.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -251,6 +268,51 @@ fun SplashChatScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ThumbnailImage(
+    thumbnail: TdApi.File,
+    imageWidth: Int,
+    imageHeight: Int,
+    modifier: Modifier = Modifier
+) {
+    val isDownloaded = remember { mutableStateOf(thumbnail.local.isDownloadingCompleted) }
+    val heightDp = with(LocalDensity.current) { imageHeight.toDp() }
+
+    if (!isDownloaded.value) {
+        LaunchedEffect(thumbnail.id) {
+            TgApiManager.tgApi!!.downloadThumbnailPhoto(thumbnail) { success ->
+                if (success) {
+                    isDownloaded.value = true
+                } else {
+                    // 处理下载失败
+                }
+            }
+        }
+    }
+
+    if (isDownloaded.value) {
+        val aspectRatio = imageWidth.toFloat() / imageHeight.toFloat()
+        //val heightDp = 200.dp / aspectRatio  // 正确计算高度
+
+        val calculatedModifier = modifier
+            .size(width = 200.dp, height = heightDp)
+
+        Image(
+            painter = rememberAsyncImagePainter(model = thumbnail.local.path),
+            contentDescription = "Thumbnail",
+            modifier = calculatedModifier
+        )
+    } else {
+        // 显示加载中状态或占位符
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Text("Loading...")
         }
     }
 }

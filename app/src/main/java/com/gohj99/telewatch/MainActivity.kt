@@ -1,23 +1,24 @@
-/*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
- * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
- * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
- * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
- * Vestibulum commodo. Ut rhoncus gravida arcu.
- */
-
 package com.gohj99.telewatch
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.lifecycleScope
 import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.main.Chat
@@ -47,12 +48,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // 显示启动页面
         setContent {
             TelewatchTheme {
-                SplashLoadingScreen()
+                SplashScreen()
             }
         }
 
+        // 使用 Handler 延迟启动主逻辑
+        Handler(Looper.getMainLooper()).postDelayed({
+            initializeApp()
+        }, 600) // 延迟
+    }
+
+    private fun initializeApp() {
         settingList.value = listOf(
             getString(R.string.About),
             getString(R.string.setting_all)
@@ -64,6 +74,11 @@ class MainActivity : ComponentActivity() {
         if (!isLoggedIn) {
             startWelcomeActivity()
         } else {
+            setContent {
+                TelewatchTheme {
+                    SplashLoadingScreen()
+                }
+            }
             initMain()
         }
     }
@@ -76,16 +91,13 @@ class MainActivity : ComponentActivity() {
     private fun initMain() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                //println("开始启动Main")
                 TgApiManager.tgApi = TgApi(
                     this@MainActivity,
                     chatsList = chatsList
                 )
-                //println("实例化TgApi")
                 TgApiManager.tgApi?.getChats(
                     limit = 10
                 )
-                //println("获取消息列表")
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
@@ -147,5 +159,18 @@ class MainActivity : ComponentActivity() {
     private fun retryInitialization() {
         exceptionState = null
         initMain()
+    }
+}
+
+@Composable
+fun SplashScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center // 居中对齐
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = "Splash Icon"
+        )
     }
 }

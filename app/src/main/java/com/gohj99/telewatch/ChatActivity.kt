@@ -30,6 +30,11 @@ class ChatActivity : ComponentActivity() {
     @SuppressLint("AutoboxingStateCreation")
     private var currentUserId = mutableStateOf(-1L) // 使用 MutableState 来持有当前用户 ID
 
+    override fun onDestroy() {
+        super.onDestroy()
+        TgApiManager.tgApi?.exitChatPage()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         tgApi = TgApiManager.tgApi

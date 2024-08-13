@@ -37,6 +37,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                // 清空现有的 abiFilters，然后添加新的值
+                abiFilters.clear()
+                if (project.hasProperty("ABI_FILTERS")) {
+                    abiFilters.addAll(project.property("ABI_FILTERS").toString().split(","))
+                }
+            }
         }
     }
     compileOptions {
@@ -68,9 +75,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.coil.compose)
     testImplementation(libs.junit)
-    //noinspection UseTomlInstead
-    implementation("com.google.zxing:core:3.4.1")
+    implementation(libs.zxing.core)
     implementation(project(":libtd"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

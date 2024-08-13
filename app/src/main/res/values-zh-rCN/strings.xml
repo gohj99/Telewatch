@@ -33,7 +33,7 @@
     <string name="Login_Successful">登录成功</string>
     <string name="Retry">重试</string>
     <string name="Error">发生错误\\n请重试</string>
-    <string name="Unknown_Message">未知消息</string>
+    <string name="Unknown_Message">[该消息请在手机端TG查看]</string>
     <string name="Contacts">联系人</string>
     <string name="setting_all">所有设置</string>
     <string name="About">关于</string>

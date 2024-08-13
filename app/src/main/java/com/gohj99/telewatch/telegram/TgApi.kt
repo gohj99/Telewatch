@@ -33,6 +33,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
     private val authLatch = CountDownLatch(1)
+    private var isExitChatPage = true
 
     init {
         // 获取API ID和API Hash
@@ -168,7 +169,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         val newContent = update.newContent
         println("Message content updated in chat ID $chatId for message ID $messageId")
 
-        CoroutineScope(Dispatchers.Main).launch {
+        /*CoroutineScope(Dispatchers.Main).launch {
             chatsList.value = chatsList.value.toMutableList().apply {
                 val chatIndex = indexOfFirst { it.id == chatId }
                 if (chatIndex >= 0) {
@@ -183,7 +184,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                     add(0, updatedChat)
                 }
             }
-        }
+        }*/
     }
 
     private fun handleMessageEdited(update: TdApi.UpdateMessageEdited) {
@@ -199,14 +200,6 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                 val result = sendRequest(getMessageRequest)
                 if (result.constructor == TdApi.Message.CONSTRUCTOR) {
                     val message = result as TdApi.Message
-                    val content = message.content
-                    val newMessageText = when (content) {
-                        is TdApi.MessageText -> {
-                            if (content.text.text.length > 20) content.text.text.take(20) + "..." else content.text.text
-                        }
-
-                        else -> context.getString(R.string.Unknown_Message)
-                    }
 
                     // 更新聊天列表中的消息
                     withContext(Dispatchers.Main) {
@@ -219,9 +212,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                                     this.id = message.id
                                     this.date = message.date
                                     this.senderId = message.senderId
-                                    this.content = TdApi.MessageText().apply {
-                                        text = TdApi.FormattedText(newMessageText, null)
-                                    }
+                                    this.content = message.content
                                     this.isOutgoing = message.isOutgoing
                                 }
                                 set(messageIndex, updatedMessage)
@@ -257,10 +248,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
 
     private fun updateChatList(message: TdApi.Message) {
         val chatId = message.chatId
-        val newMessageText = when (val content = message.content) {
-            is TdApi.MessageText -> content.text.text
-            else -> context.getString(R.string.Unknown_Message)
-        }
+        val newMessageText = handleAllMessages(message)
 
         // 异步获取聊天标题
         CoroutineScope(Dispatchers.IO).launch {
@@ -286,7 +274,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                     val existingChatIndex = indexOfFirst { it.id == chatId }
                     if (existingChatIndex >= 0) {
                         val updatedChat = get(existingChatIndex).copy(
-                            message = if (newMessageText.length > 20) newMessageText.take(20) + "..." else newMessageText
+                            message = newMessageText
                         )
                         removeAt(existingChatIndex)
                         add(0, updatedChat)
@@ -297,12 +285,21 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                             Chat(
                                 id = chatId,
                                 title = chatTitle, // 使用从TdApi获取的标题
-                                message = if (newMessageText.length > 20) newMessageText.take(20) + "..." else newMessageText
+                                message = newMessageText
                             )
                         )
                     }
                 }
             }
+        }
+    }
+
+    // 处理和简化消息
+    private fun handleAllMessages(message: TdApi.Message): String {
+        return when (val content = message.content) {
+            is TdApi.MessageText -> if (content.text.text.length > 20) content.text.text.take(20) + "..." else content.text.text
+            is TdApi.MessagePhoto -> context.getString(R.string.Photo)
+            else -> context.getString(R.string.Unknown_Message)
         }
     }
 
@@ -324,6 +321,44 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
             pInfo.versionName
         } catch (e: Exception) {
             "1.0.0"
+        }
+    }
+
+     // 下载照片
+     fun downloadThumbnailPhoto(file: TdApi.File, completion: (Boolean) -> Unit) {
+         if (file.local.isDownloadingCompleted) {
+             // 文件已经下载完成，直接返回
+             completion(true)
+         } else if (file.local.isDownloadingActive) {
+             // 文件正在下载中，等待下载完成
+             client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true), DownloadFileHandler(completion))
+         } else {
+             // 文件未下载，开始下载
+             client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true), DownloadFileHandler(completion))
+         }
+     }
+
+    private class DownloadFileHandler(val completion: (Boolean) -> Unit) : Client.ResultHandler {
+        override fun onResult(response: TdApi.Object) {
+            when (response) {
+                is TdApi.Error -> {
+                    // 下载失败
+                    completion(false)
+                }
+                is TdApi.File -> {
+                    if (response.local.isDownloadingCompleted) {
+                        // 下载完成
+                        completion(true)
+                    } else {
+                        // 下载未完成或失败
+                        completion(false)
+                    }
+                }
+                else -> {
+                    // 其他情况，下载失败
+                    completion(false)
+                }
+            }
         }
     }
 
@@ -413,6 +448,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         return@withContext chatIds
     }
 
+    // 获取聊天列表结果
     private suspend fun fetchChatDetails(chatIds: List<Long>) =
         withContext(Dispatchers.IO) {
         for (chatId in chatIds) {
@@ -431,11 +467,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                     withContext(Dispatchers.Main) {
                         val lastMessage = chat.lastMessage
                         val message = if (lastMessage != null) {
-                            val messageContent = lastMessage.content
-                            if (messageContent is TdApi.MessageText) {
-                                val text = messageContent.text.text.toString()
-                                if (text.length > 20) text.take(20) + "..." else text
-                            } else context.getString(R.string.Unknown_Message)
+                            handleAllMessages(lastMessage)
                         } else context.getString(R.string.Unknown_Message)
                         println(chat.id)
                         println(chat.title)
@@ -454,7 +486,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                 }
             }
         }
-        }
+    }
 
     // 添加获取当前用户 ID 的方法
     suspend fun getCurrentUserId(): Long {
@@ -474,6 +506,10 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
             return@withContext result.await()
     }
 
+    fun exitChatPage(){
+        isExitChatPage = true
+    }
+
     // 获取聊天记录
     fun getChatMessages(
         chatId: Long,
@@ -481,6 +517,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
     ) {
         saveChatList = chatList
         saveChatId = chatId
+        isExitChatPage = false
 
         // 定义一个内部函数用于异步递归获取消息
         fun fetchMessages(fromMessageId: Long) {
@@ -490,21 +527,23 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                 this.fromMessageId = fromMessageId
             }
 
-            client.send(getChatMessages) { result ->
-                println("GetChatMessages result: $result")
-                if (result.constructor == TdApi.Error.CONSTRUCTOR) {
-                    val error = result as TdApi.Error
-                    println("Get Chat Messages Error: ${error.message}")
-                } else {
-                    val messages = result as TdApi.Messages
-                    if (messages.messages.isNotEmpty()) {
-                        val sortedMessages =
-                            messages.messages.toList().sortedByDescending { it.date }
-                        saveChatList.value = saveChatList.value.toMutableList().apply {
-                            addAll(sortedMessages) // 将新消息添加到列表最后面
+            if (!isExitChatPage){
+                client.send(getChatMessages) { result ->
+                    println("GetChatMessages result: $result")
+                    if (result.constructor == TdApi.Error.CONSTRUCTOR) {
+                        val error = result as TdApi.Error
+                        println("Get Chat Messages Error: ${error.message}")
+                    } else {
+                        val messages = result as TdApi.Messages
+                        if (messages.messages.isNotEmpty()) {
+                            val sortedMessages =
+                                messages.messages.toList().sortedByDescending { it.date }
+                            saveChatList.value = saveChatList.value.toMutableList().apply {
+                                addAll(sortedMessages) // 将新消息添加到列表最后面
+                            }
+                            // 继续加载更旧的消息
+                            fetchMessages(messages.messages.last().id)
                         }
-                        // 继续加载更旧的消息
-                        fetchMessages(messages.messages.last().id)
                     }
                 }
             }
