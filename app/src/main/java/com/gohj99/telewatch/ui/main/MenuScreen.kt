@@ -14,18 +14,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.gohj99.telewatch.ui.verticalRotaryScroll
 
 @Composable
 fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
+    val listState = rememberLazyListState()
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize() // 确保 LazyColumn 填满父容器
             .padding(horizontal = 16.dp) // 只在左右添加 padding
+            .verticalRotaryScroll(listState)
     ) {
         items(allPages) { page ->
             MenuView(page, nowPage)

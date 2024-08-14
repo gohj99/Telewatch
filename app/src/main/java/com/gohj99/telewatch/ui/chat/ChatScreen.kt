@@ -60,6 +60,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.ui.verticalRotaryScroll
 import org.drinkless.td.libcore.telegram.TdApi
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -133,6 +134,7 @@ fun SplashChatScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
+                    .verticalRotaryScroll(listState)
                     .weight(1f),
                 reverseLayout = true, // 反转布局
                 verticalArrangement = Arrangement.Top

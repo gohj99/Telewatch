@@ -17,11 +17,11 @@ android {
 
     defaultConfig {
         applicationId = "com.gohj99.telewatch"
-        minSdk = 24
+        minSdk = 25
         //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.3"
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -75,7 +75,6 @@ android {
             dimension = "abi"
             ndk {
                 abiFilters += "armeabi-v7a"
-                abiFilters += "arm64-v8a"
                 abiFilters += "x86_64"
             }
         }
@@ -107,6 +106,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     implementation(libs.zxing.core)
     implementation(project(":libtd"))

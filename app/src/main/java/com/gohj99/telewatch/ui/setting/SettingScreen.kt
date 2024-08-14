@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -35,8 +34,6 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 @Composable
 fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String) -> Unit) {
-    rememberScrollState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +69,22 @@ fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String)
 @Composable
 fun SplashSettingScreenPreview() {
     TelewatchTheme {
-        val settings = remember { mutableStateOf(listOf("设置1", "设置2")) }
+        val settings = remember {
+            mutableStateOf(
+                listOf(
+                    "设置1",
+                    "设置2",
+                    "设置3",
+                    "设置4",
+                    "设置5",
+                    "设置6",
+                    "设置7",
+                    "设置8",
+                    "设置9",
+                    "设置10"
+                )
+            )
+        }
         SplashSettingScreen(
             settings = settings,
             callback = {}
