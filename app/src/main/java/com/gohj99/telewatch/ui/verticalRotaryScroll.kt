@@ -23,12 +23,19 @@ import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
 import androidx.wear.compose.foundation.rememberActiveFocusRequester
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/*
+ * gohj99调教了114514小时的表冠转动函数
+ * 震动和线性滑动一应俱全
+ * 包舒服的，跟德芙一样（
+ */
 @OptIn(ExperimentalWearFoundationApi::class)
 @Composable
 fun Modifier.verticalRotaryScroll(
-    state: LazyListState
+    state: LazyListState,
+    reverse: Boolean = false
 ): Modifier {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -38,9 +45,6 @@ fun Modifier.verticalRotaryScroll(
         Modifier
             .onRotaryScrollEvent { event ->
                 coroutineScope.launch {
-                    // 表冠顺时针往下滚动，逆时针往上滚动
-                    state.scrollBy(event.verticalScrollPixels)
-
                     // 震动反馈
                     if (vibrator.hasVibrator()) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -55,8 +59,24 @@ fun Modifier.verticalRotaryScroll(
                             )
                         } else {
                             // API 26 以下使用旧版的 vibrate 方法
-                            vibrator.vibrate(50) // 振动时长为 50 毫秒
+                            vibrator.vibrate(40) // 振动时长为 50 毫秒
                         }
+                    }
+
+                    // 转动页面
+                    val totalScroll = if (reverse) {
+                        event.verticalScrollPixels * -0.75f
+                    } else {
+                        event.verticalScrollPixels * 0.75f
+                    }
+                    val stepCount = 30 // 分30步执行，更加丝滑
+                    val stepSize = totalScroll / stepCount
+
+                    // 分步滚动
+                    for (i in 1..stepCount) {
+                        // 表冠顺时针往下滚动，逆时针往上滚动
+                        state.scrollBy(stepSize)
+                        delay(1L) // 延迟1ms
                     }
                 }
                 true

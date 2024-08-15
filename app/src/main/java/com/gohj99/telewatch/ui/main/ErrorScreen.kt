@@ -26,7 +26,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 @Composable
-fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit) {
+fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,8 +39,10 @@ fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit) {
         Button(onClick = onRetry) {
             Text(text = stringResource(id = R.string.Retry))
         }
-        Button(onClick = onSetting) {
-            Text(text = stringResource(id = R.string.Settings))
+        if (onSetting != {}) {
+            Button(onClick = onSetting) {
+                Text(text = stringResource(id = R.string.Settings))
+            }
         }
     }
 }

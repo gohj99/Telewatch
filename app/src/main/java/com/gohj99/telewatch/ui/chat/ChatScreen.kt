@@ -10,6 +10,7 @@ package com.gohj99.telewatch.ui.chat
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -61,6 +63,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import kotlinx.coroutines.runBlocking
 import org.drinkless.td.libcore.telegram.TdApi
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -82,7 +85,9 @@ fun SplashChatScreen(
     chatTitle: String,
     chatList: MutableState<List<TdApi.Message>>,
     currentUserId: Long,
-    sendCallback: (String) -> Unit
+    sendCallback: (String) -> Unit,
+    press: (TdApi.Message) -> Unit,
+    longPress: (TdApi.Message) -> Unit
 ) {
     val listState = rememberLazyListState()
     var isFloatingVisible by remember { mutableStateOf(true) }
@@ -134,7 +139,7 @@ fun SplashChatScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 8.dp)
-                    .verticalRotaryScroll(listState)
+                    .verticalRotaryScroll(listState, true)
                     .weight(1f),
                 reverseLayout = true, // 反转布局
                 verticalArrangement = Arrangement.Top
@@ -142,7 +147,7 @@ fun SplashChatScreen(
                 item {
                     Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
                 }
-                items(chatList.value) { message ->
+                items(chatList.value, key = { message -> message.id }) { message ->
                     val isCurrentUser =
                         (message.senderId as? TdApi.MessageSenderUser)?.userId == currentUserId
                     val backgroundColor =
@@ -160,6 +165,12 @@ fun SplashChatScreen(
                             modifier = Modifier
                                 .background(backgroundColor, shape = RoundedCornerShape(8.dp))
                                 .padding(8.dp)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onLongPress = { longPress(message) },
+                                        onTap = { press(message) }
+                                    )
+                                }
                         ) {
                             when (val content = message.content) {
                                 is TdApi.MessageText -> {
@@ -299,40 +310,11 @@ fun ThumbnailImage(
     imageHeight: Int,
     textColor: Color
 ) {
-    //println(imageWidth)
-    //println(imageHeight)
-    val isDownloaded = remember { mutableStateOf(false) }
+    val isDownloaded = remember { mutableStateOf(thumbnail.local.isDownloadingCompleted) }
     val heightDp = with(LocalDensity.current) { imageHeight.toDp() }
     val widthDp = with(LocalDensity.current) { imageWidth.toDp() }
-    val chatId = message.id
 
     if (!isDownloaded.value) {
-        LaunchedEffect(thumbnail.id) {
-            TgApiManager.tgApi!!.downloadThumbnailPhoto(thumbnail, chatId) { success ->
-                if (success) {
-                    isDownloaded.value = true
-                } else {
-                    // 处理下载失败
-                }
-            }
-        }
-    }
-
-    if (isDownloaded.value) {
-        if (message.content is TdApi.MessagePhoto) {
-            val content = message.content as TdApi.MessagePhoto
-            val thumbnailNew = content.photo.sizes.minByOrNull { it.width * it.height }
-            if (thumbnailNew != null) {
-                println(thumbnailNew.photo.local.path)
-                Image(
-                    painter = rememberAsyncImagePainter(model = thumbnailNew.photo.local.path),
-                    contentDescription = "Thumbnail",
-                    modifier = Modifier.size(width = widthDp, height = heightDp)
-                )
-            }
-        }
-    } else {
-        // 显示加载中状态或占位符
         Box(
             modifier = Modifier.size(width = widthDp, height = heightDp),
             contentAlignment = Alignment.Center
@@ -343,6 +325,27 @@ fun ThumbnailImage(
                 fontSize = 18.sp
             )
         }
+        LaunchedEffect(message) {
+            println("本地没图片，正在下载图片")
+            TgApiManager.tgApi!!.downloadPhoto(thumbnail) { success, path ->
+                if (success) {
+                    if (path != null) {
+                        runBlocking {
+                            TgApiManager.tgApi!!.reloadMessageById(message.id)
+                        }
+                    }
+                    isDownloaded.value = true
+                } else {
+                    // 处理下载失败
+                }
+            }
+        }
+    } else {
+        Image(
+            painter = rememberAsyncImagePainter(model = thumbnail.local.path),
+            contentDescription = "Thumbnail",
+            modifier = Modifier.size(width = widthDp, height = heightDp)
+        )
     }
 }
 
@@ -386,7 +389,13 @@ fun SplashChatScreenPreview() {
         SplashChatScreen(
             chatTitle = "XCちゃん",
             chatList = sampleMessages,
-            currentUserId = 1L
+            currentUserId = 1L,
+            {
+                println("长按触发")
+            },
+            {
+                println("点击触发")
+            }
         ) { text ->
             println(text)
         }

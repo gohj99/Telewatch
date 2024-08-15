@@ -13,6 +13,7 @@
     <string name="title_activity_welcome" translatable="false">WelcomeActivity</string>
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
+    <string name="img_activity_view" translatable="false">img_activity_view</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">开始</string>
     <string name="Welcome_to_app">欢迎使用Telewatch应用程序</string>
@@ -44,4 +45,8 @@
     <string name="Unknown_Photo">未知照片</string>
     <string name="Restart">重启</string>
     <string name="No_thumbnail_available">没有可用的缩略图</string>
+    <string name="Video">视频</string>
+    <string name="Voice">嗓音</string>
+    <string name="Animation">动图</string>
+    <string name="Error_ImgView">这不是图像，或者您无法下载图像</string>
 </resources>

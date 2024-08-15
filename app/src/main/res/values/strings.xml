@@ -13,6 +13,7 @@
     <string name="title_activity_welcome" translatable="false">WelcomeActivity</string>
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
+    <string name="img_activity_view" translatable="false">img_activity_view</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">Start messaging</string>
     <string name="Welcome_to_app">Welcome to telewatch app</string>
@@ -44,4 +45,8 @@
     <string name="Unknown_Photo">Unknown Photo</string>
     <string name="Restart">Restart</string>
     <string name="No_thumbnail_available">No thumbnail available</string>
+    <string name="Video">Video</string>
+    <string name="Voice">Voice</string>
+    <string name="Animation">GIF</string>
+    <string name="Error_ImgView">It\'s not an image or you can\'t download an image</string>
 </resources>

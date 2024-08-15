@@ -21,6 +21,11 @@
         android:theme="@style/Theme.Telewatch"
         tools:targetApi="31">
         <activity
+            android:name=".ImgViewActivity"
+            android:exported="false"
+            android:label="@string/img_activity_view"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".AboutActivity"
             android:exported="false"
             android:label="@string/about_activity_setting"

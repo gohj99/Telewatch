@@ -9,6 +9,7 @@
 package com.gohj99.telewatch
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -64,10 +65,45 @@ class ChatActivity : ComponentActivity() {
                 SplashChatScreen(
                     chatTitle = chat!!.title,
                     chatList = chatList,
-                    currentUserId = currentUserId.value
-                ) { messageText ->
-                    tgApi?.sendMessage(chatId = chat!!.id, messageText = messageText)
-                }
+                    currentUserId = currentUserId.value,
+                    sendCallback = { messageText ->
+                        tgApi?.sendMessage(
+                            chatId = chat!!.id,
+                            messageText = messageText
+                        )
+                    },
+                    press = { message ->
+                        println("点击触发")
+                        println(message.id)
+                        when (message.content) {
+                            is TdApi.MessageText -> {
+                                println("文本消息")
+                            }
+
+                            is TdApi.MessagePhoto -> {
+                                println("图片消息")
+                                val intent = Intent(this, ImgViewActivity::class.java)
+                                intent.putExtra("messageId", message.id)
+                                startActivity(intent)
+                            }
+
+                            is TdApi.MessageVideo -> {
+                                println("视频消息")
+                            }
+
+                            is TdApi.MessageVoiceNote -> {
+                                println("语音消息")
+                            }
+
+                            is TdApi.MessageAnimation -> {
+                                println("动画消息")
+                            }
+                        }
+                    },
+                    longPress = {
+                        println("长按触发")
+                    }
+                )
             }
         }
     }
