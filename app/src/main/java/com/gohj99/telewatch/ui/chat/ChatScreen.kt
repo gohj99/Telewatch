@@ -61,6 +61,20 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import org.drinkless.td.libcore.telegram.TdApi
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+fun formatTimestampToTime(unixTimestamp: Long): String {
+    // 将 Unix 时间戳转换为毫秒
+    val date = Date(unixTimestamp * 1000)
+
+    // 定义时间格式
+    val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    // 返回格式化的时间字符串
+    return format.format(date)
+}
 
 @Composable
 fun SplashChatScreen(
@@ -337,6 +351,7 @@ fun SplashChatScreenPreview() {
         mutableStateOf(
             listOf(
                 TdApi.Message().apply {
+                    date = 1692127800
                     id = 1
                     senderId = TdApi.MessageSenderUser(1) // 当前用户
                     content = TdApi.MessageText(

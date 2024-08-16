@@ -66,7 +66,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
             throw IllegalStateException("Encryption key not found")
         }
         client.send(encryptionKey) { result ->
-            //println("CheckDatabaseEncryptionKey result: $result")
+            println("CheckDatabaseEncryptionKey result: $result")
         }
 
         // 等待授权状态更新
@@ -329,29 +329,29 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
 
      // 下载照片
      fun downloadThumbnailPhoto(file: TdApi.File, chatId: Long, completion: (Boolean) -> Unit) {
-         println("进入下载图片函数")
+         //println("进入下载图片函数")
          if (file.local.isDownloadingCompleted) {
-             println("下载过直接返回")
+             //println("下载过直接返回")
              runBlocking {
                  reloadMessageById(chatId)
              }
              // 文件已经下载完成，直接返回
              completion(true)
          } else {
-             println("哦，貌似没下载过，那就开始下载吧")
+             //println("哦，貌似没下载过，那就开始下载吧")
              // 文件未下载，开始下载
              client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true)) { response ->
                  when (response) {
                      is TdApi.Error -> {
                          // 下载失败
-                         println("下载失败")
+                         //println("下载失败")
                          completion(false)
                      }
 
                      is TdApi.File -> {
                          if (response.local.isDownloadingCompleted) {
                              // 下载完成
-                             println("下载完成，在" + response.local.path)
+                             //println("下载完成，在" + response.local.path)
                              runBlocking {
                                  reloadMessageById(chatId)
                              }
@@ -439,51 +439,50 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
 
     // 获取聊天列表
     suspend fun getChats(limit: Int = 10) {
-        val chatIds = getChatIds(limit)
-        fetchChatDetails(chatIds)
+        var allChatsLoaded = false
+        while (!allChatsLoaded) {
+            allChatsLoaded = loadChats(limit)
+        }
     }
 
-    // 获取聊天列表ID
-    private suspend fun getChatIds(limit: Int): List<Long> = withContext(Dispatchers.IO) {
-        val chatIds = mutableListOf<Long>()
-        val chatList = TdApi.GetChats().apply {
-            this.limit = limit
+    // 加载聊天列表
+    private suspend fun loadChats(limit: Int): Boolean = withContext(Dispatchers.IO) {
+        val loadChats = TdApi.LoadChats(TdApi.ChatListMain(), limit)
+        val result = sendRequest(loadChats)
+        return@withContext when (result.constructor) {
+            TdApi.Error.CONSTRUCTOR -> {
+                val error = result as TdApi.Error
+                println("Load Chats Error: ${error.message}")
+                true // 发生错误，停止加载
+            }
+            TdApi.Chats.CONSTRUCTOR -> {
+                val chats = result as TdApi.Chats
+                fetchChatDetails(chats.chatIds.toList())
+                chats.chatIds.isEmpty() // 如果获取的聊天ID为空，则表示所有聊天已加载完毕
+            }
+            else -> {
+                println("Unexpected result: $result")
+                true // 意外结果，停止加载
+            }
         }
-        val result = sendRequest(chatList)
-        if (result.constructor == TdApi.Error.CONSTRUCTOR) {
-            val error = result as TdApi.Error
-            println("Get Chats Error: ${error.message}")
-        } else {
-            val chats = result as TdApi.Chats
-            chatIds.addAll(chats.chatIds.toList())
-            println("Chats: ${chats.chatIds.joinToString(", ")}")
-        }
-        return@withContext chatIds
     }
 
-    // 获取聊天列表结果
-    private suspend fun fetchChatDetails(chatIds: List<Long>) =
-        withContext(Dispatchers.IO) {
+    // 获取聊天详情
+    private suspend fun fetchChatDetails(chatIds: List<Long>) = withContext(Dispatchers.IO) {
         for (chatId in chatIds) {
-            //println("Sending request for chat ID: $chatId")
             val result = sendRequest(TdApi.GetChat(chatId))
-            //println("Received result for chat ID $chatId: $result")
             when (result.constructor) {
                 TdApi.Error.CONSTRUCTOR -> {
                     val error = result as TdApi.Error
                     println("Get Chat Details Error for chat ID $chatId: ${error.message}")
                 }
-
                 TdApi.Chat.CONSTRUCTOR -> {
                     val chat = result as TdApi.Chat
-                    //println("Chat Details for chat ID $chatId: $chat")
                     withContext(Dispatchers.Main) {
                         val lastMessage = chat.lastMessage
                         val message = if (lastMessage != null) {
                             handleAllMessages(lastMessage)
                         } else context.getString(R.string.Unknown_Message)
-                        println(chat.id)
-                        println(chat.title)
                         chatsList.add(
                             Chat(
                                 id = chat.id,
@@ -493,7 +492,6 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
                         )
                     }
                 }
-
                 else -> {
                     println("Unexpected result for chat ID $chatId: $result")
                 }
