@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -65,19 +65,46 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import kotlinx.coroutines.runBlocking
 import org.drinkless.td.libcore.telegram.TdApi
+import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-fun formatTimestampToTime(unixTimestamp: Long): String {
-    // 将 Unix 时间戳转换为毫秒
-    val date = Date(unixTimestamp * 1000)
+fun formatTimestampToTime(unixTimestamp: Int): String {
+    // 将 Unix 时间戳从 Int 转换为 Long，并转换为毫秒
+    val date = Date(unixTimestamp.toLong() * 1000)
 
     // 定义时间格式
     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     // 返回格式化的时间字符串
     return format.format(date)
+}
+
+fun formatTimestampToDate(unixTimestamp: Int): String {
+    // 将时间戳转换为 Date 对象
+    val date = Date(unixTimestamp.toLong() * 1000)
+
+    // 获取当前年份
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+    // 获取时间戳对应的年份
+    val calendar = Calendar.getInstance()
+    calendar.time = date
+    val timestampYear = calendar.get(Calendar.YEAR)
+
+    // 获取用户的本地化日期格式
+    val dateFormat: DateFormat = if (timestampYear == currentYear) {
+        // 当年份相同时，仅显示月和日
+        DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault())
+    } else {
+        // 当年份不同时，显示完整日期
+        DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())
+    }
+
+    // 返回格式化的日期字符串
+    return dateFormat.format(date)
 }
 
 @Composable
@@ -147,69 +174,93 @@ fun SplashChatScreen(
                 item {
                     Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
                 }
-                items(chatList.value, key = { message -> message.id }) { message ->
+                itemsIndexed(chatList.value, key = { _, message -> message.id }) { index, message ->
                     val isCurrentUser =
                         (message.senderId as? TdApi.MessageSenderUser)?.userId == currentUserId
                     val backgroundColor =
                         if (isCurrentUser) Color(0xFF003C68) else Color(0xFF2C323A)
                     val textColor = if (isCurrentUser) Color(0xFF66D3FE) else Color(0xFFFEFEFE)
                     val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
+                    val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
 
-                    Row(
-                        modifier = Modifier
-                            .padding(6.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = alignment
-                    ) {
-                        Box(
+                    Column {
+                        // 绘制日期
+                        val nextItem = chatList.value.getOrNull(index + 1)
+                        if (nextItem == null){
+                            DateText(formatTimestampToDate(message.date))
+                        } else {
+                            val currentDate = formatTimestampToDate(message.date)
+                            if (formatTimestampToDate(nextItem.date) != currentDate) {
+                                DateText(currentDate)
+                            }
+                        }
+                        Row(
                             modifier = Modifier
-                                .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-                                .padding(8.dp)
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onLongPress = { longPress(message) },
-                                        onTap = { press(message) }
-                                    )
-                                }
+                                .padding(6.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = alignment
                         ) {
-                            when (val content = message.content) {
-                                is TdApi.MessageText -> {
-                                    Text(
-                                        text = content.text.text,
-                                        color = textColor,
-                                        fontSize = 18.sp
-                                    )
-                                }
-                                is TdApi.MessagePhoto -> {
-                                    val thumbnail = content.photo.sizes.minByOrNull { it.width * it.height }
-                                    if (thumbnail != null) {
-                                        ThumbnailImage(
-                                            message = message,
-                                            thumbnail = thumbnail.photo,
-                                            imageWidth = thumbnail.width,
-                                            imageHeight = thumbnail.height,
-                                            textColor = textColor
-                                        )
-                                    } else {
-                                        // 处理没有缩略图的情况
-                                        Text(
-                                            text = stringResource(id = R.string.No_thumbnail_available),
-                                            color = textColor,
-                                            fontSize = 18.sp
+                            Box(
+                                modifier = Modifier
+                                    .background(backgroundColor, shape = RoundedCornerShape(8.dp))
+                                    .padding(8.dp)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onLongPress = { longPress(message) },
+                                            onTap = { press(message) }
                                         )
                                     }
-                                }
-                                else -> {
+                            ) {
+                                Column {
+                                    when (val content = message.content) {
+                                        is TdApi.MessageText -> {
+                                            Text(
+                                                text = content.text.text,
+                                                color = textColor,
+                                                fontSize = 18.sp
+                                            )
+                                        }
+                                        is TdApi.MessagePhoto -> {
+                                            val thumbnail = content.photo.sizes.minByOrNull { it.width * it.height }
+                                            if (thumbnail != null) {
+                                                ThumbnailImage(
+                                                    message = message,
+                                                    thumbnail = thumbnail.photo,
+                                                    imageWidth = thumbnail.width,
+                                                    imageHeight = thumbnail.height,
+                                                    textColor = textColor
+                                                )
+                                            } else {
+                                                // 处理没有缩略图的情况
+                                                Text(
+                                                    text = stringResource(id = R.string.No_thumbnail_available),
+                                                    color = textColor,
+                                                    fontSize = 18.sp
+                                                )
+                                            }
+                                        }
+                                        else -> {
+                                            Text(
+                                                text = stringResource(id = R.string.Unknown_Message),
+                                                color = textColor,
+                                                fontSize = 18.sp
+                                            )
+                                        }
+                                    }
                                     Text(
-                                        text = stringResource(id = R.string.Unknown_Message),
-                                        color = textColor,
-                                        fontSize = 18.sp
+                                        text = if (message.editDate == 0) formatTimestampToTime(message.date)
+                                        else stringResource(id = R.string.edit) + "" + formatTimestampToTime(message.editDate),
+                                        modifier = modifier,
+                                        color = Color(0xFF6A86A3),
+                                        fontSize = 14.sp
                                     )
                                 }
+
                             }
                         }
                     }
                 }
+
             }
         }
 
@@ -349,6 +400,20 @@ fun ThumbnailImage(
     }
 }
 
+@Composable
+fun DateText(date: String) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = date,
+            modifier = Modifier,
+            color = Color(0xFF3A80BF)
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun SplashChatScreenPreview() {
@@ -357,7 +422,25 @@ fun SplashChatScreenPreview() {
             listOf(
                 TdApi.Message().apply {
                     date = 1692127800
+                    editDate = 283848839
                     id = 1
+                    senderId = TdApi.MessageSenderUser(2) // 对方用户
+                    content = TdApi.MessageText(
+                        TdApi.FormattedText(
+                            "这可是用高贵的jetpack compose写的。\n原生啊，原生懂吗？",
+                            emptyArray()
+                        ), null
+                    )
+                },
+                TdApi.Message().apply {
+                    date = 1692127800
+                    id = 2
+                    senderId = TdApi.MessageSenderUser(2) // 对方用户
+                    content = TdApi.MessageText(TdApi.FormattedText("你再骂！", emptyArray()), null)
+                },
+                TdApi.Message().apply {
+                    date = 1692127800
+                    id =3
                     senderId = TdApi.MessageSenderUser(1) // 当前用户
                     content = TdApi.MessageText(
                         TdApi.FormattedText(
@@ -366,21 +449,6 @@ fun SplashChatScreenPreview() {
                         ), null
                     )
                 },
-                TdApi.Message().apply {
-                    id = 2
-                    senderId = TdApi.MessageSenderUser(2) // 对方用户
-                    content = TdApi.MessageText(TdApi.FormattedText("你再骂！", emptyArray()), null)
-                },
-                TdApi.Message().apply {
-                    id = 3
-                    senderId = TdApi.MessageSenderUser(2) // 对方用户
-                    content = TdApi.MessageText(
-                        TdApi.FormattedText(
-                            "这可是用高贵的jetpack compose写的。\n原生啊，原生懂吗？",
-                            emptyArray()
-                        ), null
-                    )
-                }
             )
         )
     }

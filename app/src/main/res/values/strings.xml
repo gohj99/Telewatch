@@ -49,4 +49,5 @@
     <string name="Voice">Voice</string>
     <string name="Animation">GIF</string>
     <string name="Error_ImgView">It\'s not an image or you can\'t download an image</string>
+    <string name="edit">Edit</string>
 </resources>
