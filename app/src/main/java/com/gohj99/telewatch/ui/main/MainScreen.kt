@@ -9,6 +9,11 @@
 package com.gohj99.telewatch.ui.main
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -99,6 +104,9 @@ fun MainScreen(
         }
 
         Spacer(modifier = Modifier.height(10.dp)) // 添加间距
+
+        val transitionState = remember { MutableTransitionState(false) }
+        transitionState.targetState = showMenu
 
         // ChatLazyColumn
         if (showMenu) {

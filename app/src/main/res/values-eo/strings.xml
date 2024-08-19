@@ -1,11 +1,3 @@
-<!--
-  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
-  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
-  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
-  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
-  -->
-
 <resources>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="title_activity_main" translatable="false">MainActivity</string>
@@ -49,4 +41,7 @@
     <string name="Voice">Voĉo</string>
     <string name="Animation">GIF</string>
     <string name="Error_ImgView">Ĝi ne estas bildo aŭ vi ne povas elŝuti bildon</string>
+    <string name="edit">Redakti</string>
+    <string name="ReloadMessage">Reŝargi mesaĝon</string>
+    <string name="GetMessage">Akiru mesaĝon informon</string>
 </resources>

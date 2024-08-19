@@ -21,7 +21,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0.5"
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.zoomable)
+    implementation(libs.gson)
     testImplementation(libs.junit)
     implementation(libs.zxing.core)
     implementation(project(":libtd"))

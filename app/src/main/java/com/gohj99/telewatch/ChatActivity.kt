@@ -11,6 +11,7 @@ package com.gohj99.telewatch
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +21,8 @@ import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.chat.SplashChatScreen
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import org.drinkless.td.libcore.telegram.TdApi
 
@@ -100,11 +103,35 @@ class ChatActivity : ComponentActivity() {
                             }
                         }
                     },
-                    longPress = {
+                    longPress = { select, message ->
                         println("长按触发")
+                        println(message)
+                        when (select) {
+                            "ReloadMessage" -> {
+                                tgApi!!.reloadMessageById(message.id)
+                                Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show()
+                                return@SplashChatScreen "OK"
+                            }
+                            "GetMessage" -> {
+                                return@SplashChatScreen tgApi!!.getMessageTypeById(message.id)?.let { messageType ->
+                                    val gson = Gson()
+                                    val messageJson = gson.toJson(messageType)
+                                    formatJson(messageJson)
+                                } ?: "error"
+                                /*val gson = Gson()
+                                val messageJson = gson.toJson(message)
+                                return@SplashChatScreen formatJson(messageJson)*/
+                            }
+                            else -> return@SplashChatScreen "NotFind"
+                        }
                     }
                 )
             }
         }
+    }
+    fun formatJson(jsonString: String): String {
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val jsonElement = gson.fromJson(jsonString, Any::class.java)
+        return gson.toJson(jsonElement)
     }
 }

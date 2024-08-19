@@ -74,10 +74,8 @@ import java.util.Locale
 fun formatTimestampToTime(unixTimestamp: Int): String {
     // 将 Unix 时间戳从 Int 转换为 Long，并转换为毫秒
     val date = Date(unixTimestamp.toLong() * 1000)
-
     // 定义时间格式
     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
-
     // 返回格式化的时间字符串
     return format.format(date)
 }
@@ -85,15 +83,12 @@ fun formatTimestampToTime(unixTimestamp: Int): String {
 fun formatTimestampToDate(unixTimestamp: Int): String {
     // 将时间戳转换为 Date 对象
     val date = Date(unixTimestamp.toLong() * 1000)
-
     // 获取当前年份
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-
     // 获取时间戳对应的年份
     val calendar = Calendar.getInstance()
     calendar.time = date
     val timestampYear = calendar.get(Calendar.YEAR)
-
     // 获取用户的本地化日期格式
     val dateFormat: DateFormat = if (timestampYear == currentYear) {
         // 当年份相同时，仅显示月和日
@@ -102,7 +97,6 @@ fun formatTimestampToDate(unixTimestamp: Int): String {
         // 当年份不同时，显示完整日期
         DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())
     }
-
     // 返回格式化的日期字符串
     return dateFormat.format(date)
 }
@@ -114,13 +108,15 @@ fun SplashChatScreen(
     currentUserId: Long,
     sendCallback: (String) -> Unit,
     press: (TdApi.Message) -> Unit,
-    longPress: (TdApi.Message) -> Unit
+    longPress: suspend (String, TdApi.Message) -> String
 ) {
     val listState = rememberLazyListState()
     var isFloatingVisible by remember { mutableStateOf(true) }
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    var isLongPressed by remember { mutableStateOf(false) }
+    var selectMessage by remember { mutableStateOf(TdApi.Message()) }
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -155,7 +151,7 @@ fun SplashChatScreen(
         ) {
             //println("开始渲染")
             Text(
-                text = chatTitle,
+                text = if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle,
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
@@ -194,6 +190,7 @@ fun SplashChatScreen(
                                 DateText(currentDate)
                             }
                         }
+
                         Row(
                             modifier = Modifier
                                 .padding(6.dp)
@@ -206,7 +203,10 @@ fun SplashChatScreen(
                                     .padding(8.dp)
                                     .pointerInput(Unit) {
                                         detectTapGestures(
-                                            onLongPress = { longPress(message) },
+                                            onLongPress = {
+                                                selectMessage = message
+                                                isLongPressed = true
+                                            },
                                             onTap = { press(message) }
                                         )
                                     }
@@ -264,6 +264,16 @@ fun SplashChatScreen(
             }
         }
 
+        // 长按处理
+        if (isLongPressed) {
+            LongPressBox(
+                callBack = { select ->
+                    return@LongPressBox longPress(select, selectMessage)
+                },
+                onDismiss = { isLongPressed = false }
+            )
+        }
+
         // 隐藏的 TextField 用于触发输入法
         val textFieldFocusRequester by remember { mutableStateOf(FocusRequester()) }
 
@@ -314,7 +324,10 @@ fun SplashChatScreen(
                 }
 
                 IconButton(
-                    onClick = { sendCallback(inputText.text) },
+                    onClick = {
+                        sendCallback(inputText.text)
+                        inputText = TextFieldValue("")
+                    },
                     modifier = Modifier
                         .size(45.dp)
                 ) {
@@ -458,14 +471,17 @@ fun SplashChatScreenPreview() {
             chatTitle = "XCちゃん",
             chatList = sampleMessages,
             currentUserId = 1L,
-            {
-                println("长按触发")
+            sendCallback = { text ->
+                println(text)
             },
-            {
+            press = {
                 println("点击触发")
+            },
+            longPress = { select, message ->
+                println("长按触发")
+                println(message)
+                return@SplashChatScreen select
             }
-        ) { text ->
-            println(text)
-        }
+        )
     }
 }
