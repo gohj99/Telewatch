@@ -1,5 +1,6 @@
 package com.gohj99.telewatch.ui.chat
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,10 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import kotlinx.coroutines.launch
-import com.gohj99.telewatch.R
 
 @Composable
 fun LongPressBox(
@@ -39,17 +40,19 @@ fun LongPressBox(
     var nowShow by remember { mutableStateOf("first") }
     var showText by remember { mutableStateOf("") }
 
-
     Dialog(onDismissRequest = {
         nowShow = "first"
         onDismiss()
     }) {
+        BackHandler(onBack = {
+            nowShow = "first"
+            onDismiss()
+        })
         when (nowShow) {
             "first" -> {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
+                        .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.8f), shape = RoundedCornerShape(8.dp))
                         .padding(16.dp),
                     contentAlignment = Alignment.Center

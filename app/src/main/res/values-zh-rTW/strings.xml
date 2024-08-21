@@ -44,4 +44,7 @@
     <string name="edit">編輯</string>
     <string name="ReloadMessage">重新載入訊息</string>
     <string name="GetMessage">獲取訊息訊息</string>
+    <string name="Same_name_image_exists">有同一張圖</string>
+    <string name="failling">失敗</string>
+    <string name="Read_failed">讀取失敗</string>
 </resources>

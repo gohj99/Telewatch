@@ -32,6 +32,9 @@ fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
             .padding(horizontal = 16.dp) // 只在左右添加 padding
             .verticalRotaryScroll(listState)
     ) {
+        item {
+            Spacer(modifier = Modifier.height(12.dp)) // 添加一个高度为 12dp 的 Spacer
+        }
         items(allPages) { page ->
             MenuView(page, nowPage)
         }

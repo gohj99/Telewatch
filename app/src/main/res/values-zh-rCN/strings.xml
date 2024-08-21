@@ -18,7 +18,7 @@
     <string name="Password">输入密码</string>
     <string name="Password_Error">密码错误</string>
     <string name="OK" translatable="false">OK</string>
-    <string name="Done">继续</string>
+    <string name="Done">登录</string>
     <string name="scan_qr">扫描二维码</string>
     <string name="loading">加载中…</string>
     <string name="Request_error">加载失败</string>
@@ -41,7 +41,10 @@
     <string name="Voice">嗓音</string>
     <string name="Animation">动图</string>
     <string name="Error_ImgView">这不是图像，或者您无法下载图像</string>
-    <string name="edit">编辑</string>
+    <string name="edit">已编辑</string>
     <string name="ReloadMessage">重新加载消息</string>
     <string name="GetMessage">获取消息信息</string>
+    <string name="Same_name_image_exists">有同一张图</string>
+    <string name="failling">失败</string>
+    <string name="Read_failed">读取失败</string>
 </resources>

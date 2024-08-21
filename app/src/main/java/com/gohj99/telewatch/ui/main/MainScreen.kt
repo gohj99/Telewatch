@@ -9,11 +9,7 @@
 package com.gohj99.telewatch.ui.main
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -75,7 +71,7 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth() // 只填充宽度
-                .padding(top = 16.dp) // 添加顶部填充
+                .padding(top = 14.dp) // 添加顶部填充
                 .clickable { showMenu = !showMenu } // 点击时切换显示状态
         ) {
             Row(
@@ -103,7 +99,7 @@ fun MainScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp)) // 添加间距
+        Spacer(modifier = Modifier.height(4.dp)) // 添加间距
 
         val transitionState = remember { MutableTransitionState(false) }
         transitionState.targetState = showMenu

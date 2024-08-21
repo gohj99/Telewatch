@@ -44,4 +44,7 @@
     <string name="edit">Редактировать</string>
     <string name="ReloadMessage">Обновить сообщение</string>
     <string name="GetMessage">Получить информацию о сообщении</string>
+    <string name="Same_name_image_exists">Есть такая же картина</string>
+    <string name="failling">неудача</string>
+    <string name="Read_failed">Чтение не удалось</string>
 </resources>

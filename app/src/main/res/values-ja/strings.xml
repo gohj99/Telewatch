@@ -44,4 +44,7 @@
     <string name="edit">編集</string>
     <string name="ReloadMessage">メッセージをリロードする</string>
     <string name="GetMessage">メッセージ情報の取得</string>
+    <string name="Same_name_image_exists">同じ写真を持っている</string>
+    <string name="failling">失敗</string>
+    <string name="Read_failed">読み取りに失敗しました</string>
 </resources>

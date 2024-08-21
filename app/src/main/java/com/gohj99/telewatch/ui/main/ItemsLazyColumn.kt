@@ -20,10 +20,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 
 // 定义一个数据类
@@ -68,6 +71,15 @@ fun <T> MutableState<List<T>>.add(item: T) {
 fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit) {
     val listState = rememberLazyListState()
 
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                if (index >= itemsList.value.size - 5) {  // 检测是否到倒数第五项
+                    TgApiManager.tgApi?.loadChats(itemsList.value.size + 1)
+                }
+            }
+    }
+
     LazyColumn(
         state = listState,
         modifier = Modifier
@@ -75,6 +87,9 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
             .padding(horizontal = 16.dp) // 只在左右添加 padding
             .verticalRotaryScroll(listState)
     ) {
+        item {
+            Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
+        }
         items(itemsList.value) { item ->
             ChatView(item, callback)
         }
@@ -94,6 +109,9 @@ fun ContactsLazyColumn(itemsList: List<Chat>, callback: (Chat) -> Unit) {
             .padding(horizontal = 16.dp) // 只在左右添加 padding
             .verticalRotaryScroll(listState)
     ) {
+        item {
+            Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
+        }
         items(itemsList) { item ->
             ChatView(item, callback)
         }

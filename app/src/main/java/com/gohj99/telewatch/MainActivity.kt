@@ -95,9 +95,7 @@ class MainActivity : ComponentActivity() {
                     this@MainActivity,
                     chatsList = chatsList
                 )
-                TgApiManager.tgApi?.getChats(
-                    limit = 10
-                )
+                TgApiManager.tgApi?.loadChats(15)
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {

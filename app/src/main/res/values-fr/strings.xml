@@ -44,4 +44,7 @@
     <string name="edit">Modifier</string>
     <string name="ReloadMessage">Recharger le message</string>
     <string name="GetMessage">Obtenir des informations sur les messages</string>
+    <string name="Same_name_image_exists">J\'ai la même photo</string>
+    <string name="failling">échouer</string>
+    <string name="Read_failed">Échec de la lecture</string>
 </resources>

@@ -42,7 +42,7 @@ fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String)
         Box(
             modifier = Modifier
                 .fillMaxWidth() // 只填充宽度
-                .padding(top = 16.dp) // 添加顶部填充
+                .padding(top = 14.dp) // 添加顶部填充
         ) {
             Row(
                 modifier = Modifier
@@ -59,7 +59,7 @@ fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String)
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp)) // 添加间距
+        Spacer(modifier = Modifier.height(4.dp)) // 添加间距
 
         SettingLazyColumn(settings, callback)
     }

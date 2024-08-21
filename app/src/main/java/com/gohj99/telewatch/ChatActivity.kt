@@ -68,7 +68,15 @@ class ChatActivity : ComponentActivity() {
                 SplashChatScreen(
                     chatTitle = chat!!.title,
                     chatList = chatList,
+                    chatId = chat!!.id,
                     currentUserId = currentUserId.value,
+                    goToChat = { chat ->
+                        startActivity(
+                            Intent(this@ChatActivity, ChatActivity::class.java).apply {
+                                putExtra("chat", chat)
+                            }
+                        )
+                    },
                     sendCallback = { messageText ->
                         tgApi?.sendMessage(
                             chatId = chat!!.id,

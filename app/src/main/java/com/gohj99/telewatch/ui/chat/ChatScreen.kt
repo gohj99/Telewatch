@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import kotlinx.coroutines.runBlocking
@@ -105,8 +107,10 @@ fun formatTimestampToDate(unixTimestamp: Int): String {
 fun SplashChatScreen(
     chatTitle: String,
     chatList: MutableState<List<TdApi.Message>>,
+    chatId: Long,
     currentUserId: Long,
     sendCallback: (String) -> Unit,
+    goToChat: (Chat) -> Unit,
     press: (TdApi.Message) -> Unit,
     longPress: suspend (String, TdApi.Message) -> String
 ) {
@@ -179,6 +183,8 @@ fun SplashChatScreen(
                     val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
                     val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
 
+                    TgApiManager.tgApi?.markMessagesAsRead(message.id)
+
                     Column {
                         // 绘制日期
                         val nextItem = chatList.value.getOrNull(index + 1)
@@ -191,16 +197,53 @@ fun SplashChatScreen(
                             }
                         }
 
+                        // 渲染用户名字
+                        if (!isCurrentUser) {
+                            var senderName by remember {mutableStateOf("")}
+                            val senderId = message.senderId
+                            if (senderId.constructor == TdApi.MessageSenderUser.CONSTRUCTOR){
+                                val senderUser = senderId as TdApi.MessageSenderUser
+                                senderUser.userId.let {
+                                    Text(
+                                        text = senderName,
+                                        modifier = Modifier
+                                            .pointerInput(Unit) {
+                                                detectTapGestures(
+                                                    onTap = {
+                                                        if (senderUser.userId != chatId) {
+                                                            goToChat(Chat(
+                                                                id = senderUser.userId,
+                                                                title = senderName,
+                                                                message = ""
+                                                            ))
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                            .padding(start = 12.dp),
+                                        color = Color.White,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    LaunchedEffect(message.senderId) {
+                                        TgApiManager.tgApi?.getUser(it) { user ->
+                                            senderName = user
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         Row(
                             modifier = Modifier
-                                .padding(6.dp)
+                                .padding(5.dp)
                                 .fillMaxWidth(),
                             horizontalArrangement = alignment
                         ) {
                             Box(
                                 modifier = Modifier
                                     .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-                                    .padding(8.dp)
+                                    .padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 1.dp)
                                     .pointerInput(Unit) {
                                         detectTapGestures(
                                             onLongPress = {
@@ -239,6 +282,9 @@ fun SplashChatScreen(
                                                 )
                                             }
                                         }
+                                        is TdApi.MessageVideo -> {
+
+                                        }
                                         else -> {
                                             Text(
                                                 text = stringResource(id = R.string.Unknown_Message),
@@ -247,15 +293,35 @@ fun SplashChatScreen(
                                             )
                                         }
                                     }
-                                    Text(
-                                        text = if (message.editDate == 0) formatTimestampToTime(message.date)
-                                        else stringResource(id = R.string.edit) + "" + formatTimestampToTime(message.editDate),
-                                        modifier = modifier,
-                                        color = Color(0xFF6A86A3),
-                                        fontSize = 14.sp
-                                    )
+                                    Row(
+                                        modifier = modifier
+                                            .padding(top = 4.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween // 两端对齐
+                                    ) {
+                                        Text(
+                                            text = if (message.editDate == 0) formatTimestampToTime(message.date)
+                                            else stringResource(id = R.string.edit) + " " + formatTimestampToTime(message.editDate),
+                                            modifier = modifier,
+                                            color = Color(0xFF6A86A3),
+                                            fontSize = 13.sp
+                                        )
+                                        if (!isCurrentUser) {
+                                            val forwardInfo = message.forwardInfo
+                                            forwardInfo?.origin?.let {
+                                                val origin = forwardInfo.origin as TdApi.MessageForwardOriginChannel
+                                                Text(
+                                                    text = origin.authorSignature,
+                                                    color = Color(0xFF6A86A3),
+                                                    fontSize = 12.sp,
+                                                    modifier = Modifier
+                                                        .align(Alignment.CenterVertically)
+                                                        .weight(1f)
+                                                        .wrapContentWidth(Alignment.End) // 向右对齐
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
-
                             }
                         }
                     }
@@ -470,7 +536,9 @@ fun SplashChatScreenPreview() {
         SplashChatScreen(
             chatTitle = "XCちゃん",
             chatList = sampleMessages,
+            chatId = 1L,
             currentUserId = 1L,
+            goToChat = { },
             sendCallback = { text ->
                 println(text)
             },

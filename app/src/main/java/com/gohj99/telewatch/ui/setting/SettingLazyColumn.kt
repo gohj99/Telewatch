@@ -40,6 +40,9 @@ fun SettingLazyColumn(
             .padding(horizontal = 16.dp)
             .verticalRotaryScroll(listState)
     ) {
+        item {
+            Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
+        }
         items(itemsList.value) { item ->
             SettingView(item, callback)
         }

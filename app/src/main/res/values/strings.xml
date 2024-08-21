@@ -52,4 +52,7 @@
     <string name="edit">Edit</string>
     <string name="ReloadMessage">Reload message</string>
     <string name="GetMessage">Get message information</string>
+    <string name="Same_name_image_exists">Have the same picture</string>
+    <string name="failling">failling</string>
+    <string name="Read_failed">Read failed</string>
 </resources>

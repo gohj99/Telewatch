@@ -44,4 +44,7 @@
     <string name="edit">Redakti</string>
     <string name="ReloadMessage">Reŝargi mesaĝon</string>
     <string name="GetMessage">Akiru mesaĝon informon</string>
+    <string name="Same_name_image_exists">Havu la saman bildon</string>
+    <string name="failling">malsukcesi</string>
+    <string name="Read_failed">Legado malsukcesis</string>
 </resources>
