@@ -21,7 +21,12 @@
       />  
     </a >
   </div>
+  <picture>
+    <img src="Screenshot.png" />
+  </picture>
 </div>
+
+![Screenshot](Screenshot.png)
 
 ## Download
 
@@ -34,6 +39,15 @@ ADB Shell:
 ```shell
 adb install Telewatch.apk
 ```
+
+## Functions
+
+- View or download text, pictures, and videos
+- Save pictures or videos
+- Send text
+- Edit message processing
+- Delete message processing
+- Support crown rotation
 
 ## Minimum and recommended requirements
 

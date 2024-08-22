@@ -30,10 +30,16 @@ class SettingActivity : ComponentActivity() {
 
         enableEdgeToEdge()
 
+        val externalDir: File = getExternalFilesDir(null)
+            ?: throw IllegalStateException("Failed to get external directory.")
+
         settingsList.value = listOf(
             getString(R.string.Clearing_cache),
             getString(R.string.Restart),
-            getString(R.string.Reset_libtd),
+            getString(R.string.Clear_thumbnails),
+            getString(R.string.Clear_photos),
+            getString(R.string.Clear_videos),
+            getString(R.string.Clear_cache),
             getString(R.string.Reset_self),
             getString(R.string.About)
         )
@@ -63,12 +69,56 @@ class SettingActivity : ComponentActivity() {
                                 }, 1000)
                             }
 
-                            getString(R.string.Reset_libtd) -> {
-                                reset_libtd()
+                            getString(R.string.Clear_thumbnails) -> {
+                                val dir = File(externalDir.absolutePath + "/tdlib")
+                                dir.listFiles()?.find { it.name == "thumbnails" && it.isDirectory }
+                                    ?.deleteRecursively()
+                                cacheDir.deleteRecursively()
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.Successful),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            getString(R.string.Clear_photos) -> {
+                                val dir = File(externalDir.absolutePath + "/tdlib")
+                                dir.listFiles()?.find { it.name == "photos" && it.isDirectory }
+                                    ?.deleteRecursively()
+                                cacheDir.deleteRecursively()
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.Successful),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            getString(R.string.Clear_videos) -> {
+                                val dir = File(externalDir.absolutePath + "/tdlib")
+                                dir.listFiles()?.find { it.name == "videos" && it.isDirectory }
+                                    ?.deleteRecursively()
+                                cacheDir.deleteRecursively()
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.Successful),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                            getString(R.string.Clear_cache) -> {
+                                val dir = File(externalDir.absolutePath + "/tdlib")
+                                dir.listFiles()?.find { it.name == "temp" && it.isDirectory }
+                                    ?.deleteRecursively()
+                                cacheDir.deleteRecursively()
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.Successful),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
 
                             getString(R.string.Reset_self) -> {
-                                reset_self()
+                                resetSelf()
                             }
 
                             getString(R.string.About) -> {
@@ -82,23 +132,7 @@ class SettingActivity : ComponentActivity() {
         }
     }
 
-    private fun reset_libtd(){
-        val dir = File(applicationContext.filesDir.absolutePath)
-        dir.listFiles()?.find { it.name == "tdlib" && it.isDirectory }?.deleteRecursively()
-        // 清除登录数据
-        getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear().apply()
-        // Toast提醒
-        Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
-        // 重启软件
-        Handler(Looper.getMainLooper()).postDelayed({
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
-            intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
-            android.os.Process.killProcess(android.os.Process.myPid())
-        }, 1000)
-    }
-
-    private fun reset_self(){
+    private fun resetSelf() {
         // 清除缓存
         cacheDir.deleteRecursively()
         // 清空软件文件

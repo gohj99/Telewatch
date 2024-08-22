@@ -1,3 +1,11 @@
+<!--
+  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
+  -->
+
 <resources>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="title_activity_main" translatable="false">MainActivity</string>
@@ -12,7 +20,6 @@
     <string name="Network">ネットワーク</string>
     <string name="Settings">設定</string>
     <string name="Clearing_cache">キャッシュのクリア</string>
-    <string name="Reset_libtd">libtdをリセット(再起動)</string>
     <string name="Reset_self">自己リセット(再起動)</string>
     <string name="Successful">成功</string>
     <string name="Password">パスワード</string>
@@ -25,7 +32,7 @@
     <string name="HOME">家</string>
     <string name="Login_Successful">ログイン成功</string>
     <string name="Retry">リトライ</string>
-    <string name="Error">エラーが発生しました\\nもう一度試してください</string>
+    <string name="Error">エラーが発生しました\nもう一度試してください</string>
     <string name="Unknown_Message">Unknown message type</string>
     <string name="Contacts">連絡先</string>
     <string name="setting_all">All setting</string>
@@ -47,4 +54,17 @@
     <string name="Same_name_image_exists">同じ写真を持っている</string>
     <string name="failling">失敗</string>
     <string name="Read_failed">読み取りに失敗しました</string>
+    <string name="Save_success">保存成功</string>
+    <string name="Select_player">プレーヤーを選択してください</string>
+    <string name="No_player">プレーヤーが見つかりません</string>
+    <string name="Save">保存</string>
+    <string name="Download_first">まずはダウンロード</string>
+    <string name="Same_name_video_exists">同じビデオを持っている</string>
+    <string name="No_need_to_save">保存する必要はありません</string>
+    <string name="Download">ダウンロード</string>
+    <string name="Play">遊ぶ</string>
+    <string name="Clear_cache">キャッシュをクリアする</string>
+    <string name="Clear_thumbnails">サムネイルをクリアする</string>
+    <string name="Clear_photos">鮮明な写真</string>
+    <string name="Clear_videos">鮮明なビデオ</string>
 </resources>

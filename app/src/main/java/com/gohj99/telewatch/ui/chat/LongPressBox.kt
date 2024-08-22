@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
+
 package com.gohj99.telewatch.ui.chat
 
 import androidx.activity.compose.BackHandler
@@ -53,7 +61,10 @@ fun LongPressBox(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.8f), shape = RoundedCornerShape(8.dp))
+                        .background(
+                            Color.Black.copy(alpha = 0.8f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
                         .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -76,6 +87,15 @@ fun LongPressBox(
                                 }
                             }
                         )
+                        LPMainCard(
+                            text = stringResource(id = R.string.Save),
+                            callback = {
+                                coroutineScope.launch {
+                                    showText = callBack("Save")
+                                    onDismiss()
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -84,7 +104,10 @@ fun LongPressBox(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .background(Color.Black.copy(alpha = 0.8f), shape = RoundedCornerShape(8.dp))
+                        .background(
+                            Color.Black.copy(alpha = 0.8f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
                         .padding(7.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -93,7 +116,10 @@ fun LongPressBox(
                         onValueChange = { },
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0xFF2C323A).copy(alpha = 0.3f), shape = RoundedCornerShape(8.dp))
+                            .background(
+                                Color(0xFF2C323A).copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
                             .padding(8.dp),
                         textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
                         singleLine = false

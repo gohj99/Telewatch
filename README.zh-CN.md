@@ -23,6 +23,8 @@
   </div>
 </div>
 
+![Screenshot](Screenshot.png)
+
 ## 下载
 
 下载: [Telewatch](https://github.com/gohj99/Telewatch/releases)  
@@ -34,6 +36,15 @@ ADB Shell:
 ```shell
 adb install Telewatch.apk
 ```
+
+## 功能
+
+- 文字、图片、视频查看或下载
+- 保存图片或视频
+- 文字发送
+- 编辑消息处理
+- 删除消息处理
+- 支持表冠旋转
 
 ## 最低配置和推荐配置
 

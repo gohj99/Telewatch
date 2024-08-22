@@ -64,7 +64,7 @@ class ImgViewActivity : ComponentActivity() {
 
         setContent {
             TelewatchTheme {
-                SplashLoadingScreen()
+                SplashLoadingScreen(modifier = Modifier.fillMaxSize())
             }
         }
 
@@ -210,7 +210,7 @@ fun saveImageToExternalStorage(context: Context, photoPath: String): String {
         contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
         context.contentResolver.update(uri, contentValues, null, null)
 
-        return uri.toString()
+        return context.getString(R.string.Save_success)
     } else {
         // Android 8和9使用传统方式保存到外部存储
         val imagesDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "Telewatch")
@@ -231,7 +231,7 @@ fun saveImageToExternalStorage(context: Context, photoPath: String): String {
         // 通知系统图库更新
         context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
 
-        return file.absolutePath
+        return context.getString(R.string.Save_success)
     }
 }
 

@@ -32,6 +32,7 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
+import java.io.File
 import java.io.IOException
 import java.util.Properties
 
@@ -55,6 +56,7 @@ class LoginActivity : ComponentActivity() {
         enableEdgeToEdge()
         languageCode = this.resources.configuration.locales[0].language
         appVersion = getAppVersion(this)
+
         setContent {
             TelewatchTheme {
                 if (showPasswordScreen) {
@@ -108,13 +110,16 @@ class LoginActivity : ComponentActivity() {
                 val authorizationState = (update as TdApi.UpdateAuthorizationState).authorizationState
                 when (authorizationState.constructor) {
                     TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {
+                        // 获取应用外部数据目录
+                        val externalDir: File = getExternalFilesDir(null)
+                            ?: throw IllegalStateException("Failed to get external directory.")
                         //获取API ID和API Hash
                         val config = loadConfig(this) // 传递 context
                         val tdapiId = config.getProperty("api_id").toInt()
                         val tdapiHash = config.getProperty("api_hash")
                         // 设置 TDLib 参数
                         val parameters = TdApi.TdlibParameters().apply {
-                            databaseDirectory = applicationContext.filesDir.absolutePath + "/tdlib"
+                            databaseDirectory = externalDir.absolutePath + "/tdlib"
                             useMessageDatabase = true
                             useSecretChats = true
                             apiId = tdapiId

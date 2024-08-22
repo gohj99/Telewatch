@@ -23,6 +23,8 @@
   </div>
 </div>
 
+![Screenshot](Screenshot.png)
+
 ## ダウンロード
 
 ダウンロード: [Telewatch](https://github.com/gohj99/Telewatch/releases)  
@@ -34,6 +36,15 @@ ADB シェル:
 ```shell
 adb install Telewatch.apk
 ```
+
+## 関数
+
+- テキスト、写真、ビデオの表示またはダウンロード
+- 写真やビデオを保存する
+- テキスト送信
+- メッセージ処理の編集
+- 削除メッセージの処理
+- リューズの回転をサポート
 
 ## 最小構成と推奨構成
 

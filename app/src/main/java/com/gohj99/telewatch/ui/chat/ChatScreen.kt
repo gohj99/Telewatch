@@ -63,6 +63,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.main.Chat
+import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import kotlinx.coroutines.runBlocking
@@ -120,6 +121,7 @@ fun SplashChatScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var isLongPressed by remember { mutableStateOf(false) }
+    var videoDownload by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
 
     LaunchedEffect(listState) {
@@ -182,6 +184,7 @@ fun SplashChatScreen(
                     val textColor = if (isCurrentUser) Color(0xFF66D3FE) else Color(0xFFFEFEFE)
                     val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
                     val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
+                    var videoDownloadDone by remember { mutableStateOf(false) }
 
                     TgApiManager.tgApi?.markMessagesAsRead(message.id)
 
@@ -211,16 +214,18 @@ fun SplashChatScreen(
                                                 detectTapGestures(
                                                     onTap = {
                                                         if (senderUser.userId != chatId) {
-                                                            goToChat(Chat(
-                                                                id = senderUser.userId,
-                                                                title = senderName,
-                                                                message = ""
-                                                            ))
+                                                            goToChat(
+                                                                Chat(
+                                                                    id = senderUser.userId,
+                                                                    title = senderName,
+                                                                    message = ""
+                                                                )
+                                                            )
                                                         }
                                                     }
                                                 )
                                             }
-                                            .padding(start = 12.dp),
+                                            .padding(start = 11.dp),
                                         color = Color.White,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
@@ -250,7 +255,28 @@ fun SplashChatScreen(
                                                 selectMessage = message
                                                 isLongPressed = true
                                             },
-                                            onTap = { press(message) }
+                                            onTap = {
+                                                if (message.content is TdApi.MessageVideo) {
+                                                    val videoFile =
+                                                        (message.content as TdApi.MessageVideo).video.video
+                                                    if (!videoFile.local.isDownloadingCompleted) {
+                                                        TgApiManager.tgApi!!.downloadFile(
+                                                            file = videoFile,
+                                                            schedule = { schedule ->
+                                                                println("下载进度: $schedule")
+                                                            },
+                                                            completion = { boolean, path ->
+                                                                println("下载完成情况: $boolean")
+                                                                println("下载路径: $path")
+                                                                videoDownload = false
+                                                                videoDownloadDone = true
+                                                            }
+                                                        )
+                                                        videoDownload = true
+                                                    }
+                                                }
+                                                press(message)
+                                            }
                                         )
                                     }
                             ) {
@@ -283,7 +309,57 @@ fun SplashChatScreen(
                                             }
                                         }
                                         is TdApi.MessageVideo -> {
-
+                                            val thumbnail = content.video.thumbnail
+                                            Box(
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                if (thumbnail != null) {
+                                                    ThumbnailImage(
+                                                        message = message,
+                                                        thumbnail = thumbnail.file,
+                                                        imageWidth = thumbnail.width,
+                                                        imageHeight = thumbnail.height,
+                                                        textColor = textColor
+                                                    )
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .matchParentSize() // 覆盖层与图片大小一致
+                                                            .background(Color.Black.copy(alpha = 0.5f)) // 设置半透明黑色背景
+                                                    )
+                                                } else {
+                                                    // 处理没有缩略图的情况
+                                                    Text(
+                                                        text = stringResource(id = R.string.No_thumbnail_available),
+                                                        color = textColor,
+                                                        fontSize = 18.sp
+                                                    )
+                                                }
+                                                if (videoDownload) SplashLoadingScreen()
+                                                val videoFile =
+                                                    (message.content as TdApi.MessageVideo).video.video
+                                                if (videoFile.local.isDownloadingCompleted) {
+                                                    videoDownloadDone = true
+                                                }
+                                                if (videoDownloadDone) {
+                                                    Image(
+                                                        painter = painterResource(id = R.drawable.play),
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .align(Alignment.Center)
+                                                            .size(36.dp) // 设置图标大小为 24dp
+                                                    )
+                                                } else {
+                                                    if (!videoDownload) {
+                                                        Image(
+                                                            painter = painterResource(id = R.drawable.download),
+                                                            contentDescription = null,
+                                                            modifier = Modifier
+                                                                .align(Alignment.Center)
+                                                                .size(36.dp) // 设置图标大小为 24dp
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                         else -> {
                                             Text(
@@ -438,7 +514,8 @@ fun ThumbnailImage(
     thumbnail: TdApi.File,
     imageWidth: Int,
     imageHeight: Int,
-    textColor: Color
+    textColor: Color,
+    modifier: Modifier = Modifier
 ) {
     val isDownloaded = remember { mutableStateOf(thumbnail.local.isDownloadingCompleted) }
     val heightDp = with(LocalDensity.current) { imageHeight.toDp() }
@@ -471,6 +548,10 @@ fun ThumbnailImage(
             }
         }
     } else {
+        Box(
+            modifier = modifier
+                .background(Color.Black.copy(alpha = 0.5f)) // 设置半透明黑色背景
+        )
         Image(
             painter = rememberAsyncImagePainter(model = thumbnail.local.path),
             contentDescription = "Thumbnail",

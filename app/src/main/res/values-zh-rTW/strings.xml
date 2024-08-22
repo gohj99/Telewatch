@@ -1,3 +1,11 @@
+<!--
+  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
+  -->
+
 <resources>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="title_activity_main" translatable="false">MainActivity</string>
@@ -12,7 +20,6 @@
     <string name="Network">網路</string>
     <string name="Settings">環境</string>
     <string name="Clearing_cache">清除快取</string>
-    <string name="Reset_libtd">重置libtd（重新啟動）</string>
     <string name="Reset_self">自我重置（重新啟動）</string>
     <string name="Successful">成功的</string>
     <string name="Password">密碼</string>
@@ -25,7 +32,7 @@
     <string name="HOME">家</string>
     <string name="Login_Successful">登入成功</string>
     <string name="Retry">重試</string>
-    <string name="Error">發生錯誤\\n請重試</string>
+    <string name="Error">發生錯誤\n請重試</string>
     <string name="Unknown_Message">Unknown message type</string>
     <string name="Contacts">聯絡方式</string>
     <string name="setting_all">所有設定</string>
@@ -47,4 +54,17 @@
     <string name="Same_name_image_exists">有同一張圖</string>
     <string name="failling">失敗</string>
     <string name="Read_failed">讀取失敗</string>
+    <string name="Save_success">保存成功</string>
+    <string name="Select_player">選擇玩家</string>
+    <string name="No_player">沒有找到玩家</string>
+    <string name="Save">節省</string>
+    <string name="Download_first">先下載</string>
+    <string name="Same_name_video_exists">有同一個視頻</string>
+    <string name="No_need_to_save">無需保存</string>
+    <string name="Download">下載</string>
+    <string name="Play">玩</string>
+    <string name="Clear_cache">清除快取</string>
+    <string name="Clear_thumbnails">清除縮圖</string>
+    <string name="Clear_photos">清晰的照片</string>
+    <string name="Clear_videos">清晰的視頻</string>
 </resources>

@@ -20,7 +20,6 @@
     <string name="Network">Network</string>
     <string name="Settings">Settings</string>
     <string name="Clearing_cache">Clearing cache</string>
-    <string name="Reset_libtd">Reset libtd(Restart)</string>
     <string name="Reset_self">Reset self(Restart)</string>
     <string name="Successful">Successful</string>
     <string name="Password">Password</string>
@@ -33,7 +32,7 @@
     <string name="HOME">Home</string>
     <string name="Login_Successful">Login Successful</string>
     <string name="Retry">Retry</string>
-    <string name="Error">An error occurred\\nPlease try again</string>
+    <string name="Error">An error occurred\nPlease try again</string>
     <string name="Unknown_Message">Unknown message type</string>
     <string name="Contacts">Contacts</string>
     <string name="setting_all">All setting</string>
@@ -55,4 +54,17 @@
     <string name="Same_name_image_exists">Have the same picture</string>
     <string name="failling">failling</string>
     <string name="Read_failed">Read failed</string>
+    <string name="Save_success">Save success</string>
+    <string name="Select_player">Select player</string>
+    <string name="No_player">No player found</string>
+    <string name="Save">Save</string>
+    <string name="Download_first">Download first</string>
+    <string name="Same_name_video_exists">Have the same video</string>
+    <string name="No_need_to_save">No need to save</string>
+    <string name="Download">Download</string>
+    <string name="Play">Play</string>
+    <string name="Clear_cache">Clear cache</string>
+    <string name="Clear_thumbnails">Clear thumbnails</string>
+    <string name="Clear_photos">Clear photos</string>
+    <string name="Clear_videos">Clear videos</string>
 </resources>
