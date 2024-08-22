@@ -185,6 +185,7 @@ fun SplashChatScreen(
                     val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
                     val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
                     var videoDownloadDone by remember { mutableStateOf(false) }
+                    var videoDownload by remember { mutableStateOf(false) }
 
                     TgApiManager.tgApi?.markMessagesAsRead(message.id)
 
