@@ -21,9 +21,6 @@
       />  
     </a >
   </div>
-  <picture>
-    <img src="Screenshot.png" />
-  </picture>
 </div>
 
 ![Screenshot](Screenshot.png)
