@@ -139,6 +139,7 @@ class SettingActivity : ComponentActivity() {
         filesDir.deleteRecursively()
         // 清空 SharedPreferences
         getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear().apply()
+        getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit().clear().apply()
         // Toast提醒
         Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
         // 重启软件

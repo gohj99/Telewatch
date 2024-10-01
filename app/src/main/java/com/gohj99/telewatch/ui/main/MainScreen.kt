@@ -142,6 +142,13 @@ fun MainScreen(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
+    // 傻逼钱显康
+    // 户籍：湖北省随州市曾都区 西城办事处沿江大道22号(地图查验为宾馆)
+    // 住址: 湖北省随州市曾都区汉东名居(无精确门牌)
+    // 学校：湖北省随州市二中
+    // 申必代码：421302200801060033
+    // “个人”网站： https://www.rechrd.top/
+
     val sampleChats = mutableStateOf(
         listOf(
             Chat(id = 1, title = "钱显康", message = "我是傻逼"),
@@ -164,7 +171,7 @@ fun MainScreenPreview() {
                         message = "我是傻逼"
                     )
                 )
-            } // 修正了这里的语法
+            }
         )
     }
 }

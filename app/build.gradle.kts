@@ -9,6 +9,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -21,7 +24,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 2
-        versionName = "1.1.0"
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -87,7 +90,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.3"
     }
     packaging {
         resources {
@@ -108,6 +111,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.gson)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.play.services.measurement.api)
+    implementation(libs.firebase.crashlytics.ktx)
     testImplementation(libs.junit)
     implementation(libs.zxing.core)
     implementation(project(":libtd"))
@@ -117,4 +123,14 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
+
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // See https://firebase.google.com/docs/android/setup#available-libraries
+    // For example, add the dependencies for Firebase Authentication and Cloud Firestore
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 }

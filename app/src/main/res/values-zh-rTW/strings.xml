@@ -67,4 +67,10 @@
     <string name="Clear_thumbnails">清除縮圖</string>
     <string name="Clear_photos">清晰的照片</string>
     <string name="Clear_videos">清晰的視頻</string>
+    <string name="error_activity_view">錯誤頁面</string>
+    <string name="allow_data_Collection">允許數據收集</string>
+    <string name="data_collection_description">我們使用 Google Firebase Analytics 匿名收集崩潰報告、追蹤最常用的功能並收集使用模式數據，以使 Telewatch 更加用戶友好。您可以隨時在設定中停用此功能。</string>
+    <string name="data_collection_title">匿名統計\n崩潰報告</string>
+    <string name="disagree">不同意</string>
+    <string name="agree">同意</string>
 </resources>

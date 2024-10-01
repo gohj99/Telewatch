@@ -34,8 +34,10 @@ import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 object TgApiManager {
     @SuppressLint("StaticFieldLeak")
@@ -57,27 +59,44 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 显示启动页面
-        setContent {
-            TelewatchTheme {
-                SplashScreen()
-            }
-        }
+        // 初始化 Firebase Analytics
+        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        if (!settingsSharedPref.contains("Data_Collection")) {
+            startActivity(
+                Intent(
+                    this,
+                    AllowDataCollectionActivity::class.java
+                )
+            )
+            finish()
+        } else {
+            val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
+            val firebaseAnalytics = FirebaseAnalytics.getInstance(this)
+            firebaseAnalytics.setAnalyticsCollectionEnabled(dataCollection)
 
-        // 使用 Handler 延迟启动主逻辑
-        Handler(Looper.getMainLooper()).postDelayed({
-            initializeApp()
-        }, 600) // 延迟
+            // 显示启动页面
+            setContent {
+                TelewatchTheme {
+                    SplashScreen()
+                }
+            }
+
+            // 使用 Handler 延迟启动主逻辑
+            Handler(Looper.getMainLooper()).postDelayed({
+                initializeApp()
+            }, 600) // 延迟
+        }
     }
 
     private fun initializeApp() {
+
         settingList.value = listOf(
             getString(R.string.About),
             getString(R.string.setting_all)
         )
 
-        val sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
-        isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
+        val loginSharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+        isLoggedIn = loginSharedPref.getBoolean("isLoggedIn", false)
 
         if (!isLoggedIn) {
             startWelcomeActivity()

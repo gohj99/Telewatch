@@ -6,10 +6,12 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.jetbrains.kotlin.android) apply false
-    id("com.google.gms.google-services") version "4.4.2" apply false
-    id("com.google.firebase.crashlytics") version "3.0.2" apply false
+package com.gohj99.telewatch.ui
+
+import android.content.Context
+import android.content.pm.PackageManager
+
+fun isWearOSDevice(context: Context): Boolean {
+    val pm = context.packageManager
+    return pm.hasSystemFeature(PackageManager.FEATURE_WATCH) && pm.hasSystemFeature("android.hardware.type.watch")
 }

@@ -67,4 +67,10 @@
     <string name="Clear_thumbnails">Clear thumbnails</string>
     <string name="Clear_photos">Clear photos</string>
     <string name="Clear_videos">Clear videos</string>
+    <string name="error_activity_view">Error Page</string>
+    <string name="allow_data_Collection">Allow Data Collection</string>
+    <string name="data_collection_description">We use Google Firebase Analytics to anonymously collect crash reports, track the most frequently used features, and gather usage pattern data to make Telewatch more user-friendly. You can disable this feature at any time in the settings.</string>
+    <string name="data_collection_title">Anonymous Statistics\nCrash Reporting</string>
+    <string name="disagree">No</string>
+    <string name="agree">YES</string>
 </resources>

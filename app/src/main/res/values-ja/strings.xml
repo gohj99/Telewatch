@@ -67,4 +67,10 @@
     <string name="Clear_thumbnails">サムネイルをクリアする</string>
     <string name="Clear_photos">鮮明な写真</string>
     <string name="Clear_videos">鮮明なビデオ</string>
+    <string name="error_activity_view">エラーページ</string>
+    <string name="allow_data_Collection">データ収集を許可する</string>
+    <string name="data_collection_description">Google Firebase Analytics を使用して匿名でクラッシュ レポートを収集し、最も頻繁に使用される機能を追跡し、Telewatch をより使いやすくするために使用パターン データを収集します。この機能は設定でいつでも無効にできます。</string>
+    <string name="data_collection_title">匿名の統計\nクラッシュ レポート</string>
+    <string name="disagree">いいえ</string>
+    <string name="agree">はい</string>
 </resources>
