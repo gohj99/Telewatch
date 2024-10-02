@@ -73,4 +73,5 @@
     <string name="data_collection_title">Statistiques anonymes\nRapports d\'accidents</string>
     <string name="disagree">Non</string>
     <string name="agree">OUI</string>
+    <string name="data_Collection">Collecte de données</string>
 </resources>

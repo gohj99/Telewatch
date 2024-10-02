@@ -73,4 +73,5 @@
     <string name="data_collection_title">匿名统计\n崩溃报告</string>
     <string name="disagree">不同意</string>
     <string name="agree">同意</string>
+    <string name="data_Collection">数据收集</string>
 </resources>

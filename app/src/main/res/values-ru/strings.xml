@@ -73,4 +73,5 @@
     <string name="data_collection_title">Анонимная статистика\nОтчеты о сбоях</string>
     <string name="disagree">Нет</string>
     <string name="agree">ДА</string>
+    <string name="data_Collection">Сбор данных</string>
 </resources>

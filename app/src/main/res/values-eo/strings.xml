@@ -73,4 +73,5 @@
     <string name="data_collection_title">Anonimaj Statistikoj\nFrakasa Raportado</string>
     <string name="disagree">Ne</string>
     <string name="agree">JES</string>
+    <string name="data_Collection">Kolekto de datumoj</string>
 </resources>

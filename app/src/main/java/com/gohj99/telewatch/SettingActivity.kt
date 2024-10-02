@@ -41,6 +41,7 @@ class SettingActivity : ComponentActivity() {
             getString(R.string.Clear_videos),
             getString(R.string.Clear_cache),
             getString(R.string.Reset_self),
+            getString(R.string.data_Collection),
             getString(R.string.About)
         )
 
@@ -119,6 +120,15 @@ class SettingActivity : ComponentActivity() {
 
                             getString(R.string.Reset_self) -> {
                                 resetSelf()
+                            }
+
+                            getString(R.string.data_Collection) -> {
+                                startActivity(
+                                    Intent(
+                                        this,
+                                        AllowDataCollectionActivity::class.java
+                                    )
+                                )
                             }
 
                             getString(R.string.About) -> {
