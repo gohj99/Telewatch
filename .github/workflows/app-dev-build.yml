@@ -1,10 +1,15 @@
-name: Android Build and Release
+name: Android Build
 
 on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
   workflow_dispatch:
   push:
     branches:
-      - master
+      - develop
 
 jobs:
   build:
@@ -104,10 +109,14 @@ jobs:
       - name: Move Universal APK
         run: mv app/build/outputs/apk/universal/release/app-universal-release-unsigned-signed.apk ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-universal.apk
 
-      - uses: ncipollo/release-action@v1
+      - name: Upload APKs as artifact
+        uses: actions/upload-artifact@v3
         with:
-          artifacts: "*.apk"
-          token: ${{ github.token }}
-          generateReleaseNotes: true
-          tag: v${{ env.VERSION_NAME }}-${{ github.run_number }}
-          prerelease: false
+          name: android-build-apks
+          path: |
+            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm.apk
+            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm64.apk
+            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86.apk
+            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86_64.apk
+            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-universal.apk
+          retention-days: 30

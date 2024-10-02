@@ -67,4 +67,11 @@
     <string name="Clear_thumbnails">Klarigi bildetojn</string>
     <string name="Clear_photos">Klaraj fotoj</string>
     <string name="Clear_videos">Klara filmetoj</string>
+    <string name="error_activity_view">Erarpaĝo</string>
+    <string name="allow_data_Collection">Permesu Kolekton de Datumoj</string>
+    <string name="data_collection_description">Ni uzas Google Firebase Analytics por anonime kolekti kraŝraportojn, spuri la plej ofte uzatajn funkciojn kaj kolekti uzajn ŝablonojn por fari Telewatch pli afabla. Vi povas malŝalti ĉi tiun funkcion iam ajn en la agordoj.</string>
+    <string name="data_collection_title">Anonimaj Statistikoj\nFrakasa Raportado</string>
+    <string name="disagree">Ne</string>
+    <string name="agree">JES</string>
+    <string name="data_Collection">Kolekto de datumoj</string>
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -125,9 +126,17 @@ fun ContactsLazyColumn(itemsList: List<Chat>, callback: (Chat) -> Unit) {
 fun ChatView(chat: Chat, callback: (Chat) -> Unit) {
     MainCard(
         column = {
-            Text(text = chat.title, color = Color.White)
+            Text(
+                text = chat.title,
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium
+            )
             if (chat.message.isNotEmpty()) {
-                Text(text = chat.message, color = Color(0xFF728AA5))
+                Text(
+                    text = chat.message,
+                    color = Color(0xFF728AA5),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         },
         item = chat,

@@ -41,6 +41,7 @@ class SettingActivity : ComponentActivity() {
             getString(R.string.Clear_videos),
             getString(R.string.Clear_cache),
             getString(R.string.Reset_self),
+            getString(R.string.data_Collection),
             getString(R.string.About)
         )
 
@@ -121,6 +122,15 @@ class SettingActivity : ComponentActivity() {
                                 resetSelf()
                             }
 
+                            getString(R.string.data_Collection) -> {
+                                startActivity(
+                                    Intent(
+                                        this,
+                                        AllowDataCollectionActivity::class.java
+                                    )
+                                )
+                            }
+
                             getString(R.string.About) -> {
                                 val intent = Intent(this, AboutActivity::class.java)
                                 startActivity(intent)
@@ -139,6 +149,7 @@ class SettingActivity : ComponentActivity() {
         filesDir.deleteRecursively()
         // 清空 SharedPreferences
         getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear().apply()
+        getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit().clear().apply()
         // Toast提醒
         Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
         // 重启软件

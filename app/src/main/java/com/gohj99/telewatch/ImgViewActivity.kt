@@ -82,6 +82,7 @@ class ImgViewActivity : ComponentActivity() {
                 if (content is TdApi.MessagePhoto) {
                     val photo = content.photo
                     val photoSizes = photo.sizes
+                    println(photoSizes)
                     val highestResPhoto = photoSizes.maxByOrNull { it.width * it.height }
 
                     highestResPhoto?.let {

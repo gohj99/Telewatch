@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -121,7 +122,6 @@ fun SplashChatScreen(
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var isLongPressed by remember { mutableStateOf(false) }
-    var videoDownload by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
 
     LaunchedEffect(listState) {
@@ -159,7 +159,7 @@ fun SplashChatScreen(
             Text(
                 text = if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle,
                 color = Color.White,
-                fontSize = 18.sp,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
@@ -228,7 +228,7 @@ fun SplashChatScreen(
                                             }
                                             .padding(start = 11.dp),
                                         color = Color.White,
-                                        fontSize = 12.sp,
+                                        fontSize = 11.5.sp,
                                         fontWeight = FontWeight.Bold,
                                     )
                                     LaunchedEffect(message.senderId) {
@@ -287,7 +287,7 @@ fun SplashChatScreen(
                                             Text(
                                                 text = content.text.text,
                                                 color = textColor,
-                                                fontSize = 18.sp
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
                                         is TdApi.MessagePhoto -> {
