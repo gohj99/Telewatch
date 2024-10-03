@@ -74,4 +74,6 @@
     <string name="disagree">No</string>
     <string name="agree">YES</string>
     <string name="data_Collection">Data Collection</string>
+    <string name="UI_Edit">UI Edit</string>
+    <string name="App_setting">App Settings</string>
 </resources>

@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun <T> MainCard(column: @Composable () -> Unit, item: T, callback: (T) -> Unit) {
+fun <T> MainCard(column: @Composable () -> Unit, item: T, callback: (T) -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

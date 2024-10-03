@@ -30,10 +30,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.SettingItem
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 @Composable
-fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String) -> Unit) {
+fun SplashSettingScreen(
+    title: String,
+    settings: MutableState<List<SettingItem>>
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -47,11 +51,11 @@ fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String)
             Row(
                 modifier = Modifier
                     .align(Alignment.TopCenter) // 将 Row 对齐到顶部中央
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically // 垂直方向居中对齐
             ) {
                 Text(
-                    text = stringResource(id = R.string.Settings),
+                    text = title,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -61,7 +65,7 @@ fun SplashSettingScreen(settings: MutableState<List<String>>, callback: (String)
 
         Spacer(modifier = Modifier.height(4.dp)) // 添加间距
 
-        SettingLazyColumn(settings, callback)
+        SettingLazyColumn(settings)
     }
 }
 
@@ -72,22 +76,34 @@ fun SplashSettingScreenPreview() {
         val settings = remember {
             mutableStateOf(
                 listOf(
-                    "设置1",
-                    "设置2",
-                    "设置3",
-                    "设置4",
-                    "设置5",
-                    "设置6",
-                    "设置7",
-                    "设置8",
-                    "设置9",
-                    "设置10"
+                    SettingItem.Click(
+                        itemName = "设置1",
+                        onClick = {}
+                    ),
+                    SettingItem.Switch(
+                        itemName = "设置2",
+                        isSelected = true,
+                        onSelect = {}
+                    ),
+                    SettingItem.Switch(
+                        itemName = "设置3",
+                        isSelected = true,
+                        onSelect = {}
+                    ),
+                    SettingItem.ProgressBar(
+                        itemName = "设置4",
+                        progress = 0f,
+                        maxValue = 100f,
+                        minValue = 0f,
+                        base = 1f,
+                        onProgressChange = {}
+                    )
                 )
             )
         }
         SplashSettingScreen(
-            settings = settings,
-            callback = {}
+            title = stringResource(id = R.string.Settings),
+            settings = settings
         )
     }
 }

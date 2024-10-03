@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
     private var isLoggedIn: Boolean = false
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
-    private var settingList = mutableStateOf(listOf<String>())
+    private var settingList = mutableStateOf(listOf<SettingItem>())
 
     override fun onDestroy() {
         super.onDestroy()
@@ -89,10 +89,29 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initializeApp() {
-
-        settingList.value = listOf(
-            getString(R.string.About),
-            getString(R.string.setting_all)
+        settingList.value = listOf<SettingItem>(
+            SettingItem.Click(
+                itemName = getString(R.string.About),
+                onClick = {
+                    startActivity(
+                        Intent(
+                            this@MainActivity,
+                            AboutActivity::class.java
+                        )
+                    )
+                }
+            ),
+            SettingItem.Click(
+                itemName = getString(R.string.setting_all),
+                onClick = {
+                    startActivity(
+                        Intent(
+                            this@MainActivity,
+                            SettingActivity::class.java
+                        )
+                    )
+                }
+            )
         )
 
         val loginSharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
@@ -136,24 +155,6 @@ class MainActivity : ComponentActivity() {
                                     )
                                 },
                                 settingList = settingList,
-                                settingCallback = {
-                                    when (it) {
-                                        getString(R.string.setting_all) -> {
-                                            startActivity(
-                                                Intent(
-                                                    this@MainActivity,
-                                                    SettingActivity::class.java
-                                                )
-                                            )
-                                        }
-
-                                        getString(R.string.About) -> {
-                                            startActivity(
-                                                Intent(this@MainActivity, AboutActivity::class.java)
-                                            )
-                                        }
-                                    }
-                                },
                                 getContacts = { contacts ->
                                     TgApiManager.tgApi!!.getContacts(contacts)
                                 }
