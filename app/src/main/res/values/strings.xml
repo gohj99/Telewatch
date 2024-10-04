@@ -74,4 +74,24 @@
     <string name="disagree">No</string>
     <string name="agree">YES</string>
     <string name="data_Collection">Data Collection</string>
+    <string name="UI_Edit">UI Edit</string>
+    <string name="App_setting">App Settings</string>
+    <string name="Add_Account">Add account</string>
+    <string name="Switch_Account">Switch Account</string>
+    <string name="switch_account_sure">Are you sure you want to switch to account %s?</string>
+    <string name="title_medium_font_size">Homepage chat title font size</string>
+    <string name="body_medium_font_size">Chat page content font size</string>
+    <string name="body_small_font_size">Home Chat Content Font Size</string>
+    <string name="size">Size</string>
+    <string name="pre_release">pre release</string>
+    <string name="release">releases</string>
+    <string name="Check_Update">Check Update</string>
+    <string name="already_latest">Already the latest version</string>
+    <string name="New_version">New version</string>
+    <string name="version">Version</string>
+    <string name="Release_type">Release type</string>
+    <string name="Release_time">Release time</string>
+    <string name="downloads">Downloads</string>
+    <string name="install">Install</string>
+    <string name="unknown_apps_install_permission_denied">You need to allow installation of apps from unknown sources to continue installing updates</string>
 </resources>

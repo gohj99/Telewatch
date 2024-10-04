@@ -74,4 +74,24 @@
     <string name="disagree">不同意</string>
     <string name="agree">同意</string>
     <string name="data_Collection">數據收集</string>
+    <string name="UI_Edit">使用者介面編輯</string>
+    <string name="App_setting">應用程式設定</string>
+    <string name="Add_Account">新增帳戶</string>
+    <string name="Switch_Account">切換帳戶</string>
+    <string name="switch_account_sure">您確定要切換到帳戶 %s 嗎？</string>
+    <string name="title_medium_font_size">首頁聊天標題字體大小</string>
+    <string name="body_medium_font_size">聊天頁面內容字體大小</string>
+    <string name="body_small_font_size">首頁聊天內容字體大小</string>
+    <string name="size">大小</string>
+    <string name="pre_release">預發布</string>
+    <string name="release">發布</string>
+    <string name="Check_Update">檢查更新</string>
+    <string name="already_latest">已經是最新版本了</string>
+    <string name="New_version">新版本</string>
+    <string name="version">版本</string>
+    <string name="Release_type">版本類型</string>
+    <string name="Release_time">發佈時間</string>
+    <string name="downloads">下載</string>
+    <string name="install">安裝</string>
+    <string name="unknown_apps_install_permission_denied">您需要允許安裝未知來源的應用程式才能繼續安裝更新</string>
 </resources>

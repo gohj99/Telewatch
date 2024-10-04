@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.SettingItem
 import com.gohj99.telewatch.ui.setting.SettingLazyColumn
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
@@ -46,8 +47,7 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 fun MainScreen(
     chats: MutableState<List<Chat>>,
     chatPage: (Chat) -> Unit,
-    settingList: MutableState<List<String>>,
-    settingCallback: (String) -> Unit,
+    settingList: MutableState<List<SettingItem>>,
     getContacts: (MutableState<List<Chat>>) -> Unit,
 ) {
     val contact = stringResource(id = R.string.Contacts)
@@ -131,7 +131,7 @@ fun MainScreen(
                 }
 
                 setting -> {
-                    SettingLazyColumn(settingList, settingCallback)
+                    SettingLazyColumn(settingList)
                 }
             }
         }
@@ -157,12 +157,35 @@ fun MainScreenPreview() {
         )
     )
 
+    val settings = remember {
+        mutableStateOf(
+            listOf<SettingItem>(
+                SettingItem.Click(
+                    itemName = "设置1",
+                    onClick = {}
+                ),
+                SettingItem.Click(
+                    itemName = "设置2",
+                    onClick = {}
+                ), SettingItem.Click(
+                    itemName = "设置3",
+                    onClick = {}
+                ), SettingItem.Click(
+                    itemName = "设置4",
+                    onClick = {}
+                ), SettingItem.Click(
+                    itemName = "设置5",
+                    onClick = {}
+                )
+            )
+        )
+    }
+
     TelewatchTheme {
         MainScreen(
             chats = sampleChats,
             chatPage = {},
-            settingList = mutableStateOf(listOf("钱显康", "钱明", "康庆莉")),
-            settingCallback = {},
+            settingList = settings,
             getContacts = {
                 listOf(
                     Chat(

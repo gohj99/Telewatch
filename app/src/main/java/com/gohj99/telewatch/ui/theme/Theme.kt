@@ -8,11 +8,13 @@
 
 package com.gohj99.telewatch.ui.theme
 
+import android.content.Context
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.sp
 
@@ -23,26 +25,33 @@ private val DarkColorScheme = darkColorScheme(
     background = Color(0xFF000000)
 )
 
-val CustomTypography = Typography(
-    titleMedium = TextStyle(
-        fontSize = 14.sp // 聊天标题字体大小
-    ),
-    bodyMedium = TextStyle(
-        fontSize = 15.sp  // 聊天页面字体
-    ),
-    bodySmall = TextStyle(
-        fontSize = 14.sp  // 首页列表标题下文字大小
-    )
-)
-
 @Composable
 fun TelewatchTheme(
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    val titleMediumFontSize = settingsSharedPref.getFloat("title_medium_font_size", 13f)
+    val bodySmallFontSize = settingsSharedPref.getFloat("body_small_font_size", 14f)
+    val bodyMediumFontSize = settingsSharedPref.getFloat("body_medium_font_size", 12f)
+
+    val customTypography = Typography(
+        titleMedium = TextStyle(
+            fontSize = titleMediumFontSize.sp // 聊天标题字体大小
+        ),
+        bodyMedium = TextStyle(
+            fontSize = bodyMediumFontSize.sp  // 聊天页面字体
+        ),
+        bodySmall = TextStyle(
+            fontSize = bodySmallFontSize.sp  // 首页列表标题下文字大小
+        )
+    )
+
     val colorScheme = DarkColorScheme // 强制使用亮色主题
+
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = CustomTypography,
+        typography = customTypography,
         content = content,
     )
 }

@@ -54,6 +54,10 @@ class ChatActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 初始化 Firebase Analytics
+        initFirebaseAnalytics(this)
+
         tgApi = TgApiManager.tgApi
 
         // 接收传递的 Chat 对象

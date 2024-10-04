@@ -121,7 +121,7 @@ fun LongPressBox(
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(8.dp),
-                        textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
+                        textStyle = TextStyle(color = Color.White, fontSize = 10.sp),
                         singleLine = false
                     )
                 }

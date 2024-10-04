@@ -74,4 +74,24 @@
     <string name="disagree">Нет</string>
     <string name="agree">ДА</string>
     <string name="data_Collection">Сбор данных</string>
+    <string name="UI_Edit">Пользовательский интерфейс Править</string>
+    <string name="App_setting">Настройки приложения</string>
+    <string name="Add_Account">Добавить аккаунт</string>
+    <string name="Switch_Account">Сменить аккаунт</string>
+    <string name="switch_account_sure">Вы уверены, что хотите переключиться на учетную запись %s\?</string>
+    <string name="title_medium_font_size">Размер шрифта заголовка чата на главной странице</string>
+    <string name="body_medium_font_size">Размер шрифта содержимого страницы чата</string>
+    <string name="body_small_font_size">Размер шрифта содержимого домашнего чата</string>
+    <string name="size">Размер</string>
+    <string name="pre_release">предварительный выпуск</string>
+    <string name="release">релизы</string>
+    <string name="Check_Update">Проверить обновление</string>
+    <string name="already_latest">Уже последняя версия</string>
+    <string name="New_version">Новая версия</string>
+    <string name="version">Версия</string>
+    <string name="Release_type">Тип выпуска</string>
+    <string name="Release_time">Время выхода</string>
+    <string name="downloads">Загрузки</string>
+    <string name="install">Установить</string>
+    <string name="unknown_apps_install_permission_denied">Вам необходимо разрешить установку приложений из неизвестных источников, чтобы продолжить установку обновлений.</string>
 </resources>
