@@ -83,4 +83,15 @@
     <string name="body_medium_font_size">Размер шрифта содержимого страницы чата</string>
     <string name="body_small_font_size">Размер шрифта содержимого домашнего чата</string>
     <string name="size">Размер</string>
+    <string name="pre_release">предварительный выпуск</string>
+    <string name="release">релизы</string>
+    <string name="Check_Update">Проверить обновление</string>
+    <string name="already_latest">Уже последняя версия</string>
+    <string name="New_version">Новая версия</string>
+    <string name="version">Версия</string>
+    <string name="Release_type">Тип выпуска</string>
+    <string name="Release_time">Время выхода</string>
+    <string name="downloads">Загрузки</string>
+    <string name="install">Установить</string>
+    <string name="unknown_apps_install_permission_denied">Вам необходимо разрешить установку приложений из неизвестных источников, чтобы продолжить установку обновлений.</string>
 </resources>

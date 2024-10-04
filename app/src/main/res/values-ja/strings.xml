@@ -83,4 +83,15 @@
     <string name="body_medium_font_size">チャットページのコンテンツのフォントサイズ</string>
     <string name="body_small_font_size">ホーム チャット コンテンツのフォント サイズ</string>
     <string name="size">サイズ</string>
+    <string name="pre_release">プレリリース</string>
+    <string name="release">リリース</string>
+    <string name="Check_Update">アップデートを確認する</string>
+    <string name="already_latest">すでに最新バージョン</string>
+    <string name="New_version">新しいバージョン</string>
+    <string name="version">バージョン</string>
+    <string name="Release_type">リリースタイプ</string>
+    <string name="Release_time">リリース時間</string>
+    <string name="downloads">ダウンロード</string>
+    <string name="install">インストール</string>
+    <string name="unknown_apps_install_permission_denied">アップデートのインストールを続行するには、不明なソースからのアプリのインストールを許可する必要があります</string>
 </resources>

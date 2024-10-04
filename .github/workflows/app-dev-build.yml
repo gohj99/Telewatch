@@ -112,11 +112,34 @@ jobs:
       - name: Upload APKs as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: android-build-apks
-          path: |
-            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm.apk
-            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm64.apk
-            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86.apk
-            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86_64.apk
-            ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-universal.apk
-          retention-days: 30
+          name: android-build-apk-arm
+          path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm.apk
+          retention-days: 90
+
+      - name: Upload APKs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-build-apk-arm64
+          path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm64.apk
+          retention-days: 90
+
+      - name: Upload APKs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-build-apk-x86
+          path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86.apk
+          retention-days: 90
+
+      - name: Upload APKs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-build-apk-x86_64
+          path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86_64.apk
+          retention-days: 90
+
+      - name: Upload APKs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-build-apk-universal
+          path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-universal.apk
+          retention-days: 90

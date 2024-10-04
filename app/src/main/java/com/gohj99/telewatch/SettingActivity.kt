@@ -30,6 +30,7 @@ sealed class SettingItem(val name: String) {
         val onClick: () -> Unit,
         val color: Color = Color(0xFF404953)
     ) : SettingItem(itemName)
+
     data class Switch(
         val itemName: String,
         var isSelected: Boolean,
@@ -95,6 +96,18 @@ class SettingActivity : ComponentActivity() {
                                     this,
                                     SettingActivity::class.java
                                 ).putExtra("page", 2)
+                            )
+                        }
+                    ),
+                    // 检查更新
+                    SettingItem.Click(
+                        itemName = getString(R.string.Check_Update),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    CheckUpdateActivity::class.java
+                                )
                             )
                         }
                     ),

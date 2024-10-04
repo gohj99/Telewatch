@@ -20,11 +20,11 @@ android {
 
     defaultConfig {
         applicationId = "com.gohj99.telewatch"
-        minSdk = 25
+        minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.1.4"
+        versionCode = 10
+        versionName = "1.1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

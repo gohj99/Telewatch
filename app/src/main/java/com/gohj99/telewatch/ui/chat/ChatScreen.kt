@@ -311,6 +311,14 @@ fun SplashChatScreen(
                                                     fontSize = 18.sp
                                                 )
                                             }
+                                            content.caption?.text?.let {
+                                                Text(
+                                                    text = it,
+                                                    color = textColor,
+                                                    modifier = Modifier.padding(top = 4.dp),
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                            }
                                         }
                                         is TdApi.MessageVideo -> {
                                             val thumbnail = content.video.thumbnail

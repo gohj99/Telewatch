@@ -83,4 +83,15 @@
     <string name="body_medium_font_size">Taille de la police du contenu de la page de discussion</string>
     <string name="body_small_font_size">Taille de la police du contenu du chat à domicile</string>
     <string name="size">Taille</string>
+    <string name="pre_release">pré-version</string>
+    <string name="release">sorties</string>
+    <string name="Check_Update">Vérifier la mise à jour</string>
+    <string name="already_latest">Déjà la dernière version</string>
+    <string name="New_version">Nouvelle version</string>
+    <string name="version">Version</string>
+    <string name="Release_type">Type de version</string>
+    <string name="Release_time">Temps de sortie</string>
+    <string name="downloads">Téléchargements</string>
+    <string name="install">Installer</string>
+    <string name="unknown_apps_install_permission_denied">Vous devez autoriser l\'installation d\'applications provenant de sources inconnues pour continuer à installer les mises à jour</string>
 </resources>

@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <uses-feature
         android:name="android.hardware.type.watch"
@@ -26,6 +27,11 @@
         android:theme="@style/Theme.Telewatch"
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
+        <activity
+            android:name=".CheckUpdateActivity"
+            android:exported="false"
+            android:label="@string/Check_Update"
+            android:theme="@style/Theme.Telewatch" />
         <activity
             android:name=".SwitchAccountActivity"
             android:exported="false"
@@ -86,6 +92,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
         <meta-data
             android:name="firebase_analytics_collection_enabled"
             android:value="false" />

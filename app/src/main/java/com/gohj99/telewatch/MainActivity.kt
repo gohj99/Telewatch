@@ -145,6 +145,17 @@ class MainActivity : ComponentActivity() {
                     }
                 ),
                 SettingItem.Click(
+                    itemName = getString(R.string.Check_Update),
+                    onClick = {
+                        startActivity(
+                            Intent(
+                                this@MainActivity,
+                                CheckUpdateActivity::class.java
+                            )
+                        )
+                    }
+                ),
+                SettingItem.Click(
                     itemName = getString(R.string.About),
                     onClick = {
                         startActivity(
@@ -170,6 +181,7 @@ class MainActivity : ComponentActivity() {
             )
             settingList.value = accounts
 
+            // 显示加载页面
             setContent {
                 TelewatchTheme {
                     SplashLoadingScreen(modifier = Modifier.fillMaxSize())

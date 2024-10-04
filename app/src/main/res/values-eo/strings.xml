@@ -83,4 +83,15 @@
     <string name="body_medium_font_size">Babilpaĝo enhavo tiparo grandeco</string>
     <string name="body_small_font_size">Hejmo Babilejo Enhavo Tiparo Grandeco</string>
     <string name="size">Grandeco</string>
+    <string name="pre_release">antaŭ liberigo</string>
+    <string name="release">eldonoj</string>
+    <string name="Check_Update">Kontrolu Ĝisdatigon</string>
+    <string name="already_latest">Jam la plej nova versio</string>
+    <string name="New_version">Nova versio</string>
+    <string name="version">Versio</string>
+    <string name="Release_type">Eldonspeco</string>
+    <string name="Release_time">Tempo de liberigo</string>
+    <string name="downloads">Elŝutoj</string>
+    <string name="install">Instali</string>
+    <string name="unknown_apps_install_permission_denied">Vi devas permesi instaladon de programoj de nekonataj fontoj por daŭrigi instali ĝisdatigojn</string>
 </resources>

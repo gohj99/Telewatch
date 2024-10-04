@@ -83,4 +83,15 @@
     <string name="body_medium_font_size">Chat page content font size</string>
     <string name="body_small_font_size">Home Chat Content Font Size</string>
     <string name="size">Size</string>
+    <string name="pre_release">pre release</string>
+    <string name="release">releases</string>
+    <string name="Check_Update">Check Update</string>
+    <string name="already_latest">Already the latest version</string>
+    <string name="New_version">New version</string>
+    <string name="version">Version</string>
+    <string name="Release_type">Release type</string>
+    <string name="Release_time">Release time</string>
+    <string name="downloads">Downloads</string>
+    <string name="install">Install</string>
+    <string name="unknown_apps_install_permission_denied">You need to allow installation of apps from unknown sources to continue installing updates</string>
 </resources>

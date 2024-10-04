@@ -109,5 +109,5 @@ jobs:
           artifacts: "*.apk"
           token: ${{ github.token }}
           generateReleaseNotes: true
-          tag: v${{ env.VERSION_NAME }}-${{ github.run_number }}
+          tag: v${{ env.VERSION_NAME }}
           prerelease: false

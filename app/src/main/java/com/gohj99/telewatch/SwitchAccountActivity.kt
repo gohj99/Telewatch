@@ -49,6 +49,9 @@ class SwitchAccountActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // 初始化 Firebase Analytics
+        initFirebaseAnalytics(this)
+
         // 获取传入账号
         val account: String = intent.getStringExtra("account").toString()
 

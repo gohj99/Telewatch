@@ -82,5 +82,16 @@
     <string name="title_medium_font_size">首页聊天标题字体大小</string>
     <string name="body_medium_font_size">聊天页面内容字体大小</string>
     <string name="body_small_font_size">首页聊天内容字体大小</string>
-    <string name="size">尺寸</string>
+    <string name="size">大小</string>
+    <string name="pre_release">预发布</string>
+    <string name="release">发布</string>
+    <string name="Check_Update">检查更新</string>
+    <string name="already_latest">已经是最新版本了</string>
+    <string name="New_version">新版本</string>
+    <string name="version">版本</string>
+    <string name="Release_type">版本类型</string>
+    <string name="Release_time">发布时间</string>
+    <string name="downloads">下载</string>
+    <string name="install">安装</string>
+    <string name="unknown_apps_install_permission_denied">您需要允许安装未知来源的应用程序才能继续安装更新</string>
 </resources>
