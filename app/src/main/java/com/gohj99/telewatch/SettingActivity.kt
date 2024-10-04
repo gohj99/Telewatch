@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -43,10 +44,16 @@ sealed class SettingItem(val name: String) {
 class SettingActivity : ComponentActivity() {
     private var settingsList = mutableStateOf(listOf<SettingItem>())
 
+    @SuppressLint("CommitPrefEdits")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
+
+        // 初始化 Firebase Analytics
+        initFirebaseAnalytics(this)
+
+        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
 
         val externalDir: File = getExternalFilesDir(null)
             ?: throw IllegalStateException("Failed to get external directory.")
@@ -187,17 +194,45 @@ class SettingActivity : ComponentActivity() {
                     ),
                     SettingItem.Click(
                         itemName = getString(R.string.Reset_self),
-                        onClick = { resetSelf() }
-                    ),
-                    SettingItem.Click(
-                        itemName = getString(R.string.data_Collection),
                         onClick = {
-                            startActivity(
-                                Intent(
-                                    this,
-                                    AllowDataCollectionActivity::class.java
-                                )
-                            )
+                            // 清除缓存
+                            cacheDir.deleteRecursively()
+                            // 清空软件文件
+                            filesDir.deleteRecursively()
+                            val dir = externalDir.listFiles()
+                            dir?.forEach { file ->
+                                if (!file.deleteRecursively()) {
+                                    // 如果某个文件或文件夹无法删除，可以记录日志或采取其他处理方式
+                                    println("Failed to delete: ${file.absolutePath}")
+                                }
+                            }
+                            cacheDir.deleteRecursively()
+                            // 清空 SharedPreferences
+                            getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear()
+                                .apply()
+                            getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit()
+                                .clear().apply()
+                            // Toast提醒
+                            Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT)
+                                .show()
+                            // 重启软件
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                val intent = packageManager.getLaunchIntentForPackage(packageName)
+                                intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                startActivity(intent)
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }, 1000)
+                        }
+                    ),
+                    SettingItem.Switch(
+                        itemName = getString(R.string.data_Collection),
+                        isSelected = settingsSharedPref.getBoolean("Data_Collection", false),
+                        onSelect = { dataCollection ->
+                            with(settingsSharedPref.edit()) {
+                                putBoolean("Data_Collection", dataCollection)
+                                //Log.d("SharedPreferences", "保存状态: " + commit() + "\n当前状态: " + dataCollection)
+                            }
+                            //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
                         }
                     )
                 )
@@ -213,24 +248,5 @@ class SettingActivity : ComponentActivity() {
                 )
             }
         }
-    }
-
-    private fun resetSelf() {
-        // 清除缓存
-        cacheDir.deleteRecursively()
-        // 清空软件文件
-        filesDir.deleteRecursively()
-        // 清空 SharedPreferences
-        getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear().apply()
-        getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit().clear().apply()
-        // Toast提醒
-        Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
-        // 重启软件
-        Handler(Looper.getMainLooper()).postDelayed({
-            val intent = packageManager.getLaunchIntentForPackage(packageName)
-            intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
-            android.os.Process.killProcess(android.os.Process.myPid())
-        }, 1000)
     }
 }

@@ -31,8 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,7 +73,7 @@ fun SettingLazyColumn(
                 }
 
                 is SettingItem.Switch -> {
-                    SettingSwitchView(item.itemName, item.onSelect)
+                    SettingSwitchView(item.itemName, item.isSelected, item.onSelect)
                 }
 
                 is SettingItem.ProgressBar -> {
@@ -103,7 +104,6 @@ fun SettingClickView(item: String, callback: () -> Unit) {
                 Text(
                     text = item,
                     color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
                 )
             },
             item = item,
@@ -115,8 +115,8 @@ fun SettingClickView(item: String, callback: () -> Unit) {
 }
 
 @Composable
-fun SettingSwitchView(item: String, callback: (Boolean) -> Unit) {
-    var isSwitchOn by remember { mutableStateOf(false) }
+fun SettingSwitchView(item: String, isSelected: Boolean, callback: (Boolean) -> Unit) {
+    var isSwitchOn by rememberSaveable { mutableStateOf(isSelected) }
     Box(
         modifier = Modifier
     ) {
@@ -130,7 +130,6 @@ fun SettingSwitchView(item: String, callback: (Boolean) -> Unit) {
                         text = item,
                         color = Color.White,
                         modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(18.dp))
 
@@ -172,7 +171,7 @@ fun SettingProgressBarView(
     base: Float,
     callback: (Float) -> Unit
 ) {
-    var parameterValue by remember { mutableStateOf(oldValue) }
+    var parameterValue by rememberSaveable { mutableFloatStateOf(oldValue) }
 
     // 计算 base 的小数位数
     val decimalPlaces = base.toString().substringAfter('.').length
@@ -185,7 +184,6 @@ fun SettingProgressBarView(
                 Text(
                     text = item,
                     color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -258,7 +256,7 @@ fun SettingProgressBarView(
                     horizontalArrangement = Arrangement.Center // 水平居中
                 ) {
                     Text(
-                        text = "当前参数大小: ${parameterValue}",
+                        text = "当前参数大小: $parameterValue",
                         color = Color.White,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -272,5 +270,5 @@ fun SettingProgressBarView(
 @Preview(showBackground = true)
 @Composable
 fun SettingProgressBarViewPreview() {
-    SettingProgressBarView("参数设置", 0f, 100f, 0f, 1f, {})
+    SettingProgressBarView("参数设置", 0f, 100f, 0f, 1f) {}
 }

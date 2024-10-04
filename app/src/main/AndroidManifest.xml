@@ -27,6 +27,11 @@
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
+            android:name=".SwitchAccountActivity"
+            android:exported="false"
+            android:label="@string/Switch_Account"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".AllowDataCollectionActivity"
             android:exported="false"
             android:label="@string/allow_data_Collection"

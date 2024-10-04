@@ -27,7 +27,11 @@ import java.io.IOException
 import java.util.Properties
 import java.util.concurrent.CountDownLatch
 
-class TgApi(private val context: Context, private var chatsList: MutableState<List<Chat>>) {
+class TgApi(
+    private val context: Context,
+    private var chatsList: MutableState<List<Chat>>,
+    private val UserId: String
+) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
@@ -45,7 +49,7 @@ class TgApi(private val context: Context, private var chatsList: MutableState<Li
         val tdapiId = config.getProperty("api_id").toInt()
         val tdapiHash = config.getProperty("api_hash")
         val parameters = TdApi.TdlibParameters().apply {
-            databaseDirectory = externalDir.absolutePath + "/tdlib"
+            databaseDirectory = externalDir.absolutePath + "/$UserId/tdlib"
             useMessageDatabase = true
             useSecretChats = true
             apiId = tdapiId

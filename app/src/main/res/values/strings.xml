@@ -76,4 +76,7 @@
     <string name="data_Collection">Data Collection</string>
     <string name="UI_Edit">UI Edit</string>
     <string name="App_setting">App Settings</string>
+    <string name="Add_Account">Add account</string>
+    <string name="Switch_Account">Switch Account</string>
+    <string name="switch_account_sure">Are you sure you want to switch to account %s?</string>
 </resources>

@@ -39,6 +39,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -176,7 +177,9 @@ fun SplashChatScreen(
                 item {
                     Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
                 }
-                itemsIndexed(chatList.value, key = { _, message -> message.id }) { index, message ->
+                itemsIndexed(
+                    chatList.value,
+                    key = { _, message -> message.id + message.date }) { index, message ->
                     val isCurrentUser =
                         (message.senderId as? TdApi.MessageSenderUser)?.userId == currentUserId
                     val backgroundColor =
@@ -203,7 +206,7 @@ fun SplashChatScreen(
 
                         // 渲染用户名字
                         if (!isCurrentUser) {
-                            var senderName by remember {mutableStateOf("")}
+                            var senderName by rememberSaveable { mutableStateOf("") }
                             val senderId = message.senderId
                             if (senderId.constructor == TdApi.MessageSenderUser.CONSTRUCTOR){
                                 val senderUser = senderId as TdApi.MessageSenderUser

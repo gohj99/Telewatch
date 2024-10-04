@@ -8,9 +8,10 @@
 
 package com.gohj99.telewatch
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -40,27 +41,43 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 
-class AllowDataCollectionActivity : ComponentActivity() {
-
+class SwitchAccountActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        // 获取传入账号
+        val account: String = intent.getStringExtra("account").toString()
+
+        val gson = Gson()
+        val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
+        var userList = sharedPref.getString("userList", "")
+        if (userList == "") throw Exception("No user data found")
+        val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
+        val accountName = jsonObject.get(account).asString
+        jsonObject.remove(account)
+        jsonObject.firstAdd(account, accountName)
+        userList = jsonObject.toString()
 
         setContent {
             TelewatchTheme {
-                SplashAllowDataCollectionScreen { dataCollection ->
-                    with(settingsSharedPref.edit()) {
-                        putBoolean("Data_Collection", dataCollection)
-                        commit()
-                        startActivity(
-                            Intent(
-                                this@AllowDataCollectionActivity,
-                                MainActivity::class.java
-                            )
-                        )
+                SplashSettingLazyColumnScreen(accountName) { isSwitch ->
+                    if (isSwitch) {
+                        with(sharedPref.edit()) {
+                            putString("userList", userList)
+                            commit()
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                val intent = packageManager.getLaunchIntentForPackage(packageName)
+                                intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                startActivity(intent)
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            }, 1000)
+                            finish()
+                        }
+                    } else {
                         finish()
                     }
                 }
@@ -70,7 +87,7 @@ class AllowDataCollectionActivity : ComponentActivity() {
 }
 
 @Composable
-fun SplashAllowDataCollectionScreen(set: (Boolean) -> Unit) {
+fun SplashSettingLazyColumnScreen(account: String, set: (Boolean) -> Unit) {
     val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
         scrollState.scrollTo(80)
@@ -85,7 +102,7 @@ fun SplashAllowDataCollectionScreen(set: (Boolean) -> Unit) {
     ) {
         // 标题
         Text(
-            text = stringResource(id = R.string.data_collection_title),
+            text = stringResource(id = R.string.Switch_Account),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -95,7 +112,7 @@ fun SplashAllowDataCollectionScreen(set: (Boolean) -> Unit) {
 
         // 主要说明部分
         Text(
-            text = stringResource(id = R.string.data_collection_description),
+            text = stringResource(id = R.string.switch_account_sure).replace("%s", account),
             fontSize = 16.sp,
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -140,8 +157,8 @@ fun SplashAllowDataCollectionScreen(set: (Boolean) -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun SplashAllowDataCollectionScreenPreview() {
+fun SplashSettingLazyColumnScreenPreview() {
     TelewatchTheme {
-        SplashAllowDataCollectionScreen { /*TODO*/ }
+        SplashSettingLazyColumnScreen("abc123") { /*TODO*/ }
     }
 }

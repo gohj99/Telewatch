@@ -43,8 +43,10 @@ class WelcomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         enableEdgeToEdge()
+
+        // 初始化 Firebase Analytics
+        initFirebaseAnalytics(this)
 
         // 获取共享偏好设置
         sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
