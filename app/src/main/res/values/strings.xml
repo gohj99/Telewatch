@@ -79,4 +79,8 @@
     <string name="Add_Account">Add account</string>
     <string name="Switch_Account">Switch Account</string>
     <string name="switch_account_sure">Are you sure you want to switch to account %s?</string>
+    <string name="title_medium_font_size">Homepage chat title font size</string>
+    <string name="body_medium_font_size">Chat page content font size</string>
+    <string name="body_small_font_size">Home Chat Content Font Size</string>
+    <string name="size">Size</string>
 </resources>

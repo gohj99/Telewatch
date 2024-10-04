@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.lifecycleScope
 import com.gohj99.telewatch.telegram.TgApi
@@ -110,7 +111,8 @@ class MainActivity : ComponentActivity() {
                     accounts.add(
                         SettingItem.Click(
                             itemName = jsonObject.get(account.toString()).asString,
-                            onClick = {}
+                            onClick = {},
+                            color = Color(0xFF2C323A)
                         )
                     )
                 } else {

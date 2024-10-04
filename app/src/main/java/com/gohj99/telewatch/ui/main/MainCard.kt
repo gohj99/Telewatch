@@ -20,7 +20,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun <T> MainCard(column: @Composable () -> Unit, item: T, callback: (T) -> Unit = {}) {
+fun <T> MainCard(
+    column: @Composable () -> Unit,
+    item: T,
+    callback: (T) -> Unit = {},
+    color: Color = Color(0xFF404953)
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -28,7 +33,7 @@ fun <T> MainCard(column: @Composable () -> Unit, item: T, callback: (T) -> Unit 
             .clickable { callback(item) },
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C323A) // 设置 Card 的背景颜色
+            containerColor = color // 设置 Card 的背景颜色
         )
     ) {
         Column(modifier = Modifier.padding(start = 12.dp, top = 9.dp, end = 14.dp, bottom = 9.dp)) {

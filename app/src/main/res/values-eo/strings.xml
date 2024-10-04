@@ -74,4 +74,13 @@
     <string name="disagree">Ne</string>
     <string name="agree">JES</string>
     <string name="data_Collection">Kolekto de datumoj</string>
+    <string name="UI_Edit">UI Redaktu</string>
+    <string name="App_setting">Agordoj de App</string>
+    <string name="Add_Account">Aldonu konton</string>
+    <string name="Switch_Account">Ŝanĝi Konton</string>
+    <string name="switch_account_sure">Ĉu vi certas, ke vi volas ŝanĝi al konto %s\?</string>
+    <string name="title_medium_font_size">Hejmpaĝo babilejo titolo tiparo grandeco</string>
+    <string name="body_medium_font_size">Babilpaĝo enhavo tiparo grandeco</string>
+    <string name="body_small_font_size">Hejmo Babilejo Enhavo Tiparo Grandeco</string>
+    <string name="size">Grandeco</string>
 </resources>

@@ -19,16 +19,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
 import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import java.io.File
 
 sealed class SettingItem(val name: String) {
-    data class Click(val itemName: String, val onClick: () -> Unit) : SettingItem(itemName)
+    data class Click(
+        val itemName: String,
+        val onClick: () -> Unit,
+        val color: Color = Color(0xFF404953)
+    ) : SettingItem(itemName)
     data class Switch(
         val itemName: String,
         var isSelected: Boolean,
-        val onSelect: (Boolean) -> Unit
+        val onSelect: (Boolean) -> Unit,
+        val color: Color = Color(0xFF404953)
     ) : SettingItem(itemName)
 
     data class ProgressBar(
@@ -37,7 +43,8 @@ sealed class SettingItem(val name: String) {
         val maxValue: Float,
         val minValue: Float,
         val base: Float,
-        val onProgressChange: (Float) -> Unit
+        val onProgressChange: (Float) -> Unit,
+        val color: Color = Color(0xFF404953)
     ) : SettingItem(itemName)
 }
 
@@ -108,6 +115,47 @@ class SettingActivity : ComponentActivity() {
 
             1 -> {
                 title = getString(R.string.UI_Edit)
+                settingsList.value = listOf(
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.title_medium_font_size),
+                        progress = settingsSharedPref.getFloat("title_medium_font_size", 13f),
+                        maxValue = 25f,
+                        minValue = 5f,
+                        base = 0.1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("title_medium_font_size", size)
+                                apply()
+                            }
+                        }
+                    ),
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.body_small_font_size),
+                        progress = settingsSharedPref.getFloat("body_small_font_size", 14f),
+                        maxValue = 25f,
+                        minValue = 5f,
+                        base = 0.1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("body_small_font_size", size)
+                                apply()
+                            }
+                        }
+                    ),
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.body_medium_font_size),
+                        progress = settingsSharedPref.getFloat("body_medium_font_size", 12f),
+                        maxValue = 25f,
+                        minValue = 5f,
+                        base = 0.1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("body_medium_font_size", size)
+                                apply()
+                            }
+                        }
+                    )
+                )
             }
 
             2 -> {

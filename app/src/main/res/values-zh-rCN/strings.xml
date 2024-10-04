@@ -74,4 +74,13 @@
     <string name="disagree">不同意</string>
     <string name="agree">同意</string>
     <string name="data_Collection">数据收集</string>
+    <string name="UI_Edit">用户界面编辑</string>
+    <string name="App_setting">应用程序设置</string>
+    <string name="Add_Account">添加帐户</string>
+    <string name="Switch_Account">切换账户</string>
+    <string name="switch_account_sure">您确定要切换到帐户 %s 吗？</string>
+    <string name="title_medium_font_size">首页聊天标题字体大小</string>
+    <string name="body_medium_font_size">聊天页面内容字体大小</string>
+    <string name="body_small_font_size">首页聊天内容字体大小</string>
+    <string name="size">尺寸</string>
 </resources>

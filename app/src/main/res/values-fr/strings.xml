@@ -74,4 +74,13 @@
     <string name="disagree">Non</string>
     <string name="agree">OUI</string>
     <string name="data_Collection">Collecte de données</string>
+    <string name="UI_Edit">Modifier l\'interface utilisateur</string>
+    <string name="App_setting">Paramètres de l\'application</string>
+    <string name="Add_Account">Ajouter un compte</string>
+    <string name="Switch_Account">Changer de compte</string>
+    <string name="switch_account_sure"><![CDATA[Etes-vous sûr de vouloir passer au compte %s \?]]></string>
+    <string name="title_medium_font_size">Taille de la police du titre du chat de la page d\'accueil</string>
+    <string name="body_medium_font_size">Taille de la police du contenu de la page de discussion</string>
+    <string name="body_small_font_size">Taille de la police du contenu du chat à domicile</string>
+    <string name="size">Taille</string>
 </resources>

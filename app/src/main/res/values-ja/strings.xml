@@ -74,4 +74,13 @@
     <string name="disagree">いいえ</string>
     <string name="agree">はい</string>
     <string name="data_Collection">データ収集</string>
+    <string name="UI_Edit">UI編集</string>
+    <string name="App_setting">アプリの設定</string>
+    <string name="Add_Account">アカウントを追加</string>
+    <string name="Switch_Account">アカウントを切り替える</string>
+    <string name="switch_account_sure">アカウント %s に切り替えてもよろしいですか\?</string>
+    <string name="title_medium_font_size">ホームページのチャットタイトルのフォントサイズ</string>
+    <string name="body_medium_font_size">チャットページのコンテンツのフォントサイズ</string>
+    <string name="body_small_font_size">ホーム チャット コンテンツのフォント サイズ</string>
+    <string name="size">サイズ</string>
 </resources>

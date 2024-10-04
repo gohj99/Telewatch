@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
@@ -69,11 +70,11 @@ fun SettingLazyColumn(
         items(itemsList.value) { item ->
             when (item) {
                 is SettingItem.Click -> {
-                    SettingClickView(item.itemName, item.onClick)
+                    SettingClickView(item.itemName, item.onClick, item.color)
                 }
 
                 is SettingItem.Switch -> {
-                    SettingSwitchView(item.itemName, item.isSelected, item.onSelect)
+                    SettingSwitchView(item.itemName, item.isSelected, item.onSelect, item.color)
                 }
 
                 is SettingItem.ProgressBar -> {
@@ -83,7 +84,8 @@ fun SettingLazyColumn(
                         item.maxValue,
                         item.minValue,
                         item.base,
-                        item.onProgressChange
+                        item.onProgressChange,
+                        item.color
                     )
                 }
             }
@@ -95,7 +97,7 @@ fun SettingLazyColumn(
 }
 
 @Composable
-fun SettingClickView(item: String, callback: () -> Unit) {
+fun SettingClickView(item: String, callback: () -> Unit, colors: Color = Color(0xFF404953)) {
     Box(
         modifier = Modifier
     ) {
@@ -104,18 +106,25 @@ fun SettingClickView(item: String, callback: () -> Unit) {
                 Text(
                     text = item,
                     color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
                 )
             },
             item = item,
             callback = {
                 callback()
-            }
+            },
+            color = colors
         )
     }
 }
 
 @Composable
-fun SettingSwitchView(item: String, isSelected: Boolean, callback: (Boolean) -> Unit) {
+fun SettingSwitchView(
+    item: String,
+    isSelected: Boolean,
+    callback: (Boolean) -> Unit,
+    colors: Color = Color(0xFF404953)
+) {
     var isSwitchOn by rememberSaveable { mutableStateOf(isSelected) }
     Box(
         modifier = Modifier
@@ -130,6 +139,7 @@ fun SettingSwitchView(item: String, isSelected: Boolean, callback: (Boolean) -> 
                         text = item,
                         color = Color.White,
                         modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium
                     )
                     Spacer(modifier = Modifier.height(18.dp))
 
@@ -157,7 +167,8 @@ fun SettingSwitchView(item: String, isSelected: Boolean, callback: (Boolean) -> 
             callback = {
                 isSwitchOn = !isSwitchOn
                 callback(isSwitchOn)
-            }
+            },
+            color = colors
         )
     }
 }
@@ -169,7 +180,8 @@ fun SettingProgressBarView(
     maxValue: Float,
     minValue: Float,
     base: Float,
-    callback: (Float) -> Unit
+    callback: (Float) -> Unit,
+    colors: Color = Color(0xFF404953)
 ) {
     var parameterValue by rememberSaveable { mutableFloatStateOf(oldValue) }
 
@@ -184,6 +196,7 @@ fun SettingProgressBarView(
                 Text(
                     text = item,
                     color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -256,13 +269,14 @@ fun SettingProgressBarView(
                     horizontalArrangement = Arrangement.Center // 水平居中
                 ) {
                     Text(
-                        text = "当前参数大小: $parameterValue",
+                        text = stringResource(R.string.size) + ": $parameterValue",
                         color = Color.White,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
             },
-            item = item
+            item = item,
+            color = colors
         )
     }
 }
@@ -270,5 +284,5 @@ fun SettingProgressBarView(
 @Preview(showBackground = true)
 @Composable
 fun SettingProgressBarViewPreview() {
-    SettingProgressBarView("参数设置", 0f, 100f, 0f, 1f) {}
+    SettingProgressBarView("参数设置", 0f, 100f, 0f, 1f, {})
 }

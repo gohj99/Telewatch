@@ -74,4 +74,13 @@
     <string name="disagree">Нет</string>
     <string name="agree">ДА</string>
     <string name="data_Collection">Сбор данных</string>
+    <string name="UI_Edit">Пользовательский интерфейс Править</string>
+    <string name="App_setting">Настройки приложения</string>
+    <string name="Add_Account">Добавить аккаунт</string>
+    <string name="Switch_Account">Сменить аккаунт</string>
+    <string name="switch_account_sure">Вы уверены, что хотите переключиться на учетную запись %s\?</string>
+    <string name="title_medium_font_size">Размер шрифта заголовка чата на главной странице</string>
+    <string name="body_medium_font_size">Размер шрифта содержимого страницы чата</string>
+    <string name="body_small_font_size">Размер шрифта содержимого домашнего чата</string>
+    <string name="size">Размер</string>
 </resources>
