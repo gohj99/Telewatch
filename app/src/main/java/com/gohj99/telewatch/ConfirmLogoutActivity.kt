@@ -102,8 +102,8 @@ class ConfirmLogoutActivity : ComponentActivity() {
                                 android.os.Process.killProcess(android.os.Process.myPid())
                             }, 1000)
                         } else {
-                            val dir = File(externalDir.absolutePath + "/" + account + "/tdlib")
-                            dir.listFiles()?.find { it.name == "temp" && it.isDirectory }
+                            val dir = File(externalDir.absolutePath + "/" + account)
+                            dir.listFiles()?.find { it.name == "tdlib" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
                             with(sharedPref.edit()) {

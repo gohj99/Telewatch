@@ -98,4 +98,8 @@
     <string name="Update">アップデート</string>
     <string name="Offline">オフライン</string>
     <string name="Reset_libtd">libtd のリセット (ログインしていない新しいアカウントまたは古いバージョンの残骸をクリアします)</string>
+    <string name="Duplicate_account">重複したアカウント</string>
+    <string name="Log_out">ログアウト</string>
+    <string name="Confirm_Logout">ログアウトの確認</string>
+    <string name="Confirm_logout_sure">ログアウトしてもよろしいですか\?</string>
 </resources>

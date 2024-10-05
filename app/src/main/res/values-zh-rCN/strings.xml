@@ -71,8 +71,8 @@
     <string name="allow_data_Collection">允许数据收集</string>
     <string name="data_collection_description">我们使用 Google Firebase Analytics 来匿名地收集崩溃信息和最常被人们使用的功能和一些使用习惯数据来使得 Telewatch 变得更加实用。您可以随时在设置中关闭此功能</string>
     <string name="data_collection_title">匿名统计\n崩溃报告</string>
-    <string name="disagree">不同意</string>
-    <string name="agree">同意</string>
+    <string name="disagree">不好</string>
+    <string name="agree">好</string>
     <string name="data_Collection">数据收集</string>
     <string name="UI_Edit">用户界面编辑</string>
     <string name="App_setting">应用程序设置</string>
@@ -95,11 +95,11 @@
     <string name="install">安装</string>
     <string name="unknown_apps_install_permission_denied">您需要允许安装未知来源的应用程序才能继续安装更新</string>
     <string name="Connecting">连接中</string>
-    <string name="Update">更新</string>
+    <string name="Update">更新中</string>
     <string name="Offline">离线</string>
     <string name="Reset_libtd">重置libtd（清除未登录的新账户或旧版本残留）</string>
     <string name="Duplicate_account">重复帐户</string>
-    <string name="Log_out">退出</string>
-    <string name="Confirm_Logout">确认退出</string>
-    <string name="Confirm_logout_sure">您确定要退出吗？</string>
+    <string name="Log_out">登出</string>
+    <string name="Confirm_Logout">确认登出</string>
+    <string name="Confirm_logout_sure">您确定要退出登录吗？</string>
 </resources>

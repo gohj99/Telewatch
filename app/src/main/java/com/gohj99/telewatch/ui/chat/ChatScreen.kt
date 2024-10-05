@@ -184,7 +184,7 @@ fun SplashChatScreen(
                 }
                 itemsIndexed(
                     chatList.value,
-                    key = { _, message -> message.id + message.date }) { index, message ->
+                    key = { _, message -> message.id.toString() + message.date.toString() }) { index, message ->
                     val isCurrentUser = message.isOutgoing
                     val backgroundColor =
                         if (isCurrentUser) Color(0xFF003C68) else Color(0xFF2C323A)
@@ -483,7 +483,7 @@ fun SplashChatScreen(
                                                     Text(
                                                         text = origin.authorSignature,
                                                         color = Color(0xFF6A86A3),
-                                                        style = MaterialTheme.typography.bodySmall,
+                                                        style = MaterialTheme.typography.bodyMedium,
                                                         modifier = Modifier
                                                             .align(Alignment.CenterVertically)
                                                             .weight(1f)

@@ -41,6 +41,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 object TgApiManager {
@@ -275,18 +276,66 @@ class MainActivity : ComponentActivity() {
             } catch (e: Exception) {
                 exceptionState = e
                 Log.e("MainActivity", "Error initializing app: ${e.message}")
-                launch(Dispatchers.Main) {
-                    setContent {
-                        TelewatchTheme {
-                            ErrorScreen(
-                                onRetry = { retryInitialization() },
-                                onSetting = {
-                                    startActivity(
-                                        Intent(this@MainActivity, SettingActivity::class.java)
-                                    )
-                                },
-                                cause = e.message ?: ""
-                            )
+                if (e.message == "Failed to authorize") {
+                    val externalDir: File = getExternalFilesDir(null)
+                        ?: throw IllegalStateException("Failed to get external directory.")
+
+                    val gson = Gson()
+                    val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
+                    var userList = sharedPref.getString("userList", "")
+                    if (userList == "") throw Exception("No user data found")
+                    val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
+                    if (jsonObject.entrySet().size <= 1) {
+                        // 清除缓存
+                        cacheDir.deleteRecursively()
+                        // 清空软件文件
+                        filesDir.deleteRecursively()
+                        val dir = externalDir.listFiles()
+                        dir?.forEach { file ->
+                            if (!file.deleteRecursively()) {
+                                // 如果某个文件或文件夹无法删除，可以记录日志或采取其他处理方式
+                                println("Failed to delete: ${file.absolutePath}")
+                            }
+                        }
+                        cacheDir.deleteRecursively()
+                        // 清空 SharedPreferences
+                        getSharedPreferences("LoginPref", MODE_PRIVATE).edit().clear()
+                            .apply()
+                        // 重启软件
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            val intent = packageManager.getLaunchIntentForPackage(packageName)
+                            intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            startActivity(intent)
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }, 1000)
+                    } else {
+                        val account = jsonObject.keySet().firstOrNull().toString()
+                        jsonObject.remove(account)
+                        userList = jsonObject.toString()
+                        val dir = File(externalDir.absolutePath + "/" + account)
+                        dir.listFiles()?.find { it.name == "tdlib" && it.isDirectory }
+                            ?.deleteRecursively()
+                        cacheDir.deleteRecursively()
+                        with(sharedPref.edit()) {
+                            putString("userList", userList)
+                            commit()
+                        }
+                        retryInitialization()
+                    }
+                } else {
+                    launch(Dispatchers.Main) {
+                        setContent {
+                            TelewatchTheme {
+                                ErrorScreen(
+                                    onRetry = { retryInitialization() },
+                                    onSetting = {
+                                        startActivity(
+                                            Intent(this@MainActivity, SettingActivity::class.java)
+                                        )
+                                    },
+                                    cause = e.message ?: ""
+                                )
+                            }
                         }
                     }
                 }
