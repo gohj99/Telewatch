@@ -99,88 +99,6 @@ class MainActivity : ComponentActivity() {
         if (!isLoggedIn) {
             startWelcomeActivity()
         } else {
-            val gson = Gson()
-            val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
-            val userList = sharedPref.getString("userList", "")
-            if (userList == "") throw Exception("No user data found")
-            val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
-            val accounts = mutableListOf<SettingItem>()
-            var a = 0
-            for (account in jsonObject.keySet()) {
-                if (a == 0) {
-                    accounts.add(
-                        SettingItem.Click(
-                            itemName = jsonObject.get(account.toString()).asString,
-                            onClick = {},
-                            color = Color(0xFF2C323A)
-                        )
-                    )
-                } else {
-                    accounts.add(
-                        SettingItem.Click(
-                            itemName = jsonObject.get(account.toString()).asString,
-                            onClick = {
-                                startActivity(
-                                    Intent(
-                                        this@MainActivity,
-                                        SwitchAccountActivity::class.java
-                                    ).putExtra("account", account)
-                                )
-                            }
-                        )
-                    )
-                }
-                a += 1
-            }
-            accounts.addAll(listOf<SettingItem>(
-                SettingItem.Click(
-                    itemName = getString(R.string.Add_Account),
-                    onClick = {
-                        startActivity(
-                            Intent(
-                                this@MainActivity,
-                                LoginActivity::class.java
-                            )
-                        )
-                    }
-                ),
-                SettingItem.Click(
-                    itemName = getString(R.string.Check_Update),
-                    onClick = {
-                        startActivity(
-                            Intent(
-                                this@MainActivity,
-                                CheckUpdateActivity::class.java
-                            )
-                        )
-                    }
-                ),
-                SettingItem.Click(
-                    itemName = getString(R.string.About),
-                    onClick = {
-                        startActivity(
-                            Intent(
-                                this@MainActivity,
-                                AboutActivity::class.java
-                            )
-                        )
-                    }
-                ),
-                SettingItem.Click(
-                    itemName = getString(R.string.setting_all),
-                    onClick = {
-                        startActivity(
-                            Intent(
-                                this@MainActivity,
-                                SettingActivity::class.java
-                            )
-                        )
-                    }
-                )
-            )
-            )
-            settingList.value = accounts
-
             // 显示加载页面
             setContent {
                 TelewatchTheme {
@@ -201,9 +119,103 @@ class MainActivity : ComponentActivity() {
             try {
                 val gson = Gson()
                 val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
-                val userList = sharedPref.getString("userList", "")
-                if (userList == "") throw Exception("No user data found")
+                var userList = sharedPref.getString("userList", "")
+                if (userList == "") {
+                    val tempTgApi = TgApi(
+                        this@MainActivity,
+                        chatsList = chatsList
+                    )
+                    val currentUserId = tempTgApi.getCurrentUserId()
+                    val jsonObject = JsonObject()
+                    jsonObject.addProperty(
+                        currentUserId[0],
+                        currentUserId[1]
+                    )
+                    userList = jsonObject.toString()
+                    with(sharedPref.edit()) {
+                        putString("userList", userList)
+                        apply()
+                    }
+                    tempTgApi.close()
+                }
                 val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
+                val accounts = mutableListOf<SettingItem>()
+                var a = 0
+                for (account in jsonObject.keySet()) {
+                    if (a == 0) {
+                        accounts.add(
+                            SettingItem.Click(
+                                itemName = jsonObject.get(account.toString()).asString,
+                                onClick = {},
+                                color = Color(0xFF2C323A)
+                            )
+                        )
+                    } else {
+                        accounts.add(
+                            SettingItem.Click(
+                                itemName = jsonObject.get(account.toString()).asString,
+                                onClick = {
+                                    startActivity(
+                                        Intent(
+                                            this@MainActivity,
+                                            SwitchAccountActivity::class.java
+                                        ).putExtra("account", account)
+                                    )
+                                }
+                            )
+                        )
+                    }
+                    a += 1
+                }
+                accounts.addAll(listOf<SettingItem>(
+                    SettingItem.Click(
+                        itemName = getString(R.string.Add_Account),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    LoginActivity::class.java
+                                )
+                            )
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.Check_Update),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    CheckUpdateActivity::class.java
+                                )
+                            )
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.About),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    AboutActivity::class.java
+                                )
+                            )
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.setting_all),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    SettingActivity::class.java
+                                )
+                            )
+                        }
+                    )
+                )
+                )
+                settingList.value = accounts
+
                 TgApiManager.tgApi = TgApi(
                     this@MainActivity,
                     chatsList = chatsList,

@@ -76,7 +76,7 @@ class ChatActivity : ComponentActivity() {
 
         // 异步获取当前用户 ID 和聊天记录
         lifecycleScope.launch {
-            currentUserId.value = tgApi!!.getCurrentUserId()
+            currentUserId.value = tgApi!!.getCurrentUserId()[0].toLong()
             tgApi!!.getChatMessages(chat!!.id, chatList) // 异步加载全部聊天消息
         }
 

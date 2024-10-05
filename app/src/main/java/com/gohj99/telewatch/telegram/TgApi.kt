@@ -30,7 +30,7 @@ import java.util.concurrent.CountDownLatch
 class TgApi(
     private val context: Context,
     private var chatsList: MutableState<List<Chat>>,
-    private val UserId: String
+    private val UserId: String = ""
 ) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
@@ -49,7 +49,9 @@ class TgApi(
         val tdapiId = config.getProperty("api_id").toInt()
         val tdapiHash = config.getProperty("api_hash")
         val parameters = TdApi.TdlibParameters().apply {
-            databaseDirectory = externalDir.absolutePath + "/$UserId/tdlib"
+            databaseDirectory = externalDir.absolutePath + (if (UserId == "") "/tdlib" else {
+                "/$UserId/tdlib"
+            })
             useMessageDatabase = true
             useSecretChats = true
             apiId = tdapiId
@@ -628,12 +630,12 @@ class TgApi(
         }
     }
 
-    // 添加获取当前用户 ID 的方法
-    suspend fun getCurrentUserId(): Long {
+    // 获取当前用户 ID 的方法
+    suspend fun getCurrentUserId(): List<String> {
         val result = sendRequest(TdApi.GetMe())
         if (result.constructor == TdApi.User.CONSTRUCTOR) {
             val user = result as TdApi.User
-            return user.id
+            return listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
         } else {
             throw IllegalStateException("Failed to get current user ID")
         }
