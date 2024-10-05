@@ -98,4 +98,8 @@
     <string name="Update">Mise à jour</string>
     <string name="Offline">Hors ligne</string>
     <string name="Reset_libtd">Réinitialiser libtd (Effacer les nouveaux comptes ou les restes d\'anciennes versions qui ne sont pas connectés)</string>
+    <string name="Duplicate_account">Compte en double</string>
+    <string name="Log_out">Se déconnecter</string>
+    <string name="Confirm_Logout">Confirmer la déconnexion</string>
+    <string name="Confirm_logout_sure"><![CDATA[Êtes-vous sûr de vouloir vous déconnecter \?]]></string>
 </resources>

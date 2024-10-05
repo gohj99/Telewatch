@@ -98,4 +98,8 @@
     <string name="Update">更新</string>
     <string name="Offline">離線</string>
     <string name="Reset_libtd">重設libtd（清除未登入的新帳戶或舊版本殘留）</string>
+    <string name="Duplicate_account">重複帳戶</string>
+    <string name="Log_out">退出</string>
+    <string name="Confirm_Logout">確認退出</string>
+    <string name="Confirm_logout_sure">您確定要退出嗎？</string>
 </resources>

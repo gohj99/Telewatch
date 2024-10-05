@@ -197,6 +197,17 @@ class MainActivity : ComponentActivity() {
                         }
                     ),
                     SettingItem.Click(
+                        itemName = getString(R.string.Log_out),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    ConfirmLogoutActivity::class.java
+                                )
+                            )
+                        }
+                    ),
+                    SettingItem.Click(
                         itemName = getString(R.string.Check_Update),
                         onClick = {
                             startActivity(

@@ -597,6 +597,23 @@ class TgApi(
         }
     }
 
+    // 退出登录
+    fun logOut() {
+        client.send(TdApi.LogOut(), object : Client.ResultHandler {
+            override fun onResult(result: TdApi.Object) {
+                when (result.constructor) {
+                    TdApi.Ok.CONSTRUCTOR -> {
+                        println("Logged out successfully")
+                    }
+
+                    else -> {
+                        println("Failed to log out: $result")
+                    }
+                }
+            }
+        })
+    }
+
     // 获取联系人
     fun getContacts(contacts: MutableState<List<Chat>>) {
         val request = TdApi.GetContacts()

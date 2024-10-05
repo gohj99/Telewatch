@@ -18,6 +18,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -189,32 +190,7 @@ class LoginActivity : ComponentActivity() {
                         TdApi.User().let {
                             client.send(TdApi.GetMe()) {
                                 if (it is TdApi.User) {
-                                    // 移动文件夹
-                                    // 获取私有外部存储的根目录
-                                    val externalDir: File = getExternalFilesDir(null)
-                                        ?: throw IllegalStateException("Failed to get external directory.")
-                                    // 定义源文件夹路径 (tdlib)
-                                    val sourceDir = File(externalDir, "tdlib")
-                                    if (!sourceDir.exists()) {
-                                        throw IOException("Source folder does not exist: ${sourceDir.absolutePath}")
-                                    }
-                                    // 定义目标文件夹路径 (/id/tdlib)
-                                    val targetParentDir = File(externalDir, it.id.toString())
-                                    if (!targetParentDir.exists()) {
-                                        // 如果目标父目录不存在，则创建
-                                        if (!targetParentDir.mkdirs()) {
-                                            throw IOException("Failed to create target folder: ${targetParentDir.absolutePath}")
-                                        }
-                                    }
-                                    // 定义目标路径
-                                    val targetDir = File(targetParentDir, "tdlib")
-                                    // 移动文件夹
-                                    val success = sourceDir.renameTo(targetDir)
-                                    if (success) {
-                                        println("Folder moved successfully: ${targetDir.absolutePath}")
-                                    } else {
-                                        throw IOException("Failed to move folder to: ${targetDir.absolutePath}")
-                                    }
+                                    var nextContinue = true
                                     // 存储账号数据
                                     val gson = Gson()
                                     var userList: String
@@ -223,11 +199,47 @@ class LoginActivity : ComponentActivity() {
                                         userList = sharedPref.getString("userList", "").toString()
                                         val jsonObject: JsonObject =
                                             gson.fromJson(userList, JsonObject::class.java)
-                                        jsonObject.firstAdd(
-                                            it.id.toString(),
-                                            "${it.firstName} ${it.lastName}"
-                                        )
-                                        userList = jsonObject.toString()
+                                        // 如果登录重复账号
+                                        if (jsonObject.has(it.id.toString())) {
+                                            runOnUiThread {
+                                                println("Duplicate account")
+                                                Toast.makeText(
+                                                    this,
+                                                    getString(R.string.Duplicate_account),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                client.send(
+                                                    TdApi.LogOut(),
+                                                    object : Client.ResultHandler {
+                                                        override fun onResult(result: TdApi.Object) {
+                                                            when (result.constructor) {
+                                                                TdApi.Ok.CONSTRUCTOR -> {
+                                                                    println("Logged out successfully")
+                                                                }
+
+                                                                else -> {
+                                                                    println("Failed to log out: $result")
+                                                                }
+                                                            }
+                                                        }
+                                                    })
+                                                client.close()
+                                                nextContinue = false
+                                                val externalDir: File = getExternalFilesDir(null)
+                                                    ?: throw IllegalStateException("Failed to get external directory.")
+                                                val dir = File(externalDir.absolutePath)
+                                                dir.listFiles()
+                                                    ?.find { it.name == "tdlib" && it.isDirectory }
+                                                    ?.deleteRecursively()
+                                                cacheDir.deleteRecursively()
+                                            }
+                                        } else {
+                                            jsonObject.firstAdd(
+                                                it.id.toString(),
+                                                "${it.firstName} ${it.lastName}"
+                                            )
+                                            userList = jsonObject.toString()
+                                        }
                                     } else {
                                         // 首次登录
                                         val jsonObject = JsonObject()
@@ -237,10 +249,38 @@ class LoginActivity : ComponentActivity() {
                                         )
                                         userList = jsonObject.toString()
                                     }
-                                    with(sharedPref.edit()) {
-                                        putBoolean("isLoggedIn", true)
-                                        putString("userList", userList)
-                                        apply()
+                                    if (nextContinue) {
+                                        with(sharedPref.edit()) {
+                                            putBoolean("isLoggedIn", true)
+                                            putString("userList", userList)
+                                            apply()
+                                        }
+                                        // 移动文件夹
+                                        // 获取私有外部存储的根目录
+                                        val externalDir: File = getExternalFilesDir(null)
+                                            ?: throw IllegalStateException("Failed to get external directory.")
+                                        // 定义源文件夹路径 (tdlib)
+                                        val sourceDir = File(externalDir, "tdlib")
+                                        if (!sourceDir.exists()) {
+                                            throw IOException("Source folder does not exist: ${sourceDir.absolutePath}")
+                                        }
+                                        // 定义目标文件夹路径 (/id/tdlib)
+                                        val targetParentDir = File(externalDir, it.id.toString())
+                                        if (!targetParentDir.exists()) {
+                                            // 如果目标父目录不存在，则创建
+                                            if (!targetParentDir.mkdirs()) {
+                                                throw IOException("Failed to create target folder: ${targetParentDir.absolutePath}")
+                                            }
+                                        }
+                                        // 定义目标路径
+                                        val targetDir = File(targetParentDir, "tdlib")
+                                        // 移动文件夹
+                                        val success = sourceDir.renameTo(targetDir)
+                                        if (success) {
+                                            println("Folder moved successfully: ${targetDir.absolutePath}")
+                                        } else {
+                                            throw IOException("Failed to move folder to: ${targetDir.absolutePath}")
+                                        }
                                     }
                                 }
                             }

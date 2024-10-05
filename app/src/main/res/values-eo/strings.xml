@@ -98,4 +98,8 @@
     <string name="Update">Ĝisdatigo</string>
     <string name="Offline">Senrete</string>
     <string name="Reset_libtd">Restarigi libtd (Forigi novajn kontojn aŭ restaĵojn de malnova versio, kiuj ne estas ensalutitaj)</string>
+    <string name="Duplicate_account">Duobla konto</string>
+    <string name="Log_out">Elsaluti</string>
+    <string name="Confirm_Logout">Konfirmu elsaluti</string>
+    <string name="Confirm_logout_sure">Ĉu vi certas, ke vi volas elsaluti\?</string>
 </resources>

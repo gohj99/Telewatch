@@ -98,4 +98,8 @@
     <string name="Update">Update</string>
     <string name="Offline">Offline</string>
     <string name="Reset_libtd">Reset libtd(Clear new accounts or old version remnants that are not logged in)</string>
+    <string name="Duplicate_account">Duplicate account</string>
+    <string name="Log_out">Log out</string>
+    <string name="Confirm_Logout">Confirm Logout</string>
+    <string name="Confirm_logout_sure">Are you sure you want to log out?</string>
 </resources>
