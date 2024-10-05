@@ -18,6 +18,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
@@ -25,6 +26,7 @@ import java.io.File
 import java.io.IOException
 import java.util.Properties
 import java.util.concurrent.CountDownLatch
+import kotlin.coroutines.resume
 
 class TgApi(
     private val context: Context,
@@ -39,6 +41,8 @@ class TgApi(
     @Volatile private var isAuthorized: Boolean = false
     private val authLatch = CountDownLatch(1)
     private var isExitChatPage = true
+    private var lastReadOutboxMessageId = mutableStateOf(0L)
+    private var lastReadInboxMessageId = mutableStateOf(0L)
 
     init {
         // 获取应用外部数据目录
@@ -102,10 +106,26 @@ class TgApi(
             TdApi.UpdateDeleteMessages.CONSTRUCTOR -> handleDeleteMessages(update as TdApi.UpdateDeleteMessages)
             TdApi.UpdateNewChat.CONSTRUCTOR -> handleNewChat(update as TdApi.UpdateNewChat)
             TdApi.UpdateConnectionState.CONSTRUCTOR -> handleConnectionUpdate(update as TdApi.UpdateConnectionState)
+            TdApi.UpdateChatReadInbox.CONSTRUCTOR -> handleChatReadInboxUpdate(update as TdApi.UpdateChatReadInbox)
+            TdApi.UpdateChatReadOutbox.CONSTRUCTOR -> handleChatReadOutboxUpdate(update as TdApi.UpdateChatReadOutbox)
             // 其他更新
             else -> {
                 //println("Received update: $update")
             }
+        }
+    }
+
+    private fun handleChatReadInboxUpdate(update: TdApi.UpdateChatReadInbox) {
+        val chatId = update.chatId
+        if (chatId == saveChatId) {
+            lastReadInboxMessageId.value = update.lastReadInboxMessageId
+        }
+    }
+
+    private fun handleChatReadOutboxUpdate(update: TdApi.UpdateChatReadOutbox) {
+        val chatId = update.chatId
+        if (chatId == saveChatId) {
+            lastReadOutboxMessageId.value = update.lastReadOutboxMessageId
         }
     }
 
@@ -535,7 +555,17 @@ class TgApi(
         }
     }
 
-    // 获取用户消息
+    // 获取lastReadOutboxMessageId
+    fun getLastReadOutboxMessageId(): MutableState<Long> {
+        return lastReadOutboxMessageId
+    }
+
+    // 获取lastReadOutboxMessageId
+    fun getLastReadInboxMessageId(): MutableState<Long> {
+        return lastReadInboxMessageId
+    }
+
+    // 获取用户名
     fun getUser(userId: Long, onResult: (String) -> Unit) {
         val getUserRequest = TdApi.GetUser(userId)
 
@@ -547,6 +577,24 @@ class TgApi(
                 onResult("Unknown User")
             }
         })
+    }
+
+    // 获取聊天对象
+    suspend fun getChat(chatId: Long): TdApi.Chat? {
+        return suspendCancellableCoroutine { continuation ->
+            val getChatRequest = TdApi.GetChat(chatId)
+
+            // 发送异步请求
+            client.send(getChatRequest, Client.ResultHandler { result ->
+                if (result is TdApi.Chat) {
+                    // 当结果是 TdApi.Chat 时，恢复协程并返回 Chat 对象
+                    continuation.resume(result)
+                } else {
+                    // 在其他情况下，恢复协程并返回 null
+                    continuation.resume(null)
+                }
+            })
+        }
     }
 
     // 获取联系人
@@ -604,7 +652,7 @@ class TgApi(
     }
 
     // 标记已读
-    fun markMessagesAsRead(messageId: Long, messageThreadId: Long = 0L, forceRead: Boolean = false) {
+    fun markMessagesAsRead(messageId: Long, messageThreadId: Long = 0L, forceRead: Boolean = true) {
         // 创建 ViewMessages 请求
         val viewMessagesRequest = TdApi.ViewMessages(
             saveChatId,

@@ -114,6 +114,7 @@ fun LongPressBox(
                     TextField(
                         value = showText,
                         onValueChange = { },
+                        readOnly = true,
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
