@@ -22,6 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import java.io.File
 
 sealed class SettingItem(val name: String) {
@@ -71,6 +73,15 @@ class SettingActivity : ComponentActivity() {
 
         // 初始标题
         var title = getString(R.string.Settings)
+
+        val gson = Gson()
+        val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
+        var userList = sharedPref.getString("userList", "")
+        var chatId = ""
+        if (userList != "") {
+            val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
+            chatId = "/" + jsonObject.keySet().first()
+        }
 
         when (page) {
             0 -> {
@@ -200,7 +211,7 @@ class SettingActivity : ComponentActivity() {
                     SettingItem.Click(
                         itemName = getString(R.string.Clear_thumbnails),
                         onClick = {
-                            val dir = File(externalDir.absolutePath + "/tdlib")
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
                             dir.listFiles()?.find { it.name == "thumbnails" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
@@ -214,7 +225,7 @@ class SettingActivity : ComponentActivity() {
                     SettingItem.Click(
                         itemName = getString(R.string.Clear_photos),
                         onClick = {
-                            val dir = File(externalDir.absolutePath + "/tdlib")
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
                             dir.listFiles()?.find { it.name == "photos" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
@@ -228,7 +239,7 @@ class SettingActivity : ComponentActivity() {
                     SettingItem.Click(
                         itemName = getString(R.string.Clear_videos),
                         onClick = {
-                            val dir = File(externalDir.absolutePath + "/tdlib")
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
                             dir.listFiles()?.find { it.name == "videos" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
@@ -242,8 +253,22 @@ class SettingActivity : ComponentActivity() {
                     SettingItem.Click(
                         itemName = getString(R.string.Clear_cache),
                         onClick = {
-                            val dir = File(externalDir.absolutePath + "/tdlib")
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
                             dir.listFiles()?.find { it.name == "temp" && it.isDirectory }
+                                ?.deleteRecursively()
+                            cacheDir.deleteRecursively()
+                            Toast.makeText(
+                                this,
+                                getString(R.string.Successful),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.Reset_libtd),
+                        onClick = {
+                            val dir = File(externalDir.absolutePath)
+                            dir.listFiles()?.find { it.name == "tdlib" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
                             Toast.makeText(

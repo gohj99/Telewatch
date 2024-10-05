@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -31,9 +30,6 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 @Composable
 fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit = {}, cause: String = "") {
     val scrollState = rememberScrollState()
-    LaunchedEffect(Unit) {
-        scrollState.scrollTo(80)
-    }
 
     Column(
         modifier = Modifier

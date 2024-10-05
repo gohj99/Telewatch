@@ -97,4 +97,5 @@
     <string name="Connecting">接続中</string>
     <string name="Update">アップデート</string>
     <string name="Offline">オフライン</string>
+    <string name="Reset_libtd">libtd のリセット (ログインしていない新しいアカウントまたは古いバージョンの残骸をクリアします)</string>
 </resources>

@@ -97,4 +97,5 @@
     <string name="Connecting">Konektante</string>
     <string name="Update">Ĝisdatigo</string>
     <string name="Offline">Senrete</string>
+    <string name="Reset_libtd">Restarigi libtd (Forigi novajn kontojn aŭ restaĵojn de malnova versio, kiuj ne estas ensalutitaj)</string>
 </resources>

@@ -97,4 +97,5 @@
     <string name="Connecting">Подключение</string>
     <string name="Update">Обновлять</string>
     <string name="Offline">Оффлайн</string>
+    <string name="Reset_libtd">Сбросить libtd (очистить новые учетные записи или остатки старых версий, в которые не выполнен вход)</string>
 </resources>

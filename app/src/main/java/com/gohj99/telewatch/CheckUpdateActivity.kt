@@ -11,17 +11,15 @@ package com.gohj99.telewatch
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -88,8 +87,6 @@ class CheckUpdateActivity : ComponentActivity() {
         private const val REQUEST_CODE_UNKNOWN_APP = 1234
     }
 
-    private lateinit var installApkLauncher: ActivityResultLauncher<Intent>
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -99,29 +96,7 @@ class CheckUpdateActivity : ComponentActivity() {
             }
         }
 
-        // 检查 Android 版本，如果是 Android 10 及以上，注册 ActivityResultLauncher
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            registerInstallApkLauncher()
-        }
-
         init()
-    }
-
-    private fun registerInstallApkLauncher() {
-        installApkLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                // 用户已授予安装未知来源应用的权限
-                installApk(fileName)
-            } else {
-                Toast.makeText(
-                    this,
-                    getString(R.string.unknown_apps_install_permission_denied),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
     }
 
     private fun init() {
@@ -149,26 +124,58 @@ class CheckUpdateActivity : ComponentActivity() {
                                 val releaseInfo =
                                     Gson().fromJson(responseData, ReleaseInfo::class.java)
 
+                                val releaseType =
+                                    if (releaseInfo.prerelease) getString(R.string.pre_release) else getString(
+                                        R.string.release
+                                    )
+                                val tagName = releaseInfo.tagName
+                                val version = tagName.substring(1, 6)
+
+                                val pInfo = packageManager.getPackageInfo(packageName, 0)
+                                val localVersion = pInfo.versionName
+                                val needsUpdate = compareVersions(version, localVersion)
+
+                                val publishedAt = releaseInfo.publishedAt
+                                val zonedDateTime = ZonedDateTime.parse(publishedAt)
+                                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                val formattedPublishedAt = zonedDateTime.format(formatter)
+
                                 val armAsset =
                                     releaseInfo.assets.find { it.name.contains("arm.apk") }
                                 val armDownloadUrl = armAsset?.browserDownloadUrl ?: ""
 
                                 fileName = armDownloadUrl.substringAfterLast('/')
 
-                                val needsUpdate = compareVersions(
-                                    releaseInfo.tagName.substring(1, 6),
-                                    packageManager.getPackageInfo(packageName, 0).versionName
-                                )
+                                val updateInfo = """
+                                    ${getString(R.string.version)}: $version
+                                    ${getString(R.string.Release_type)}: $releaseType
+                                    ${getString(R.string.Release_time)}: $formattedPublishedAt
+                                """.trimIndent()
 
                                 if (needsUpdate) {
                                     setContent {
                                         TelewatchTheme {
+                                            var downloadProgress by remember { mutableStateOf(0f) }
+                                            var isDownloadComplete by remember {
+                                                mutableStateOf(
+                                                    false
+                                                )
+                                            }
+
                                             SplashUpdateView(
-                                                contentText = generateUpdateInfo(releaseInfo),
-                                                onDownloadClick = { startDownload(armDownloadUrl) },
-                                                downloadProgress = 0f,
-                                                onInstallClick = { installApk(fileName) },
-                                                isDownloadComplete = false
+                                                contentText = updateInfo,
+                                                onDownloadClick = {
+                                                    startDownload(armDownloadUrl, { progress ->
+                                                        downloadProgress = progress
+                                                    }, {
+                                                        isDownloadComplete = true
+                                                    })
+                                                },
+                                                downloadProgress = downloadProgress,
+                                                onInstallClick = {
+                                                    installApk(fileName)
+                                                },
+                                                isDownloadComplete = isDownloadComplete
                                             )
                                         }
                                     }
@@ -176,7 +183,9 @@ class CheckUpdateActivity : ComponentActivity() {
                                     setContent {
                                         TelewatchTheme {
                                             Box(
-                                                modifier = Modifier.fillMaxSize(),
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .fillMaxWidth(),
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Text(
@@ -205,7 +214,11 @@ class CheckUpdateActivity : ComponentActivity() {
         }
     }
 
-    private fun startDownload(url: String) {
+    private fun startDownload(
+        url: String,
+        onProgress: (Float) -> Unit,
+        onDownloadComplete: () -> Unit
+    ) {
         val request = DownloadManager.Request(Uri.parse(url))
             .setTitle("Downloading update")
             .setDescription("Downloading the latest version of the app")
@@ -216,24 +229,52 @@ class CheckUpdateActivity : ComponentActivity() {
 
         val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         downloadId = downloadManager.enqueue(request)
+
+        val query = DownloadManager.Query().setFilterById(downloadId)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            var downloading = true
+            while (downloading) {
+                val cursor: Cursor = downloadManager.query(query)
+                if (cursor.moveToFirst()) {
+                    val statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+                    if (statusIndex >= 0) {
+                        val status = cursor.getInt(statusIndex)
+                        if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                            downloading = false
+                            onProgress(1f)
+                            launch(Dispatchers.Main) {
+                                onDownloadComplete()
+                            }
+                        } else if (status == DownloadManager.STATUS_RUNNING) {
+                            val totalIndex =
+                                cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+                            val downloadedIndex =
+                                cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+                            if (totalIndex >= 0 && downloadedIndex >= 0) {
+                                val total = cursor.getLong(totalIndex)
+                                if (total > 0) {
+                                    val downloaded = cursor.getLong(downloadedIndex)
+                                    val progress = downloaded.toFloat() / total.toFloat()
+                                    onProgress(progress)
+                                }
+                            }
+                        }
+                    }
+                }
+                cursor.close()
+            }
+        }
     }
 
     private fun installApk(fileName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!packageManager.canRequestPackageInstalls()) {
                 // 请求用户授予安装未知来源应用的权限
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                        data = Uri.parse("package:$packageName")
-                    }
-                    installApkLauncher.launch(intent)
-                } else {
-                    // Android 7.1 及以下版本使用 onActivityResult
-                    val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                        data = Uri.parse("package:$packageName")
-                    }
-                    startActivityForResult(intent, REQUEST_CODE_UNKNOWN_APP)
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:$packageName")
                 }
+                startActivityForResult(intent, REQUEST_CODE_UNKNOWN_APP)
                 return
             }
         }
@@ -255,25 +296,10 @@ class CheckUpdateActivity : ComponentActivity() {
         startActivity(intent)
     }
 
-    @Deprecated("Deprecated in Android 14", ReplaceWith("ActivityResult API"))
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_UNKNOWN_APP) {
-            if (resultCode == RESULT_OK) {
-                installApk(fileName)
-            } else {
-                Toast.makeText(
-                    this,
-                    getString(R.string.unknown_apps_install_permission_denied),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
     private fun compareVersions(version1: String, version2: String): Boolean {
         val parts1 = version1.split(".")
         val parts2 = version2.split(".")
+
         for (i in 0..2) {
             val num1 = parts1.getOrNull(i)?.toIntOrNull() ?: 0
             val num2 = parts2.getOrNull(i)?.toIntOrNull() ?: 0
@@ -281,23 +307,6 @@ class CheckUpdateActivity : ComponentActivity() {
             if (num1 < num2) return false
         }
         return false
-    }
-
-    private fun generateUpdateInfo(releaseInfo: ReleaseInfo): String {
-        val releaseType =
-            if (releaseInfo.prerelease) getString(R.string.pre_release) else getString(R.string.release)
-        val tagName = releaseInfo.tagName
-        val version = tagName.substring(1, 6)
-        val publishedAt = releaseInfo.publishedAt
-        val zonedDateTime = ZonedDateTime.parse(publishedAt)
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val formattedPublishedAt = zonedDateTime.format(formatter)
-
-        return """
-            ${getString(R.string.version)}: $version
-            ${getString(R.string.Release_type)}: $releaseType
-            ${getString(R.string.Release_time)}: $formattedPublishedAt
-        """.trimIndent()
     }
 }
 

@@ -97,4 +97,5 @@
     <string name="Connecting">连接中</string>
     <string name="Update">更新</string>
     <string name="Offline">离线</string>
+    <string name="Reset_libtd">重置libtd（清除未登录的新账户或旧版本残留）</string>
 </resources>

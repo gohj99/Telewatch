@@ -39,12 +39,16 @@ adb install Telewatch.apk
 
 ## Functions
 
-- View or download text, pictures, and videos
-- Save pictures or videos
-- Send text
-- Edit message processing
-- Delete message processing
-- Support crown rotation
+- Multi-account support
+- Interface font adjustment
+- Unread/read indicator
+- Connection status indicator
+- Viewing or downloading text, images, and videos
+- Saving images or videos
+- Text messaging
+- Message editing
+- Message deletion
+- Support for rotating the digital crown
 
 ## Minimum and recommended requirements
 

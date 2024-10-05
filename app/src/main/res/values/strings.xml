@@ -97,4 +97,5 @@
     <string name="Connecting">Connecting</string>
     <string name="Update">Update</string>
     <string name="Offline">Offline</string>
+    <string name="Reset_libtd">Reset libtd(Clear new accounts or old version remnants that are not logged in)</string>
 </resources>
