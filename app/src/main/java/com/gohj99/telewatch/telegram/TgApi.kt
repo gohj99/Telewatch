@@ -14,7 +14,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.Chat
-import com.gohj99.telewatch.ui.main.add
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +29,8 @@ import java.util.concurrent.CountDownLatch
 class TgApi(
     private val context: Context,
     private var chatsList: MutableState<List<Chat>>,
-    private val UserId: String = ""
+    private val UserId: String = "",
+    private val topTitle: MutableState<String>
 ) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
@@ -101,9 +101,49 @@ class TgApi(
             TdApi.UpdateMessageEdited.CONSTRUCTOR -> handleMessageEdited(update as TdApi.UpdateMessageEdited)
             TdApi.UpdateDeleteMessages.CONSTRUCTOR -> handleDeleteMessages(update as TdApi.UpdateDeleteMessages)
             TdApi.UpdateNewChat.CONSTRUCTOR -> handleNewChat(update as TdApi.UpdateNewChat)
+            TdApi.UpdateConnectionState.CONSTRUCTOR -> handleConnectionUpdate(update as TdApi.UpdateConnectionState)
             // 其他更新
             else -> {
                 //println("Received update: $update")
+            }
+        }
+    }
+
+    // 网络状态更新
+    private fun handleConnectionUpdate(update: TdApi.UpdateConnectionState) {
+        when (update.state.constructor) {
+            TdApi.ConnectionStateReady.CONSTRUCTOR -> {
+                // 已经成功连接到 Telegram 服务器
+                topTitle.value = context.getString(R.string.HOME)
+                println("TgApi: Connection Ready")
+            }
+
+            TdApi.ConnectionStateConnecting.CONSTRUCTOR -> {
+                // 正在尝试连接到 Telegram 服务器
+                topTitle.value = context.getString(R.string.Connecting)
+                println("TgApi: Connecting")
+            }
+
+            TdApi.ConnectionStateConnectingToProxy.CONSTRUCTOR -> {
+                // 正在尝试通过代理连接到 Telegram 服务器
+                topTitle.value = context.getString(R.string.Connecting)
+                println("TgApi: Connecting To Proxy")
+            }
+
+            TdApi.ConnectionStateUpdating.CONSTRUCTOR -> {
+                // 正在更新 Telegram 数据库
+                topTitle.value = context.getString(R.string.Update)
+                println("TgApi: Updating")
+            }
+
+            TdApi.ConnectionStateWaitingForNetwork.CONSTRUCTOR -> {
+                // 正在等待网络连接
+                topTitle.value = context.getString(R.string.Offline)
+                println("TgApi: Waiting For Network")
+            }
+
+            else -> {
+                // 其他网络状态处理
             }
         }
     }
@@ -527,14 +567,29 @@ class TgApi(
                         if (userResult.constructor == TdApi.User.CONSTRUCTOR) {
                             val user = userResult as TdApi.User
                             withContext(Dispatchers.Main) {
-                                // 将用户添加到聊天列表
-                                contacts.add(
-                                    Chat(
+                                // 检查是否已存在相同 ID 的联系人
+                                val existingContacts = contacts.value.toMutableList()
+                                val existingContactIndex =
+                                    existingContacts.indexOfFirst { it.id == user.id }
+                                if (existingContactIndex != -1) {
+                                    // 替换原有的联系人
+                                    existingContacts[existingContactIndex] = Chat(
                                         id = user.id,
                                         title = "${user.firstName} ${user.lastName}",
                                         message = ""
                                     )
-                                )
+                                } else {
+                                    // 添加新联系人
+                                    existingContacts.add(
+                                        Chat(
+                                            id = user.id,
+                                            title = "${user.firstName} ${user.lastName}",
+                                            message = ""
+                                        )
+                                    )
+                                }
+                                // 更新状态
+                                contacts.value = existingContacts
                             }
                         } else if (userResult.constructor == TdApi.Error.CONSTRUCTOR) {
                             val error = userResult as TdApi.Error
@@ -631,7 +686,7 @@ class TgApi(
     }
 
     // 获取当前用户 ID 的方法
-    suspend fun getCurrentUserId(): List<String> {
+    suspend fun getCurrentUser(): List<String> {
         val result = sendRequest(TdApi.GetMe())
         if (result.constructor == TdApi.User.CONSTRUCTOR) {
             val user = result as TdApi.User

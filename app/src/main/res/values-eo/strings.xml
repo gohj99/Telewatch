@@ -94,4 +94,7 @@
     <string name="downloads">Elŝutoj</string>
     <string name="install">Instali</string>
     <string name="unknown_apps_install_permission_denied">Vi devas permesi instaladon de programoj de nekonataj fontoj por daŭrigi instali ĝisdatigojn</string>
+    <string name="Connecting">Konektante</string>
+    <string name="Update">Ĝisdatigo</string>
+    <string name="Offline">Senrete</string>
 </resources>

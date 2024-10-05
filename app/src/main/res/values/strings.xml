@@ -94,4 +94,7 @@
     <string name="downloads">Downloads</string>
     <string name="install">Install</string>
     <string name="unknown_apps_install_permission_denied">You need to allow installation of apps from unknown sources to continue installing updates</string>
+    <string name="Connecting">Connecting</string>
+    <string name="Update">Update</string>
+    <string name="Offline">Offline</string>
 </resources>

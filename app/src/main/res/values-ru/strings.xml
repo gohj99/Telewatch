@@ -94,4 +94,7 @@
     <string name="downloads">Загрузки</string>
     <string name="install">Установить</string>
     <string name="unknown_apps_install_permission_denied">Вам необходимо разрешить установку приложений из неизвестных источников, чтобы продолжить установку обновлений.</string>
+    <string name="Connecting">Подключение</string>
+    <string name="Update">Обновлять</string>
+    <string name="Offline">Оффлайн</string>
 </resources>

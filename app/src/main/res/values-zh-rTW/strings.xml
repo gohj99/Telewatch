@@ -94,4 +94,7 @@
     <string name="downloads">下載</string>
     <string name="install">安裝</string>
     <string name="unknown_apps_install_permission_denied">您需要允許安裝未知來源的應用程式才能繼續安裝更新</string>
+    <string name="Connecting">連接中</string>
+    <string name="Update">更新</string>
+    <string name="Offline">離線</string>
 </resources>

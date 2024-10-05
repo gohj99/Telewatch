@@ -94,4 +94,7 @@
     <string name="downloads">ダウンロード</string>
     <string name="install">インストール</string>
     <string name="unknown_apps_install_permission_denied">アップデートのインストールを続行するには、不明なソースからのアプリのインストールを許可する必要があります</string>
+    <string name="Connecting">接続中</string>
+    <string name="Update">アップデート</string>
+    <string name="Offline">オフライン</string>
 </resources>

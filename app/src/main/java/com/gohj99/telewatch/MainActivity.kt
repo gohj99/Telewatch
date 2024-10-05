@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
     private var settingList = mutableStateOf(listOf<SettingItem>())
+    private var topTitle = mutableStateOf("")
 
     override fun onDestroy() {
         super.onDestroy()
@@ -93,6 +94,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initializeApp() {
+        topTitle.value = getString(R.string.HOME)
+
         val loginSharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
         isLoggedIn = loginSharedPref.getBoolean("isLoggedIn", false)
 
@@ -121,15 +124,28 @@ class MainActivity : ComponentActivity() {
                 val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
                 var userList = sharedPref.getString("userList", "")
                 if (userList == "") {
+                    val tempChatsList = mutableStateOf(listOf<Chat>())
                     val tempTgApi = TgApi(
                         this@MainActivity,
-                        chatsList = chatsList
+                        chatsList = tempChatsList,
+                        topTitle = topTitle
                     )
-                    val currentUserId = tempTgApi.getCurrentUserId()
+
+                    // 调用重试机制来获取用户信息
+                    var currentUser = fetchCurrentUserWithRetries(
+                        tgApi = tempTgApi,
+                        repeatTimes = 10  // 最多重试10次
+                        // 每次失败后等待1秒
+                    )
+
+                    if (currentUser == null) {
+                        currentUser = tempTgApi.getCurrentUser()
+                    }
+
                     val jsonObject = JsonObject()
                     jsonObject.addProperty(
-                        currentUserId[0],
-                        currentUserId[1]
+                        currentUser[0],
+                        currentUser[1]
                     )
                     userList = jsonObject.toString()
                     with(sharedPref.edit()) {
@@ -138,6 +154,7 @@ class MainActivity : ComponentActivity() {
                     }
                     tempTgApi.close()
                 }
+
                 val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
                 val accounts = mutableListOf<SettingItem>()
                 var a = 0
@@ -220,6 +237,7 @@ class MainActivity : ComponentActivity() {
                     this@MainActivity,
                     chatsList = chatsList,
                     UserId = jsonObject.keySet().firstOrNull().toString(),
+                    topTitle = topTitle
                 )
                 TgApiManager.tgApi?.loadChats(15)
                 launch(Dispatchers.Main) {
@@ -237,7 +255,8 @@ class MainActivity : ComponentActivity() {
                                 settingList = settingList,
                                 getContacts = { contacts ->
                                     TgApiManager.tgApi!!.getContacts(contacts)
-                                }
+                                },
+                                topTitle = topTitle
                             )
                         }
                     }
@@ -254,13 +273,27 @@ class MainActivity : ComponentActivity() {
                                     startActivity(
                                         Intent(this@MainActivity, SettingActivity::class.java)
                                     )
-                                }
+                                },
+                                cause = e.message ?: ""
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    private suspend fun fetchCurrentUserWithRetries(
+        tgApi: TgApi,
+        repeatTimes: Int
+    ): List<String>? {
+        repeat(repeatTimes) {
+            val currentUser = tgApi.getCurrentUser()  // 假设这个是挂起函数
+            // 成功获取到用户
+            //println("成功获取用户: $currentUser，提前退出循环。")
+            return currentUser
+        }
+        return null // 尝试多次失败，返回 null
     }
 
     private fun retryInitialization() {
