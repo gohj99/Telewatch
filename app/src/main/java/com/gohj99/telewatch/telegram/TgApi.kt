@@ -14,11 +14,11 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.Chat
-import com.gohj99.telewatch.ui.main.add
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
@@ -26,11 +26,13 @@ import java.io.File
 import java.io.IOException
 import java.util.Properties
 import java.util.concurrent.CountDownLatch
+import kotlin.coroutines.resume
 
 class TgApi(
     private val context: Context,
     private var chatsList: MutableState<List<Chat>>,
-    private val UserId: String
+    private val UserId: String = "",
+    private val topTitle: MutableState<String>
 ) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
@@ -39,6 +41,8 @@ class TgApi(
     @Volatile private var isAuthorized: Boolean = false
     private val authLatch = CountDownLatch(1)
     private var isExitChatPage = true
+    private var lastReadOutboxMessageId = mutableStateOf(0L)
+    private var lastReadInboxMessageId = mutableStateOf(0L)
 
     init {
         // 获取应用外部数据目录
@@ -49,7 +53,9 @@ class TgApi(
         val tdapiId = config.getProperty("api_id").toInt()
         val tdapiHash = config.getProperty("api_hash")
         val parameters = TdApi.TdlibParameters().apply {
-            databaseDirectory = externalDir.absolutePath + "/$UserId/tdlib"
+            databaseDirectory = externalDir.absolutePath + (if (UserId == "") "/tdlib" else {
+                "/$UserId/tdlib"
+            })
             useMessageDatabase = true
             useSecretChats = true
             apiId = tdapiId
@@ -99,9 +105,65 @@ class TgApi(
             TdApi.UpdateMessageEdited.CONSTRUCTOR -> handleMessageEdited(update as TdApi.UpdateMessageEdited)
             TdApi.UpdateDeleteMessages.CONSTRUCTOR -> handleDeleteMessages(update as TdApi.UpdateDeleteMessages)
             TdApi.UpdateNewChat.CONSTRUCTOR -> handleNewChat(update as TdApi.UpdateNewChat)
+            TdApi.UpdateConnectionState.CONSTRUCTOR -> handleConnectionUpdate(update as TdApi.UpdateConnectionState)
+            TdApi.UpdateChatReadInbox.CONSTRUCTOR -> handleChatReadInboxUpdate(update as TdApi.UpdateChatReadInbox)
+            TdApi.UpdateChatReadOutbox.CONSTRUCTOR -> handleChatReadOutboxUpdate(update as TdApi.UpdateChatReadOutbox)
             // 其他更新
             else -> {
                 //println("Received update: $update")
+            }
+        }
+    }
+
+    private fun handleChatReadInboxUpdate(update: TdApi.UpdateChatReadInbox) {
+        val chatId = update.chatId
+        if (chatId == saveChatId) {
+            lastReadInboxMessageId.value = update.lastReadInboxMessageId
+        }
+    }
+
+    private fun handleChatReadOutboxUpdate(update: TdApi.UpdateChatReadOutbox) {
+        val chatId = update.chatId
+        if (chatId == saveChatId) {
+            lastReadOutboxMessageId.value = update.lastReadOutboxMessageId
+        }
+    }
+
+    // 网络状态更新
+    private fun handleConnectionUpdate(update: TdApi.UpdateConnectionState) {
+        when (update.state.constructor) {
+            TdApi.ConnectionStateReady.CONSTRUCTOR -> {
+                // 已经成功连接到 Telegram 服务器
+                topTitle.value = context.getString(R.string.HOME)
+                println("TgApi: Connection Ready")
+            }
+
+            TdApi.ConnectionStateConnecting.CONSTRUCTOR -> {
+                // 正在尝试连接到 Telegram 服务器
+                topTitle.value = context.getString(R.string.Connecting)
+                println("TgApi: Connecting")
+            }
+
+            TdApi.ConnectionStateConnectingToProxy.CONSTRUCTOR -> {
+                // 正在尝试通过代理连接到 Telegram 服务器
+                topTitle.value = context.getString(R.string.Connecting)
+                println("TgApi: Connecting To Proxy")
+            }
+
+            TdApi.ConnectionStateUpdating.CONSTRUCTOR -> {
+                // 正在更新 Telegram 数据库
+                topTitle.value = context.getString(R.string.Update)
+                println("TgApi: Updating")
+            }
+
+            TdApi.ConnectionStateWaitingForNetwork.CONSTRUCTOR -> {
+                // 正在等待网络连接
+                topTitle.value = context.getString(R.string.Offline)
+                println("TgApi: Waiting For Network")
+            }
+
+            else -> {
+                // 其他网络状态处理
             }
         }
     }
@@ -493,7 +555,17 @@ class TgApi(
         }
     }
 
-    // 获取用户消息
+    // 获取lastReadOutboxMessageId
+    fun getLastReadOutboxMessageId(): MutableState<Long> {
+        return lastReadOutboxMessageId
+    }
+
+    // 获取lastReadOutboxMessageId
+    fun getLastReadInboxMessageId(): MutableState<Long> {
+        return lastReadInboxMessageId
+    }
+
+    // 获取用户名
     fun getUser(userId: Long, onResult: (String) -> Unit) {
         val getUserRequest = TdApi.GetUser(userId)
 
@@ -503,6 +575,41 @@ class TgApi(
                 onResult(fullName)
             } else {
                 onResult("Unknown User")
+            }
+        })
+    }
+
+    // 获取聊天对象
+    suspend fun getChat(chatId: Long): TdApi.Chat? {
+        return suspendCancellableCoroutine { continuation ->
+            val getChatRequest = TdApi.GetChat(chatId)
+
+            // 发送异步请求
+            client.send(getChatRequest, Client.ResultHandler { result ->
+                if (result is TdApi.Chat) {
+                    // 当结果是 TdApi.Chat 时，恢复协程并返回 Chat 对象
+                    continuation.resume(result)
+                } else {
+                    // 在其他情况下，恢复协程并返回 null
+                    continuation.resume(null)
+                }
+            })
+        }
+    }
+
+    // 退出登录
+    fun logOut() {
+        client.send(TdApi.LogOut(), object : Client.ResultHandler {
+            override fun onResult(result: TdApi.Object) {
+                when (result.constructor) {
+                    TdApi.Ok.CONSTRUCTOR -> {
+                        println("Logged out successfully")
+                    }
+
+                    else -> {
+                        println("Failed to log out: $result")
+                    }
+                }
             }
         })
     }
@@ -525,14 +632,29 @@ class TgApi(
                         if (userResult.constructor == TdApi.User.CONSTRUCTOR) {
                             val user = userResult as TdApi.User
                             withContext(Dispatchers.Main) {
-                                // 将用户添加到聊天列表
-                                contacts.add(
-                                    Chat(
+                                // 检查是否已存在相同 ID 的联系人
+                                val existingContacts = contacts.value.toMutableList()
+                                val existingContactIndex =
+                                    existingContacts.indexOfFirst { it.id == user.id }
+                                if (existingContactIndex != -1) {
+                                    // 替换原有的联系人
+                                    existingContacts[existingContactIndex] = Chat(
                                         id = user.id,
                                         title = "${user.firstName} ${user.lastName}",
                                         message = ""
                                     )
-                                )
+                                } else {
+                                    // 添加新联系人
+                                    existingContacts.add(
+                                        Chat(
+                                            id = user.id,
+                                            title = "${user.firstName} ${user.lastName}",
+                                            message = ""
+                                        )
+                                    )
+                                }
+                                // 更新状态
+                                contacts.value = existingContacts
                             }
                         } else if (userResult.constructor == TdApi.Error.CONSTRUCTOR) {
                             val error = userResult as TdApi.Error
@@ -547,7 +669,7 @@ class TgApi(
     }
 
     // 标记已读
-    fun markMessagesAsRead(messageId: Long, messageThreadId: Long = 0L, forceRead: Boolean = false) {
+    fun markMessagesAsRead(messageId: Long, messageThreadId: Long = 0L, forceRead: Boolean = true) {
         // 创建 ViewMessages 请求
         val viewMessagesRequest = TdApi.ViewMessages(
             saveChatId,
@@ -628,12 +750,12 @@ class TgApi(
         }
     }
 
-    // 添加获取当前用户 ID 的方法
-    suspend fun getCurrentUserId(): Long {
+    // 获取当前用户 ID 的方法
+    suspend fun getCurrentUser(): List<String> {
         val result = sendRequest(TdApi.GetMe())
         if (result.constructor == TdApi.User.CONSTRUCTOR) {
             val user = result as TdApi.User
-            return user.id
+            return listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
         } else {
             throw IllegalStateException("Failed to get current user ID")
         }

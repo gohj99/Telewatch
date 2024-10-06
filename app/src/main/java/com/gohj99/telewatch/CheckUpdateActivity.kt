@@ -18,7 +18,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -86,24 +85,6 @@ class CheckUpdateActivity : ComponentActivity() {
 
     companion object {
         private const val REQUEST_CODE_UNKNOWN_APP = 1234
-    }
-
-    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_UNKNOWN_APP) {
-            if (resultCode == RESULT_OK) {
-                // 用户已授予安装未知来源应用的权限，再次尝试安装 APK
-                installApk(fileName)
-            } else {
-                // 用户拒绝授予权限，处理拒绝情况
-                Toast.makeText(
-                    this,
-                    getString(R.string.unknown_apps_install_permission_denied),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -94,4 +94,12 @@
     <string name="downloads">ダウンロード</string>
     <string name="install">インストール</string>
     <string name="unknown_apps_install_permission_denied">アップデートのインストールを続行するには、不明なソースからのアプリのインストールを許可する必要があります</string>
+    <string name="Connecting">接続中</string>
+    <string name="Update">アップデート</string>
+    <string name="Offline">オフライン</string>
+    <string name="Reset_libtd">libtd のリセット (ログインしていない新しいアカウントまたは古いバージョンの残骸をクリアします)</string>
+    <string name="Duplicate_account">重複したアカウント</string>
+    <string name="Log_out">ログアウト</string>
+    <string name="Confirm_Logout">ログアウトの確認</string>
+    <string name="Confirm_logout_sure">ログアウトしてもよろしいですか\?</string>
 </resources>

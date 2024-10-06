@@ -49,6 +49,7 @@ fun MainScreen(
     chatPage: (Chat) -> Unit,
     settingList: MutableState<List<SettingItem>>,
     getContacts: (MutableState<List<Chat>>) -> Unit,
+    topTitle: MutableState<String>,
 ) {
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
@@ -91,7 +92,7 @@ fun MainScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
-                    text = nowPage,
+                    text = if (nowPage == home) topTitle.value else nowPage,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -194,7 +195,8 @@ fun MainScreenPreview() {
                         message = "我是傻逼"
                     )
                 )
-            }
+            },
+            topTitle = remember { mutableStateOf("Home") }
         )
     }
 }

@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch.ui.chat
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -29,6 +30,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -115,7 +117,10 @@ fun SplashChatScreen(
     sendCallback: (String) -> Unit,
     goToChat: (Chat) -> Unit,
     press: (TdApi.Message) -> Unit,
-    longPress: suspend (String, TdApi.Message) -> String
+    longPress: suspend (String, TdApi.Message) -> String,
+    chatObject: TdApi.Chat,
+    lastReadOutboxMessageId: MutableState<Long>,
+    lastReadInboxMessageId: MutableState<Long>
 ) {
     val listState = rememberLazyListState()
     var isFloatingVisible by remember { mutableStateOf(true) }
@@ -179,16 +184,15 @@ fun SplashChatScreen(
                 }
                 itemsIndexed(
                     chatList.value,
-                    key = { _, message -> message.id + message.date }) { index, message ->
-                    val isCurrentUser =
-                        (message.senderId as? TdApi.MessageSenderUser)?.userId == currentUserId
+                    key = { _, message -> message.id.toString() + message.date.toString() }) { index, message ->
+                    val isCurrentUser = message.isOutgoing
                     val backgroundColor =
                         if (isCurrentUser) Color(0xFF003C68) else Color(0xFF2C323A)
                     val textColor = if (isCurrentUser) Color(0xFF66D3FE) else Color(0xFFFEFEFE)
                     val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
                     val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
-                    var videoDownloadDone by remember { mutableStateOf(false) }
-                    var videoDownload by remember { mutableStateOf(false) }
+                    var videoDownloadDone by rememberSaveable { mutableStateOf(false) }
+                    var videoDownload by rememberSaveable { mutableStateOf(false) }
 
                     TgApiManager.tgApi?.markMessagesAsRead(message.id)
 
@@ -208,8 +212,10 @@ fun SplashChatScreen(
                         if (!isCurrentUser) {
                             var senderName by rememberSaveable { mutableStateOf("") }
                             val senderId = message.senderId
+                            //println("senderId: $senderId")
                             if (senderId.constructor == TdApi.MessageSenderUser.CONSTRUCTOR){
                                 val senderUser = senderId as TdApi.MessageSenderUser
+                                //println("senderUser: $senderUser")
                                 senderUser.userId.let {
                                     Text(
                                         text = senderName,
@@ -229,9 +235,9 @@ fun SplashChatScreen(
                                                     }
                                                 )
                                             }
-                                            .padding(start = 11.dp),
+                                            .padding(start = 10.dp, end = 5.dp),
                                         color = Color.White,
-                                        fontSize = 11.5.sp,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                     )
                                     LaunchedEffect(message.senderId) {
@@ -240,9 +246,29 @@ fun SplashChatScreen(
                                         }
                                     }
                                 }
+                            } else if (senderId.constructor == TdApi.MessageSenderChat.CONSTRUCTOR) {
+                                val senderChat = senderId as TdApi.MessageSenderChat
+                                println("senderChat: $senderChat")
+                                senderChat.chatId.let { itChatId ->
+                                    Text(
+                                        text = senderName,
+                                        modifier = Modifier
+                                            .padding(start = 10.dp, end = 5.dp),
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    LaunchedEffect(message.senderId) {
+                                        val itChat = TgApiManager.tgApi?.getChat(itChatId)
+                                        itChat.let {
+                                            senderName = it!!.title
+                                        }
+                                    }
+                                }
                             }
                         }
 
+                        // 正文
                         Row(
                             modifier = Modifier
                                 .padding(5.dp)
@@ -260,26 +286,28 @@ fun SplashChatScreen(
                                                 isLongPressed = true
                                             },
                                             onTap = {
-                                                if (message.content is TdApi.MessageVideo) {
-                                                    val videoFile =
-                                                        (message.content as TdApi.MessageVideo).video.video
-                                                    if (!videoFile.local.isDownloadingCompleted) {
-                                                        TgApiManager.tgApi!!.downloadFile(
-                                                            file = videoFile,
-                                                            schedule = { schedule ->
-                                                                println("下载进度: $schedule")
-                                                            },
-                                                            completion = { boolean, path ->
-                                                                println("下载完成情况: $boolean")
-                                                                println("下载路径: $path")
-                                                                videoDownload = false
-                                                                videoDownloadDone = true
-                                                            }
-                                                        )
-                                                        videoDownload = true
+                                                if (!videoDownload) {
+                                                    if (message.content is TdApi.MessageVideo) {
+                                                        val videoFile =
+                                                            (message.content as TdApi.MessageVideo).video.video
+                                                        if (!videoFile.local.isDownloadingCompleted) {
+                                                            TgApiManager.tgApi!!.downloadFile(
+                                                                file = videoFile,
+                                                                schedule = { schedule ->
+                                                                    println("下载进度: $schedule")
+                                                                },
+                                                                completion = { boolean, path ->
+                                                                    println("下载完成情况: $boolean")
+                                                                    println("下载路径: $path")
+                                                                    videoDownload = false
+                                                                    videoDownloadDone = true
+                                                                }
+                                                            )
+                                                            videoDownload = true
+                                                        }
                                                     }
+                                                    press(message)
                                                 }
-                                                press(message)
                                             }
                                         )
                                     }
@@ -287,11 +315,13 @@ fun SplashChatScreen(
                                 Column {
                                     when (val content = message.content) {
                                         is TdApi.MessageText -> {
-                                            Text(
-                                                text = content.text.text,
-                                                color = textColor,
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
+                                            SelectionContainer {
+                                                Text(
+                                                    text = content.text.text,
+                                                    color = textColor,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                            }
                                         }
                                         is TdApi.MessagePhoto -> {
                                             val thumbnail = content.photo.sizes.minByOrNull { it.width * it.height }
@@ -308,16 +338,18 @@ fun SplashChatScreen(
                                                 Text(
                                                     text = stringResource(id = R.string.No_thumbnail_available),
                                                     color = textColor,
-                                                    fontSize = 18.sp
+                                                    style = MaterialTheme.typography.bodyMedium
                                                 )
                                             }
                                             content.caption?.text?.let {
-                                                Text(
-                                                    text = it,
-                                                    color = textColor,
-                                                    modifier = Modifier.padding(top = 4.dp),
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
+                                                SelectionContainer {
+                                                    Text(
+                                                        text = it,
+                                                        color = textColor,
+                                                        modifier = Modifier.padding(top = 4.dp),
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
                                             }
                                         }
                                         is TdApi.MessageVideo -> {
@@ -343,9 +375,22 @@ fun SplashChatScreen(
                                                     Text(
                                                         text = stringResource(id = R.string.No_thumbnail_available),
                                                         color = textColor,
-                                                        fontSize = 18.sp
+                                                        style = MaterialTheme.typography.bodyMedium
                                                     )
                                                 }
+
+                                                // 视频文字
+                                                content.caption?.text?.let {
+                                                    SelectionContainer {
+                                                        Text(
+                                                            text = it,
+                                                            color = textColor,
+                                                            modifier = Modifier.padding(top = 4.dp),
+                                                            style = MaterialTheme.typography.bodyMedium
+                                                        )
+                                                    }
+                                                }
+
                                                 if (videoDownload) SplashLoadingScreen()
                                                 val videoFile =
                                                     (message.content as TdApi.MessageVideo).video.video
@@ -377,35 +422,74 @@ fun SplashChatScreen(
                                             Text(
                                                 text = stringResource(id = R.string.Unknown_Message),
                                                 color = textColor,
-                                                fontSize = 18.sp
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
                                     }
+
                                     Row(
                                         modifier = modifier
                                             .padding(top = 4.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween // 两端对齐
                                     ) {
+                                        // 时间
                                         Text(
                                             text = if (message.editDate == 0) formatTimestampToTime(message.date)
                                             else stringResource(id = R.string.edit) + " " + formatTimestampToTime(message.editDate),
                                             modifier = modifier,
                                             color = Color(0xFF6A86A3),
-                                            fontSize = 13.sp
+                                            style = MaterialTheme.typography.bodySmall
                                         )
+
+                                        // 已读未读标识
+                                        // 确定消息是否为自己发的
+                                        if (message.isOutgoing) {
+                                            //println("read.message.id: ${chatObject.lastReadInboxMessageId}")
+                                            if (message.id <= lastReadOutboxMessageId.value) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.outgoing_read),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(19.4.dp, 12.dp) // 设置 Image 的大小
+                                                        .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                                                        .padding(start = 3.8.dp)
+                                                )
+                                            } else if (message.id <= lastReadInboxMessageId.value) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.outgoing),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(16.2.dp, 11.dp) // 设置 Image 的大小
+                                                        .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                                                        .padding(start = 3.5.dp)
+                                                )
+                                            } else {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.sending),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(15.8.dp, 12.dp) // 设置 Image 的大小
+                                                        .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                                                        .padding(start = 3.5.dp)
+                                                )
+                                            }
+                                        }
+
                                         if (!isCurrentUser) {
                                             val forwardInfo = message.forwardInfo
-                                            forwardInfo?.origin?.let {
-                                                val origin = forwardInfo.origin as TdApi.MessageForwardOriginChannel
-                                                Text(
-                                                    text = origin.authorSignature,
-                                                    color = Color(0xFF6A86A3),
-                                                    fontSize = 12.sp,
-                                                    modifier = Modifier
-                                                        .align(Alignment.CenterVertically)
-                                                        .weight(1f)
-                                                        .wrapContentWidth(Alignment.End) // 向右对齐
-                                                )
+                                            forwardInfo?.origin?.let { origin ->
+                                                if (origin is TdApi.MessageForwardOriginChannel) {
+                                                    // 署名
+                                                    Text(
+                                                        text = origin.authorSignature,
+                                                        color = Color(0xFF6A86A3),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        modifier = Modifier
+                                                            .align(Alignment.CenterVertically)
+                                                            .weight(1f)
+                                                            .wrapContentWidth(Alignment.End) // 向右对齐
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -452,68 +536,73 @@ fun SplashChatScreen(
             )
         )
 
-        if (isFloatingVisible) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 4.dp)
-                    .alpha(1f),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = {
-                        textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
-                        keyboardController?.show() // 显示输入法
-                    },
-                    modifier = Modifier
-                        .size(84.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_custom_keyboard),
-                        contentDescription = null,
-                        modifier = Modifier.size(82.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = {
-                        sendCallback(inputText.text)
-                        inputText = TextFieldValue("")
-                    },
-                    modifier = Modifier
-                        .size(45.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_custom_send),
-                        contentDescription = null,
-                        modifier = Modifier.size(45.dp)
-                    )
-                }
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight() // 使 Box 填满整个屏幕高度
-                    .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
-                contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
-            ) {
-                IconButton(
-                    onClick = {
-                        isFloatingVisible = true
-                    },
-                    modifier = Modifier
-                        .padding(3.dp) // 可选的内边距
-                        .size(20.dp) // 设置 IconButton 的大小
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
-                        contentDescription = null,
+        val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
+        if (chatPermissions != null) {
+            if (chatPermissions.canSendMessages) {
+                if (isFloatingVisible) {
+                    Row(
                         modifier = Modifier
-                            .size(20.dp) // 设置 Image 的大小
-                            .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                    )
+                            .fillMaxWidth()
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 4.dp)
+                            .alpha(1f),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = {
+                                textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
+                                keyboardController?.show() // 显示输入法
+                            },
+                            modifier = Modifier
+                                .size(84.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_custom_keyboard),
+                                contentDescription = null,
+                                modifier = Modifier.size(82.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                sendCallback(inputText.text)
+                                inputText = TextFieldValue("")
+                            },
+                            modifier = Modifier
+                                .size(45.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_custom_send),
+                                contentDescription = null,
+                                modifier = Modifier.size(45.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight() // 使 Box 填满整个屏幕高度
+                            .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
+                        contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
+                    ) {
+                        IconButton(
+                            onClick = {
+                                isFloatingVisible = true
+                            },
+                            modifier = Modifier
+                                .padding(3.dp) // 可选的内边距
+                                .size(20.dp) // 设置 IconButton 的大小
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(20.dp) // 设置 Image 的大小
+                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -541,7 +630,7 @@ fun ThumbnailImage(
             Text(
                 text = stringResource(id = R.string.loading),
                 color = textColor,
-                fontSize = 18.sp
+                style = MaterialTheme.typography.bodyMedium
             )
         }
         LaunchedEffect(message) {
@@ -586,6 +675,7 @@ fun DateText(date: String) {
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Preview(showBackground = true)
 @Composable
 fun SplashChatScreenPreview() {
@@ -642,7 +732,10 @@ fun SplashChatScreenPreview() {
                 println("长按触发")
                 println(message)
                 return@SplashChatScreen select
-            }
+            },
+            chatObject = TdApi.Chat(),
+            lastReadOutboxMessageId = mutableStateOf(0L),
+            lastReadInboxMessageId = mutableStateOf(0L)
         )
     }
 }

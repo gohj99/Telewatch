@@ -65,9 +65,9 @@ fun Modifier.verticalRotaryScroll(
 
                     // 转动页面
                     val totalScroll = if (reverse) {
-                        event.verticalScrollPixels * -0.95f
+                        event.verticalScrollPixels * -1f
                     } else {
-                        event.verticalScrollPixels * 0.95f
+                        event.verticalScrollPixels * 1f
                     }
                     val stepCount = 30 // 分30步执行，更加丝滑
                     val stepSize = totalScroll / stepCount

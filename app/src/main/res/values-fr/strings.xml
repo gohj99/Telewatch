@@ -94,4 +94,12 @@
     <string name="downloads">Téléchargements</string>
     <string name="install">Installer</string>
     <string name="unknown_apps_install_permission_denied">Vous devez autoriser l\'installation d\'applications provenant de sources inconnues pour continuer à installer les mises à jour</string>
+    <string name="Connecting">De liaison</string>
+    <string name="Update">Mise à jour</string>
+    <string name="Offline">Hors ligne</string>
+    <string name="Reset_libtd">Réinitialiser libtd (Effacer les nouveaux comptes ou les restes d\'anciennes versions qui ne sont pas connectés)</string>
+    <string name="Duplicate_account">Compte en double</string>
+    <string name="Log_out">Se déconnecter</string>
+    <string name="Confirm_Logout">Confirmer la déconnexion</string>
+    <string name="Confirm_logout_sure"><![CDATA[Êtes-vous sûr de vouloir vous déconnecter \?]]></string>
 </resources>

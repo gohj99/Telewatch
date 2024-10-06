@@ -94,4 +94,12 @@
     <string name="downloads">Загрузки</string>
     <string name="install">Установить</string>
     <string name="unknown_apps_install_permission_denied">Вам необходимо разрешить установку приложений из неизвестных источников, чтобы продолжить установку обновлений.</string>
+    <string name="Connecting">Подключение</string>
+    <string name="Update">Обновлять</string>
+    <string name="Offline">Оффлайн</string>
+    <string name="Reset_libtd">Сбросить libtd (очистить новые учетные записи или остатки старых версий, в которые не выполнен вход)</string>
+    <string name="Duplicate_account">Дубликат аккаунта</string>
+    <string name="Log_out">Выйти</string>
+    <string name="Confirm_Logout">Подтвердить выход</string>
+    <string name="Confirm_logout_sure">Вы уверены, что хотите выйти\?</string>
 </resources>

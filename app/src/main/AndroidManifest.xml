@@ -28,6 +28,11 @@
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
+            android:name=".ConfirmLogoutActivity"
+            android:exported="false"
+            android:label="@string/Confirm_Logout"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".CheckUpdateActivity"
             android:exported="false"
             android:label="@string/Check_Update"

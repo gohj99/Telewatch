@@ -1,0 +1,26 @@
+<!--
+  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="59.96dp"
+    android:height="59.96dp"
+    android:viewportWidth="59.96"
+    android:viewportHeight="59.96">
+    <path
+        android:fillColor="#68baf9"
+        android:pathData="M29.98,0C13.42,0 0,13.42 0,29.98s13.42,29.98 29.98,29.98 29.98,-13.42 29.98,-29.98S46.54,0 29.98,0ZM29.98,51.38c-11.82,0 -21.4,-9.58 -21.4,-21.4S18.16,8.58 29.98,8.58s21.4,9.58 21.4,21.4 -9.58,21.4 -21.4,21.4Z"
+        android:strokeWidth="0" />
+    <path
+        android:fillColor="#68baf9"
+        android:pathData="M29.77,17.26h0c1.91,0 3.46,1.55 3.46,3.46v10.16c0,1.91 -1.55,3.46 -3.46,3.46h0c-1.91,0 -3.46,-1.55 -3.46,-3.46v-10.16c0,-1.91 1.55,-3.46 3.46,-3.46Z"
+        android:strokeWidth="0" />
+    <path
+        android:fillColor="#68baf9"
+        android:pathData="M26.31,30.88h0c0,-1.91 1.55,-3.46 3.46,-3.46h10.16c1.91,0 3.46,1.55 3.46,3.46h0c0,1.91 -1.55,3.46 -3.46,3.46h-10.16c-1.91,0 -3.46,-1.55 -3.46,-3.46Z"
+        android:strokeWidth="0" />
+</vector>

@@ -193,6 +193,12 @@ class LoginActivity : ComponentActivity() {
                                     // 获取私有外部存储的根目录
                                     val externalDir: File = getExternalFilesDir(null)
                                         ?: throw IllegalStateException("Failed to get external directory.")
+                                    // 删除可能存在的文件夹
+                                    val dir =
+                                        File(externalDir.absolutePath + "/" + it.id.toString())
+                                    dir.listFiles()?.find { it.name == "tdlib" && it.isDirectory }
+                                        ?.deleteRecursively()
+                                    cacheDir.deleteRecursively()
                                     // 定义源文件夹路径 (tdlib)
                                     val sourceDir = File(externalDir, "tdlib")
                                     if (!sourceDir.exists()) {
@@ -215,6 +221,7 @@ class LoginActivity : ComponentActivity() {
                                     } else {
                                         throw IOException("Failed to move folder to: ${targetDir.absolutePath}")
                                     }
+
                                     // 存储账号数据
                                     val gson = Gson()
                                     var userList: String
@@ -223,11 +230,16 @@ class LoginActivity : ComponentActivity() {
                                         userList = sharedPref.getString("userList", "").toString()
                                         val jsonObject: JsonObject =
                                             gson.fromJson(userList, JsonObject::class.java)
-                                        jsonObject.firstAdd(
-                                            it.id.toString(),
-                                            "${it.firstName} ${it.lastName}"
-                                        )
-                                        userList = jsonObject.toString()
+                                        // 如果登录重复账号
+                                        if (jsonObject.has(it.id.toString())) {
+                                            jsonObject.remove(it.id.toString())
+                                        } else {
+                                            jsonObject.firstAdd(
+                                                it.id.toString(),
+                                                "${it.firstName} ${it.lastName}"
+                                            )
+                                            userList = jsonObject.toString()
+                                        }
                                     } else {
                                         // 首次登录
                                         val jsonObject = JsonObject()
