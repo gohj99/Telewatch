@@ -36,7 +36,6 @@ import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -77,8 +76,6 @@ class MainActivity : ComponentActivity() {
             finish()
         } else {
             val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
-            val firebaseAnalytics = FirebaseAnalytics.getInstance(this)
-            firebaseAnalytics.setAnalyticsCollectionEnabled(dataCollection)
 
             // 显示启动页面
             setContent {
@@ -396,8 +393,6 @@ fun initFirebaseAnalytics(context: Context) {
         )
     } else {
         val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
-        val firebaseAnalytics = FirebaseAnalytics.getInstance(context)
-        firebaseAnalytics.setAnalyticsCollectionEnabled(dataCollection)
     }
 }
 
