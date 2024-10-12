@@ -69,7 +69,7 @@
     <string name="Clear_videos">Klara filmetoj</string>
     <string name="error_activity_view">Erarpaĝo</string>
     <string name="allow_data_Collection">Permesu Kolekton de Datumoj</string>
-    <string name="data_collection_description">Ni uzas Google Firebase Analytics por anonime kolekti kraŝraportojn, spuri la plej ofte uzatajn funkciojn kaj kolekti uzajn ŝablonojn por fari Telewatch pli afabla. Vi povas malŝalti ĉi tiun funkcion iam ajn en la agordoj.</string>
+    <string name="data_collection_description">Ni uzas la malfermfontan kolektan ilon ACRA por anonime kolekti kraŝraportojn, spuri la plej ofte uzatajn funkciojn kaj kolekti uzajn ŝablonojn por fari Telewatch pli afabla. Vi povas malŝalti ĉi tiun funkcion iam ajn en la agordoj.</string>
     <string name="data_collection_title">Anonimaj Statistikoj\nFrakasa Raportado</string>
     <string name="disagree">Ne</string>
     <string name="agree">JES</string>
@@ -102,4 +102,6 @@
     <string name="Log_out">Elsaluti</string>
     <string name="Confirm_Logout">Konfirmu elsaluti</string>
     <string name="Confirm_logout_sure">Ĉu vi certas, ke vi volas elsaluti\?</string>
+    <string name="Update_tips">Konsiloj: Post elŝuto, ĝi estos konservita en la sistema elŝuta dosierujo</string>
+    <string name="Install_Apk">Instalu Apk</string>
 </resources>

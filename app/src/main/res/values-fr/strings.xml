@@ -69,7 +69,7 @@
     <string name="Clear_videos">Vidéos claires</string>
     <string name="error_activity_view">Page d\'erreur</string>
     <string name="allow_data_Collection">Autoriser la collecte de données</string>
-    <string name="data_collection_description">Nous utilisons Google Firebase Analytics pour collecter de manière anonyme des rapports d\'erreur, suivre les fonctionnalités les plus fréquemment utilisées et collecter des données sur les modèles d\'utilisation afin de rendre Telewatch plus convivial. Vous pouvez désactiver cette fonctionnalité à tout moment dans les paramètres.</string>
+    <string name="data_collection_description">Nous utilisons l\'outil de collecte open source ACRA pour collecter de manière anonyme des rapports d\'erreur, suivre les fonctionnalités les plus fréquemment utilisées et collecter des données sur les modèles d\'utilisation afin de rendre Telewatch plus convivial. Vous pouvez désactiver cette fonctionnalité à tout moment dans les paramètres.</string>
     <string name="data_collection_title">Statistiques anonymes\nRapports d\'accidents</string>
     <string name="disagree">Non</string>
     <string name="agree">OUI</string>
@@ -102,4 +102,6 @@
     <string name="Log_out">Se déconnecter</string>
     <string name="Confirm_Logout">Confirmer la déconnexion</string>
     <string name="Confirm_logout_sure"><![CDATA[Êtes-vous sûr de vouloir vous déconnecter \?]]></string>
+    <string name="Update_tips"><![CDATA[Conseils : Après le téléchargement, il sera stocké dans le dossier de téléchargement du système.]]></string>
+    <string name="Install_Apk">Installer l\'Apk</string>
 </resources>

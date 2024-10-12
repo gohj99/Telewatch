@@ -69,7 +69,7 @@
     <string name="Clear_videos">清晰的視頻</string>
     <string name="error_activity_view">錯誤頁面</string>
     <string name="allow_data_Collection">允許數據收集</string>
-    <string name="data_collection_description">我們使用 Google Firebase Analytics 匿名收集崩潰報告、追蹤最常用的功能並收集使用模式數據，以使 Telewatch 更加用戶友好。您可以隨時在設定中停用此功能。</string>
+    <string name="data_collection_description">我們使用開源收集工具 ACRA 匿名收集崩潰報告、追蹤最常用的功能並收集使用模式數據，以使 Telewatch 更加用戶友好。您可以隨時在設定中停用此功能。</string>
     <string name="data_collection_title">匿名統計\n崩潰報告</string>
     <string name="disagree">不好</string>
     <string name="agree">好</string>
@@ -102,4 +102,6 @@
     <string name="Log_out">登出</string>
     <string name="Confirm_Logout">確認登出</string>
     <string name="Confirm_logout_sure">您確定要登出登入嗎？</string>
+    <string name="Update_tips">小提醒：下載後將存放於系統下載資料夾</string>
+    <string name="Install_Apk">安裝APK</string>
 </resources>
