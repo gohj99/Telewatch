@@ -104,4 +104,5 @@
     <string name="Confirm_logout_sure">您確定要登出登入嗎？</string>
     <string name="Update_tips">小提醒：下載後將存放於系統下載資料夾</string>
     <string name="Install_Apk">安裝APK</string>
+    <string name="Search">搜尋</string>
 </resources>

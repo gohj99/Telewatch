@@ -58,9 +58,6 @@ class LoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         languageCode = this.resources.configuration.locales[0].language
         appVersion = getAppVersion(this)
 

@@ -59,9 +59,6 @@ class SettingActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
 

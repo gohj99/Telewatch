@@ -246,6 +246,7 @@ class TgApi(
     private fun handleNewMessage(update: TdApi.UpdateNewMessage) {
         val message = update.message
         println("New message received in chat ID ${message.chatId}\nmessageId ${message.id}")
+        //println(message)
         updateChatList(message)
     }
 
@@ -394,6 +395,7 @@ class TgApi(
         // 异步获取聊天标题
         CoroutineScope(Dispatchers.IO).launch {
             val chatResult = sendRequest(TdApi.GetChat(chatId))
+            //println(chatResult)
             if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
                 val chatTitle = (chatResult as TdApi.Chat).title
                 val lastMessage = handleAllMessages((chatResult.lastMessage))

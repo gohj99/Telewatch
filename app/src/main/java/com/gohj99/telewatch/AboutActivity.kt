@@ -47,9 +47,6 @@ class AboutActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         val config = loadConfig(this)
         val buildDate = config.getProperty("BUILD_DATE")
         setContent {

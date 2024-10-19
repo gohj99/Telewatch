@@ -62,9 +62,6 @@ class ImgViewActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         setContent {
             TelewatchTheme {
                 SplashLoadingScreen(modifier = Modifier.fillMaxSize())

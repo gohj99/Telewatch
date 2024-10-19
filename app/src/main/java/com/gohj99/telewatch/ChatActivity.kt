@@ -61,9 +61,6 @@ class ChatActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         // 显示加载页面
         setContent {
             TelewatchTheme {

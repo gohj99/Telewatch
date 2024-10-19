@@ -11,24 +11,45 @@ package com.gohj99.telewatch.ui.main
 import android.annotation.SuppressLint
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+
+// 字符串匹配
+fun matchingString(target: String, original: String): Boolean {
+    if (original != "") return original.contains(target, ignoreCase = true)
+    else return true
+}
 
 // 定义一个数据类
 @SuppressLint("ParcelCreator")
@@ -71,6 +92,7 @@ fun <T> MutableState<List<T>>.add(item: T) {
 @Composable
 fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit) {
     val listState = rememberLazyListState()
+    var searchText = rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -91,8 +113,54 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
         item {
             Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
         }
+        item {
+            // 搜索框
+            Box(
+                modifier = Modifier
+                    .height(40.dp)
+                    .padding(start = 30.dp, end = 30.dp, bottom = 6.dp)
+                    .background(
+                        color = Color(0xFF474B57),
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .clip(RoundedCornerShape(6.dp))
+            ) {
+                BasicTextField(
+                    value = searchText.value,
+                    onValueChange = {
+                        searchText.value = it
+                    },
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        color = Color.LightGray,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp
+                    ),
+                    cursorBrush = SolidColor(Color.White),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 8.dp)
+                ) { innerTextField ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (searchText.value.isEmpty()) {
+                            Text(
+                                text = stringResource(id = R.string.Search),
+                                color = Color.LightGray,
+                                textAlign = TextAlign.Center,
+                                fontSize = 14.sp
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            }
+        }
         items(itemsList.value) { item ->
-            ChatView(item, callback)
+            ChatView(item, callback, searchText)
         }
         item {
             Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
@@ -123,25 +191,31 @@ fun ContactsLazyColumn(itemsList: List<Chat>, callback: (Chat) -> Unit) {
 }
 
 @Composable
-fun ChatView(chat: Chat, callback: (Chat) -> Unit) {
-    MainCard(
-        column = {
-            Text(
-                text = chat.title,
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium
-            )
-            if (chat.message.isNotEmpty()) {
+fun ChatView(
+    chat: Chat,
+    callback: (Chat) -> Unit,
+    searchText: MutableState<String> = mutableStateOf("")
+) {
+    if (matchingString(searchText.value, chat.title)) {
+        MainCard(
+            column = {
                 Text(
-                    text = chat.message,
-                    color = Color(0xFF728AA5),
-                    style = MaterialTheme.typography.bodySmall
+                    text = chat.title,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
                 )
+                if (chat.message.isNotEmpty()) {
+                    Text(
+                        text = chat.message,
+                        color = Color(0xFF728AA5),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+            item = chat,
+            callback = {
+                callback(chat)
             }
-        },
-        item = chat,
-        callback = {
-            callback(chat)
-        }
-    )
+        )
+    }
 }

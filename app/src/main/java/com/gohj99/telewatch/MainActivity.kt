@@ -64,7 +64,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
+        // 获取数据收集配置
         val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         if (!settingsSharedPref.contains("Data_Collection")) {
             startActivity(
@@ -75,8 +75,6 @@ class MainActivity : ComponentActivity() {
             )
             finish()
         } else {
-            val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
-
             // 显示启动页面
             setContent {
                 TelewatchTheme {
@@ -378,21 +376,6 @@ fun JsonObject.firstAdd(key: String, value: String) {
     // 将临时对象的数据重新添加到当前对象
     for (entry in tempJsonObject.entrySet()) {
         this.add(entry.key, entry.value)
-    }
-}
-
-// 初始化 Firebase Analytics
-fun initFirebaseAnalytics(context: Context) {
-    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    if (!settingsSharedPref.contains("Data_Collection")) {
-        context.startActivity(
-            Intent(
-                context,
-                AllowDataCollectionActivity::class.java
-            )
-        )
-    } else {
-        val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
     }
 }
 
