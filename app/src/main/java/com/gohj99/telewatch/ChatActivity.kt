@@ -37,7 +37,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.drinkless.td.libcore.telegram.TdApi
+import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

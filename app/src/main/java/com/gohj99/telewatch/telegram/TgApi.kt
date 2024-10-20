@@ -18,10 +18,11 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import org.drinkless.td.libcore.telegram.Client
-import org.drinkless.td.libcore.telegram.TdApi
+import org.drinkless.tdlib.Client
+import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
 import java.util.Properties
@@ -52,7 +53,7 @@ class TgApi(
         val config = loadConfig(context)
         val tdapiId = config.getProperty("api_id").toInt()
         val tdapiHash = config.getProperty("api_hash")
-        val parameters = TdApi.TdlibParameters().apply {
+        client.send(TdApi.SetTdlibParameters().apply {
             databaseDirectory = externalDir.absolutePath + (if (UserId == "") "/tdlib" else {
                 "/$UserId/tdlib"
             })
@@ -64,17 +65,15 @@ class TgApi(
             deviceModel = Build.MODEL
             systemVersion = Build.VERSION.RELEASE
             applicationVersion = getAppVersion(context)
-            enableStorageOptimizer = true
-        }
-        client.send(TdApi.SetTdlibParameters(parameters)) { result ->
+        }) { result ->
             println("SetTdlibParameters result: $result")
         }
 
         // 检查本地是否有加密密钥
         val encryptionKeyString = sharedPref.getString("encryption_key", null)
-        val encryptionKey: TdApi.CheckDatabaseEncryptionKey = if (encryptionKeyString != null) {
+        val encryptionKey: TdApi.SetDatabaseEncryptionKey = if (encryptionKeyString != null) {
             val keyBytes = encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-            TdApi.CheckDatabaseEncryptionKey(keyBytes)
+            TdApi.SetDatabaseEncryptionKey(keyBytes)
         } else {
             throw IllegalStateException("Encryption key not found")
         }
@@ -671,12 +670,12 @@ class TgApi(
     }
 
     // 标记已读
-    fun markMessagesAsRead(messageId: Long, messageThreadId: Long = 0L, forceRead: Boolean = true) {
+    fun markMessagesAsRead(messageId: Long, forceRead: Boolean = true) {
         // 创建 ViewMessages 请求
         val viewMessagesRequest = TdApi.ViewMessages(
             saveChatId,
-            messageThreadId,
             longArrayOf(messageId),
+            null,
             forceRead
         )
 
@@ -764,10 +763,10 @@ class TgApi(
     }
 
     // 发送请求并返回结果
-    private suspend fun sendRequest(request: TdApi.Function): TdApi.Object =
+    private suspend fun <R : TdApi.Object> sendRequest(request: TdApi.Function<R>): R =
         withContext(Dispatchers.IO) {
-            val result = CompletableDeferred<TdApi.Object>()
-            client.send(request) { result.complete(it) }
+            val result = CompletableDeferred<R>()
+            client.send(request) { result.complete(it as R) }
             return@withContext result.await()
         }
 
@@ -837,6 +836,8 @@ class TgApi(
     // 关闭连接
     fun close() {
         println("Closing client")
-        client.close()
+        runBlocking {
+            sendRequest(TdApi.Close())
+        }
     }
 }

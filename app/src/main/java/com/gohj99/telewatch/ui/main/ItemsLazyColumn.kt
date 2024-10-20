@@ -40,7 +40,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.verticalRotaryScroll
@@ -134,7 +133,7 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
                     textStyle = TextStyle(
                         color = Color.LightGray,
                         textAlign = TextAlign.Center,
-                        fontSize = 14.sp
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize
                     ),
                     cursorBrush = SolidColor(Color.White),
                     modifier = Modifier
@@ -151,7 +150,7 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
                                 text = stringResource(id = R.string.Search),
                                 color = Color.LightGray,
                                 textAlign = TextAlign.Center,
-                                fontSize = 14.sp
+                                style = MaterialTheme.typography.titleMedium
                             )
                         }
                         innerTextField()

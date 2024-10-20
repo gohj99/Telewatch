@@ -1,6 +1,6 @@
--keep class org.drinkless.td.libcore.telegram.** { *; }
--keep class org.drinkless.td.libcore.telegram.TdApi$* { *; }
--keep class org.drinkless.td.libcore.telegram.Client$* { *; }
+-keep class org.drinkless.tdlib.** { *; }
+-keep class org.drinkless.tdlib.TdApi$* { *; }
+-keep class org.drinkless.tdlib.Client$* { *; }
 -keep class okhttp3.internal.platform.** { *; }
 -keep class org.bouncycastle.jsse.** { *; }
 -keep class org.bouncycastle.** { *; }

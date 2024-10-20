@@ -105,4 +105,5 @@
     <string name="Update_tips">小提示：下载后将存放于系统下载文件夹</string>
     <string name="Install_Apk">安装APK</string>
     <string name="Search">搜索</string>
+    <string name="Network_setting">网络设置</string>
 </resources>

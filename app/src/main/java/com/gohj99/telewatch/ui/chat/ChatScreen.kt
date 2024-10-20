@@ -71,7 +71,7 @@ import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import kotlinx.coroutines.runBlocking
-import org.drinkless.td.libcore.telegram.TdApi
+import org.drinkless.tdlib.TdApi
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -478,7 +478,7 @@ fun SplashChatScreen(
                                         if (!isCurrentUser) {
                                             val forwardInfo = message.forwardInfo
                                             forwardInfo?.origin?.let { origin ->
-                                                if (origin is TdApi.MessageForwardOriginChannel) {
+                                                if (origin is TdApi.MessageOriginChannel) {
                                                     // 署名
                                                     Text(
                                                         text = origin.authorSignature,
@@ -538,7 +538,7 @@ fun SplashChatScreen(
 
         val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
         if (chatPermissions != null) {
-            if (chatPermissions.canSendMessages) {
+            if (chatPermissions.canSendBasicMessages) {
                 if (isFloatingVisible) {
                     Row(
                         modifier = Modifier
@@ -691,24 +691,32 @@ fun SplashChatScreenPreview() {
                         TdApi.FormattedText(
                             "这可是用高贵的jetpack compose写的。\n原生啊，原生懂吗？",
                             emptyArray()
-                        ), null
+                        ),
+                        null,
+                        null
                     )
                 },
                 TdApi.Message().apply {
                     date = 1692127800
                     id = 2
                     senderId = TdApi.MessageSenderUser(2) // 对方用户
-                    content = TdApi.MessageText(TdApi.FormattedText("你再骂！", emptyArray()), null)
+                    content = TdApi.MessageText(
+                        TdApi.FormattedText("你再骂！", emptyArray()),
+                        null,
+                        null
+                    )
                 },
                 TdApi.Message().apply {
                     date = 1692127800
-                    id =3
+                    id = 3
                     senderId = TdApi.MessageSenderUser(1) // 当前用户
                     content = TdApi.MessageText(
                         TdApi.FormattedText(
                             "我去，大佬你用qt开发的吗，太美了",
                             emptyArray()
-                        ), null
+                        ),
+                        null,
+                        null
                     )
                 },
             )

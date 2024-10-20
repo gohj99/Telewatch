@@ -105,4 +105,5 @@
     <string name="Update_tips"><![CDATA[Conseils : Après le téléchargement, il sera stocké dans le dossier de téléchargement du système.]]></string>
     <string name="Install_Apk">Installer l\'Apk</string>
     <string name="Search">Recherche</string>
+    <string name="Network_setting">Paramètres réseau</string>
 </resources>

@@ -105,4 +105,5 @@
     <string name="Update_tips">Tips: After downloading, it will be stored in the system download folder</string>
     <string name="Install_Apk">Install Apk</string>
     <string name="Search">Search</string>
+    <string name="Network_setting">Network Setting</string>
 </resources>

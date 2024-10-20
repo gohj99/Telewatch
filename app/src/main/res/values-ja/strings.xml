@@ -105,4 +105,5 @@
     <string name="Update_tips">ヒント: ダウンロード後、システムのダウンロード フォルダーに保存されます。</string>
     <string name="Install_Apk">APKをインストールする</string>
     <string name="Search">検索</string>
+    <string name="Network_setting">ネットワーク設定</string>
 </resources>

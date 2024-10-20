@@ -105,4 +105,5 @@
     <string name="Update_tips">Советы: После загрузки он будет сохранен в системной папке загрузки.</string>
     <string name="Install_Apk">Установить АПК</string>
     <string name="Search">Поиск</string>
+    <string name="Network_setting">Настройка сети</string>
 </resources>

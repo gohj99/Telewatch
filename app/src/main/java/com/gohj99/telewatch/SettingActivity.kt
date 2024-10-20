@@ -83,6 +83,18 @@ class SettingActivity : ComponentActivity() {
         when (page) {
             0 -> {
                 settingsList.value = listOf(
+                    // 网络设置
+                    SettingItem.Click(
+                        itemName = getString(R.string.Network_setting),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    NetworkSettingActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 界面调节
                     SettingItem.Click(
                         itemName = getString(R.string.UI_Edit),
