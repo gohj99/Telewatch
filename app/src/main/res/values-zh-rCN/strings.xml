@@ -106,4 +106,5 @@
     <string name="Install_Apk">安装APK</string>
     <string name="Search">搜索</string>
     <string name="Network_setting">网络设置</string>
+    <string name="Unknown_chat">未知聊天</string>
 </resources>

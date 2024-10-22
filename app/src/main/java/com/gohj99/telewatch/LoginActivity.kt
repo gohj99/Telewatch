@@ -115,6 +115,8 @@ class LoginActivity : ComponentActivity() {
     private fun handleUpdate(update: TdApi.Object) {
         when (update.constructor) {
             TdApi.UpdateAuthorizationState.CONSTRUCTOR -> {
+                val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
+                val encryptionKeyString = sharedPref.getString("encryption_key", null)
                 val authorizationState = (update as TdApi.UpdateAuthorizationState).authorizationState
                 when (authorizationState.constructor) {
                     TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {
@@ -136,29 +138,23 @@ class LoginActivity : ComponentActivity() {
                             deviceModel = Build.MODEL
                             systemVersion = Build.VERSION.RELEASE
                             applicationVersion = appVersion
+                            useSecretChats = false
+                            useMessageDatabase = true
+                            databaseEncryptionKey = if (encryptionKeyString != null) {
+                                // 检查本地是否有加密密钥
+                                encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+                            } else {
+                                // 生成一个新的加密密钥并保存
+                                val newKeyBytes = ByteArray(32).apply { (0..31).forEach { this[it] = (it * 7).toByte() } }
+                                val newKeyString = newKeyBytes.joinToString("") { "%02x".format(it) }
+                                with(sharedPref.edit()) {
+                                    putString("encryption_key", newKeyString)
+                                    apply()
+                                }
+                                newKeyBytes
+                            }
                         }) { result ->
                             println("SetTdlibParameters result: $result")
-                        }
-
-                        // 检查本地是否有加密密钥
-                        val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
-                        val encryptionKeyString = sharedPref.getString("encryption_key", null)
-                        val encryptionKey: TdApi.SetDatabaseEncryptionKey =
-                            if (encryptionKeyString != null) {
-                            val keyBytes = encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-                                TdApi.SetDatabaseEncryptionKey(keyBytes)
-                        } else {
-                            // 生成一个新的加密密钥并保存
-                            val newKeyBytes = ByteArray(32).apply { (0..31).forEach { this[it] = (it * 7).toByte() } }
-                            val newKeyString = newKeyBytes.joinToString("") { "%02x".format(it) }
-                            with(sharedPref.edit()) {
-                                putString("encryption_key", newKeyString)
-                                apply()
-                            }
-                                TdApi.SetDatabaseEncryptionKey(newKeyBytes)
-                            }
-                        client.send(encryptionKey) { result ->
-                            println("CheckDatabaseEncryptionKey result: $result")
                         }
                     }
 

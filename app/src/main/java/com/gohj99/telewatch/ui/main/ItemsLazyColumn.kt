@@ -55,7 +55,8 @@ fun matchingString(target: String, original: String): Boolean {
 data class Chat(
     val id: Long,
     val title: String,
-    val message: String
+    val message: String,
+    val isPinned: Boolean = false
 ) : Parcelable {
     override fun describeContents(): Int {
         return 0 // 通常返回0即可，除非有特殊情况需要返回其他值
@@ -159,7 +160,10 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
             }
         }
         items(itemsList.value) { item ->
-            ChatView(item, callback, searchText)
+            ChatView(item, callback, searchText, true)
+        }
+        items(itemsList.value) { item ->
+            ChatView(item, callback, searchText, false)
         }
         item {
             Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
@@ -193,28 +197,31 @@ fun ContactsLazyColumn(itemsList: List<Chat>, callback: (Chat) -> Unit) {
 fun ChatView(
     chat: Chat,
     callback: (Chat) -> Unit,
-    searchText: MutableState<String> = mutableStateOf("")
+    searchText: MutableState<String> = mutableStateOf(""),
+    pinnedView: Boolean = false
 ) {
-    if (matchingString(searchText.value, chat.title)) {
-        MainCard(
-            column = {
-                Text(
-                    text = chat.title,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                if (chat.message.isNotEmpty()) {
+    if (chat.isPinned == pinnedView) {
+        if (matchingString(searchText.value, chat.title)) {
+            MainCard(
+                column = {
                     Text(
-                        text = chat.message,
-                        color = Color(0xFF728AA5),
-                        style = MaterialTheme.typography.bodySmall
+                        text = chat.title,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
                     )
+                    if (chat.message.isNotEmpty()) {
+                        Text(
+                            text = chat.message,
+                            color = Color(0xFF728AA5),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
+                item = chat,
+                callback = {
+                    callback(chat)
                 }
-            },
-            item = chat,
-            callback = {
-                callback(chat)
-            }
-        )
+            )
+        }
     }
 }
