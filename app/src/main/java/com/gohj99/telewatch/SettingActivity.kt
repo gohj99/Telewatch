@@ -84,6 +84,7 @@ class SettingActivity : ComponentActivity() {
             0 -> {
                 settingsList.value = listOf(
                     // 网络设置
+                    /*
                     SettingItem.Click(
                         itemName = getString(R.string.Network_setting),
                         onClick = {
@@ -94,7 +95,7 @@ class SettingActivity : ComponentActivity() {
                                 )
                             )
                         }
-                    ),
+                    ),*/
                     // 界面调节
                     SettingItem.Click(
                         itemName = getString(R.string.UI_Edit),

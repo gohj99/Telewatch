@@ -33,7 +33,8 @@ class TgApi(
     private val context: Context,
     private var chatsList: MutableState<List<Chat>>,
     private val UserId: String = "",
-    private val topTitle: MutableState<String>
+    private val topTitle: MutableState<String>,
+    private val chatsFoldersList: MutableState<List<TdApi.ChatFolderInfo>>
 ) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
@@ -106,6 +107,7 @@ class TgApi(
             TdApi.UpdateConnectionState.CONSTRUCTOR -> handleConnectionUpdate(update as TdApi.UpdateConnectionState)
             TdApi.UpdateChatReadInbox.CONSTRUCTOR -> handleChatReadInboxUpdate(update as TdApi.UpdateChatReadInbox)
             TdApi.UpdateChatReadOutbox.CONSTRUCTOR -> handleChatReadOutboxUpdate(update as TdApi.UpdateChatReadOutbox)
+            TdApi.UpdateChatFolders.CONSTRUCTOR -> handleChatFoldersUpdate(update as TdApi.UpdateChatFolders)
             // 其他更新
             else -> {
                 //println("Received update: $update")
@@ -124,6 +126,13 @@ class TgApi(
         val chatId = update.chatId
         if (chatId == saveChatId) {
             lastReadOutboxMessageId.value = update.lastReadOutboxMessageId
+        }
+    }
+
+    // 获取聊天文件夹
+    private fun handleChatFoldersUpdate(update: TdApi.UpdateChatFolders) {
+        update.chatFolders?.let {
+            chatsFoldersList.value = it.toList()
         }
     }
 
@@ -715,6 +724,17 @@ class TgApi(
                 println("Failed to mark messages as read: $response")
             }
         }
+    }
+
+    // 获取分组信息
+    suspend fun getChatFolder(chatFolderId: Int): TdApi.ChatFolder? {
+        try {
+            val result = sendRequest(TdApi.GetChatFolder(chatFolderId))
+            return result
+        } catch (e: Exception) {
+            println("Error getting chat folders: ${e.message}")
+        }
+        return null
     }
 
     // 发送消息

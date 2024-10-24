@@ -42,6 +42,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.SettingItem
 import com.gohj99.telewatch.ui.setting.SettingLazyColumn
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import org.drinkless.tdlib.TdApi
 
 @Composable
 fun MainScreen(
@@ -50,6 +51,7 @@ fun MainScreen(
     settingList: MutableState<List<SettingItem>>,
     getContacts: (MutableState<List<Chat>>) -> Unit,
     topTitle: MutableState<String>,
+    chatsFoldersList: MutableState<List<TdApi.ChatFolderInfo>>
 ) {
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
@@ -196,7 +198,8 @@ fun MainScreenPreview() {
                     )
                 )
             },
-            topTitle = remember { mutableStateOf("Home") }
+            topTitle = remember { mutableStateOf("Home") },
+            chatsFoldersList = remember { mutableStateOf(listOf()) }
         )
     }
 }
