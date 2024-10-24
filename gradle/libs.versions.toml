@@ -13,9 +13,7 @@ coil-compose = "2.7.0"
 zxing-core = "3.5.3"
 composeFoundation = "1.4.0"
 gson-versions = "2.10.1"
-appcompat = "1.7.0"
-playServicesMeasurementApi = "22.1.0"
-firebaseCrashlyticsKtx = "19.1.0"
+acra = "5.11.4"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -37,9 +35,7 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing-core" }
 androidx-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson-versions" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-play-services-measurement-api = { group = "com.google.android.gms", name = "play-services-measurement-api", version.ref = "playServicesMeasurementApi" }
-firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx", version.ref = "firebaseCrashlyticsKtx" }
+acra = { group = "ch.acra", name = "acra-http", version.ref = "acra" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

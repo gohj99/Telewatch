@@ -69,7 +69,7 @@
     <string name="Clear_videos">Очистить видео</string>
     <string name="error_activity_view">Страница ошибки</string>
     <string name="allow_data_Collection">Разрешить сбор данных</string>
-    <string name="data_collection_description">Мы используем Google Firebase Analytics для анонимного сбора отчетов о сбоях, отслеживания наиболее часто используемых функций и сбора данных о шаблонах использования, чтобы сделать Telewatch более удобным для пользователя. Вы можете отключить эту функцию в любой момент в настройках.</string>
+    <string name="data_collection_description">Мы используем инструмент сбора данных ACRA с открытым исходным кодом для анонимного сбора отчетов о сбоях, отслеживания наиболее часто используемых функций и сбора данных о шаблонах использования, чтобы сделать Telewatch более удобным для пользователя. Вы можете отключить эту функцию в любой момент в настройках.</string>
     <string name="data_collection_title">Анонимная статистика\nОтчеты о сбоях</string>
     <string name="disagree">Нет</string>
     <string name="agree">ДА</string>
@@ -102,4 +102,9 @@
     <string name="Log_out">Выйти</string>
     <string name="Confirm_Logout">Подтвердить выход</string>
     <string name="Confirm_logout_sure">Вы уверены, что хотите выйти\?</string>
+    <string name="Update_tips">Советы: После загрузки он будет сохранен в системной папке загрузки.</string>
+    <string name="Install_Apk">Установить АПК</string>
+    <string name="Search">Поиск</string>
+    <string name="Network_setting">Настройка сети</string>
+    <string name="Unknown_chat">Неизвестный чат</string>
 </resources>

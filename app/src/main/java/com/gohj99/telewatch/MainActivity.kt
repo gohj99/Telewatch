@@ -36,11 +36,11 @@ import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.drinkless.tdlib.TdApi
 import java.io.File
 
 
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
     private var isLoggedIn: Boolean = false
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
+    private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolderInfo>())
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
 
@@ -65,7 +66,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
+        // 获取数据收集配置
         val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         if (!settingsSharedPref.contains("Data_Collection")) {
             startActivity(
@@ -76,10 +77,6 @@ class MainActivity : ComponentActivity() {
             )
             finish()
         } else {
-            val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
-            val firebaseAnalytics = FirebaseAnalytics.getInstance(this)
-            firebaseAnalytics.setAnalyticsCollectionEnabled(dataCollection)
-
             // 显示启动页面
             setContent {
                 TelewatchTheme {
@@ -129,7 +126,8 @@ class MainActivity : ComponentActivity() {
                     val tempTgApi = TgApi(
                         this@MainActivity,
                         chatsList = tempChatsList,
-                        topTitle = topTitle
+                        topTitle = topTitle,
+                        chatsFoldersList = chatsFoldersList
                     )
 
                     // 调用重试机制来获取用户信息
@@ -249,7 +247,8 @@ class MainActivity : ComponentActivity() {
                     this@MainActivity,
                     chatsList = chatsList,
                     UserId = jsonObject.keySet().firstOrNull().toString(),
-                    topTitle = topTitle
+                    topTitle = topTitle,
+                    chatsFoldersList = chatsFoldersList
                 )
                 TgApiManager.tgApi?.loadChats(15)
                 launch(Dispatchers.Main) {
@@ -268,7 +267,8 @@ class MainActivity : ComponentActivity() {
                                 getContacts = { contacts ->
                                     TgApiManager.tgApi!!.getContacts(contacts)
                                 },
-                                topTitle = topTitle
+                                topTitle = topTitle,
+                                chatsFoldersList = chatsFoldersList
                             )
                         }
                     }
@@ -381,23 +381,6 @@ fun JsonObject.firstAdd(key: String, value: String) {
     // 将临时对象的数据重新添加到当前对象
     for (entry in tempJsonObject.entrySet()) {
         this.add(entry.key, entry.value)
-    }
-}
-
-// 初始化 Firebase Analytics
-fun initFirebaseAnalytics(context: Context) {
-    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    if (!settingsSharedPref.contains("Data_Collection")) {
-        context.startActivity(
-            Intent(
-                context,
-                AllowDataCollectionActivity::class.java
-            )
-        )
-    } else {
-        val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
-        val firebaseAnalytics = FirebaseAnalytics.getInstance(context)
-        firebaseAnalytics.setAnalyticsCollectionEnabled(dataCollection)
     }
 }
 

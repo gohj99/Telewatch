@@ -59,9 +59,6 @@ class SettingActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
 
@@ -86,6 +83,19 @@ class SettingActivity : ComponentActivity() {
         when (page) {
             0 -> {
                 settingsList.value = listOf(
+                    // 网络设置
+                    /*
+                    SettingItem.Click(
+                        itemName = getString(R.string.Network_setting),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    NetworkSettingActivity::class.java
+                                )
+                            )
+                        }
+                    ),*/
                     // 界面调节
                     SettingItem.Click(
                         itemName = getString(R.string.UI_Edit),

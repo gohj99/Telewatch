@@ -45,9 +45,6 @@ class WelcomeActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 初始化 Firebase Analytics
-        initFirebaseAnalytics(this)
-
         // 获取共享偏好设置
         sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
         // 注册监听器

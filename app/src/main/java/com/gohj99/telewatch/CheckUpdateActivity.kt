@@ -13,10 +13,8 @@ import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -47,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.main.ErrorScreen
@@ -82,10 +79,6 @@ data class Asset(
 class CheckUpdateActivity : ComponentActivity() {
     private var downloadId: Long = -1
     private var fileName = ""
-
-    companion object {
-        private const val REQUEST_CODE_UNKNOWN_APP = 1234
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,6 +143,7 @@ class CheckUpdateActivity : ComponentActivity() {
                                     ${getString(R.string.version)}: $version
                                     ${getString(R.string.Release_type)}: $releaseType
                                     ${getString(R.string.Release_time)}: $formattedPublishedAt
+                                    ${getString(R.string.Update_tips)}
                                 """.trimIndent()
 
                                 if (needsUpdate) {
@@ -169,11 +163,12 @@ class CheckUpdateActivity : ComponentActivity() {
                                                         downloadProgress = progress
                                                     }, {
                                                         isDownloadComplete = true
+                                                        copyFileToDownloads(fileName)
                                                     })
                                                 },
                                                 downloadProgress = downloadProgress,
                                                 onInstallClick = {
-                                                    installApk(fileName)
+                                                    startInstallActivity(fileName)
                                                 },
                                                 isDownloadComplete = isDownloadComplete
                                             )
@@ -219,11 +214,14 @@ class CheckUpdateActivity : ComponentActivity() {
         onProgress: (Float) -> Unit,
         onDownloadComplete: () -> Unit
     ) {
+        val externalFilesDir = getExternalFilesDir(null)
+        val destinationUri = Uri.fromFile(File(externalFilesDir, fileName))
+
         val request = DownloadManager.Request(Uri.parse(url))
             .setTitle("Downloading update")
             .setDescription("Downloading the latest version of the app")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+            .setDestinationUri(destinationUri)
             .setAllowedOverMetered(true)
             .setAllowedOverRoaming(true)
 
@@ -267,31 +265,31 @@ class CheckUpdateActivity : ComponentActivity() {
         }
     }
 
-    private fun installApk(fileName: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (!packageManager.canRequestPackageInstalls()) {
-                // 请求用户授予安装未知来源应用的权限
-                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                    data = Uri.parse("package:$packageName")
-                }
-                startActivityForResult(intent, REQUEST_CODE_UNKNOWN_APP)
-                return
+    private fun copyFileToDownloads(fileName: String) {
+        val externalFilesDir = getExternalFilesDir(null)
+        val sourceFile = File(externalFilesDir, fileName)
+        val downloadsDir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val destinationFile = File(downloadsDir, fileName)
+
+        if (sourceFile.exists()) {
+            try {
+                sourceFile.copyTo(destinationFile, overwrite = true)
+                Log.i(
+                    "CheckUpdateActivity",
+                    "File copied to downloads: ${destinationFile.absolutePath}"
+                )
+            } catch (e: IOException) {
+                Log.e("CheckUpdateActivity", "Failed to copy file: ${e.message}")
             }
+        } else {
+            Log.e("CheckUpdateActivity", "Source file does not exist: ${sourceFile.absolutePath}")
         }
+    }
 
-        val file = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            fileName
-        )
-        if (!file.exists()) {
-            Log.e("CheckUpdateActivity", "APK file does not exist: ${file.absolutePath}")
-            return
-        }
-
-        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+    private fun startInstallActivity(fileName: String) {
+        val intent = Intent(this, InstallApkActivity::class.java).apply {
+            putExtra(InstallApkActivity.EXTRA_FILE_NAME, fileName)
         }
         startActivity(intent)
     }

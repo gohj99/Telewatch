@@ -8,10 +8,7 @@
   -->
 
 <paths>
-    <external-path
-        name="download_files"
-        path="Download/" />
     <external-files-path
         name="external_files"
-        path="tdlib/" />
+        path="/" />
 </paths>

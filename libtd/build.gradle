@@ -9,7 +9,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 34
-    namespace "com.tdlib.td"
+    namespace "org.drinkless.tdlib"
 
     sourceSets.main {
         jniLibs.srcDir 'src/main/libs'

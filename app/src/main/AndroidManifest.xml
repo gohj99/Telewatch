@@ -12,12 +12,15 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature
         android:name="android.hardware.type.watch"
         android:required="true" />
 
     <application
+        android:name=".ACRA"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -27,6 +30,16 @@
         android:theme="@style/Theme.Telewatch"
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
+        <activity
+            android:name=".NetworkSettingActivity"
+            android:exported="false"
+            android:label="@string/Network_setting"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
+            android:name=".InstallApkActivity"
+            android:exported="false"
+            android:label="@string/Install_Apk"
+            android:theme="@style/Theme.Telewatch" />
         <activity
             android:name=".ConfirmLogoutActivity"
             android:exported="false"
@@ -98,9 +111,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <meta-data
-            android:name="firebase_analytics_collection_enabled"
-            android:value="false" />
     </application>
 
 </manifest>

@@ -23,19 +23,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.ui.SearchBar
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+
+// 字符串匹配
+fun matchingString(target: String, original: String): Boolean {
+    if (original != "") return original.contains(target, ignoreCase = true)
+    else return true
+}
 
 // 定义一个数据类
 @SuppressLint("ParcelCreator")
 data class Chat(
     val id: Long,
     val title: String,
-    val message: String
+    val message: String,
+    val isPinned: Boolean = false
 ) : Parcelable {
     override fun describeContents(): Int {
         return 0 // 通常返回0即可，除非有特殊情况需要返回其他值
@@ -71,6 +83,7 @@ fun <T> MutableState<List<T>>.add(item: T) {
 @Composable
 fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit) {
     val listState = rememberLazyListState()
+    var searchText = rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -91,8 +104,21 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
         item {
             Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
         }
+        item {
+            // 搜索框
+            SearchBar(
+                query = searchText.value,
+                onQueryChange = { searchText.value = it },
+                placeholder = stringResource(id = R.string.Search),
+                modifier = Modifier
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
         items(itemsList.value) { item ->
-            ChatView(item, callback)
+            ChatView(item, callback, searchText, true)
+        }
+        items(itemsList.value) { item ->
+            ChatView(item, callback, searchText, false)
         }
         item {
             Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
@@ -123,25 +149,34 @@ fun ContactsLazyColumn(itemsList: List<Chat>, callback: (Chat) -> Unit) {
 }
 
 @Composable
-fun ChatView(chat: Chat, callback: (Chat) -> Unit) {
-    MainCard(
-        column = {
-            Text(
-                text = chat.title,
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium
+fun ChatView(
+    chat: Chat,
+    callback: (Chat) -> Unit,
+    searchText: MutableState<String> = mutableStateOf(""),
+    pinnedView: Boolean = false
+) {
+    if (chat.isPinned == pinnedView) {
+        if (matchingString(searchText.value, chat.title)) {
+            MainCard(
+                column = {
+                    Text(
+                        text = chat.title,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    if (chat.message.isNotEmpty()) {
+                        Text(
+                            text = chat.message,
+                            color = Color(0xFF728AA5),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
+                item = chat,
+                callback = {
+                    callback(chat)
+                }
             )
-            if (chat.message.isNotEmpty()) {
-                Text(
-                    text = chat.message,
-                    color = Color(0xFF728AA5),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        },
-        item = chat,
-        callback = {
-            callback(chat)
         }
-    )
+    }
 }
