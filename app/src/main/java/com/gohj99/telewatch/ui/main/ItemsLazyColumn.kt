@@ -168,7 +168,7 @@ fun ChatView(
                         Text(
                             text = chat.message,
                             color = Color(0xFF728AA5),
-                            style = MaterialTheme.typography.bodySmall
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 },

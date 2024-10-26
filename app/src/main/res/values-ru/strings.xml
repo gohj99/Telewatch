@@ -107,4 +107,7 @@
     <string name="Search">Поиск</string>
     <string name="Network_setting">Настройка сети</string>
     <string name="Unknown_chat">Неизвестный чат</string>
+    <string name="acra_toast_text">В программном обеспечении возникла ошибка, о которой было сообщено. Пожалуйста, перезапустите программное обеспечение.</string>
+    <string name="author">Автор</string>
+    <string name="Famous_Quotes">Знаменитые цитаты</string>
 </resources>

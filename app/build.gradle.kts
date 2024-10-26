@@ -20,8 +20,8 @@ android {
         minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 13
-        versionName = "1.2.2"
+        versionCode = 14
+        versionName = "1.2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -110,7 +110,8 @@ dependencies {
     implementation(libs.gson)
     testImplementation(libs.junit)
     implementation(libs.zxing.core)
-    implementation(libs.acra)
+    implementation(libs.acra.http)
+    implementation(libs.acra.toast)
     implementation(project(":libtd"))
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

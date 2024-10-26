@@ -35,7 +35,8 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing-core" }
 androidx-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson-versions" }
-acra = { group = "ch.acra", name = "acra-http", version.ref = "acra" }
+acra-http = { group = "ch.acra", name = "acra-http", version.ref = "acra" }
+acra-toast = { group = "ch.acra", name = "acra-toast", version.ref = "acra" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

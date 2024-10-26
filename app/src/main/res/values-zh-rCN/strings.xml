@@ -107,4 +107,7 @@
     <string name="Search">搜索</string>
     <string name="Network_setting">网络设置</string>
     <string name="Unknown_chat">未知聊天</string>
+    <string name="acra_toast_text">软件遇到错误，已报告。请重新启动软件。</string>
+    <string name="author">作者</string>
+    <string name="Famous_Quotes">名言</string>
 </resources>
