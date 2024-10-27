@@ -110,4 +110,7 @@
     <string name="acra_toast_text">Le logiciel a rencontré une erreur et celle-ci a été signalée. Veuillez redémarrer le logiciel.</string>
     <string name="author">Auteur</string>
     <string name="Famous_Quotes">Citations célèbres</string>
+    <string name="notice">Avis</string>
+    <string name="notice_about_1">Ce logiciel est open source et gratuit.</string>
+    <string name="notice_about_2">Si vous avez acheté ce logiciel quelque part, veuillez vous plaindre et demander un remboursement.</string>
 </resources>

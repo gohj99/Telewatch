@@ -52,7 +52,7 @@ fun MainScreen(
     settingList: MutableState<List<SettingItem>>,
     contacts: MutableState<List<Chat>>,
     topTitle: MutableState<String>,
-    chatsFoldersList: MutableState<List<TdApi.ChatFolderInfo>>
+    chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
@@ -107,7 +107,10 @@ fun MainScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
-                    text = if (nowPage == home) topTitle.value else nowPage,
+                    text = if (nowPage !in lastPages)
+                        if (topTitle.value == "") nowPage
+                        else topTitle.value
+                    else nowPage,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -153,7 +156,7 @@ fun MainScreen(
                         ChatLazyColumn(
                             itemsList = chats,
                             callback = chatPage,
-                            chatsFolderId = chatsFoldersList.value.find { it.title == nowPage }?.id?: -1,
+                            chatsFolder = chatsFoldersList.value.find { it.title == nowPage },
                             contactsList = contacts.value
                         )
                     }

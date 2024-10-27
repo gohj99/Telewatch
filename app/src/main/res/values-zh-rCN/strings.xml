@@ -110,4 +110,7 @@
     <string name="acra_toast_text">软件遇到错误，已报告。请重新启动软件。</string>
     <string name="author">作者</string>
     <string name="Famous_Quotes">名言</string>
+    <string name="notice">注意</string>
+    <string name="notice_about_1">本软件开源免费</string>
+    <string name="notice_about_2">如果您在任何地方购买了该软件，请投诉并要求退款。\n请勿在中国大陆内使用本软件</string>
 </resources>

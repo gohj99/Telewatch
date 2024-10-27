@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     private var isLoggedIn: Boolean = false
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
-    private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolderInfo>())
+    private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolder>())
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
     private val contacts = mutableStateOf(listOf<Chat>())

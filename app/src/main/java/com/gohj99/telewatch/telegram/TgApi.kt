@@ -34,7 +34,7 @@ class TgApi(
     private var chatsList: MutableState<List<Chat>>,
     private val UserId: String = "",
     private val topTitle: MutableState<String>,
-    private val chatsFoldersList: MutableState<List<TdApi.ChatFolderInfo>>
+    private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
@@ -131,8 +131,16 @@ class TgApi(
 
     // 获取聊天文件夹
     private fun handleChatFoldersUpdate(update: TdApi.UpdateChatFolders) {
+        chatsFoldersList.value = emptyList()
         update.chatFolders?.let {
-            chatsFoldersList.value = it.toList()
+            it.toList().forEach {chatFolder ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    val chatFolderInfo = getChatFolderInfo(chatFolder.id)
+                    if (chatFolderInfo != null) {
+                        chatsFoldersList.value += listOf(chatFolderInfo)
+                    }
+                }
+            }
         }
     }
 
@@ -141,7 +149,7 @@ class TgApi(
         when (update.state.constructor) {
             TdApi.ConnectionStateReady.CONSTRUCTOR -> {
                 // 已经成功连接到 Telegram 服务器
-                topTitle.value = context.getString(R.string.HOME)
+                topTitle.value = ""
                 println("TgApi: Connection Ready")
             }
 
@@ -270,7 +278,6 @@ class TgApi(
         CoroutineScope(Dispatchers.IO).launch {
             var chatTitle = context.getString(R.string.Unknown_chat)
             var isPinned = false
-            var isMuted = false
             var isRead = false
             var isBot = false
             var isChannel = false
@@ -300,7 +307,6 @@ class TgApi(
                         }
                     }
                 }
-                if (!chatResult.notificationSettings.disableMentionNotifications && !chatResult.notificationSettings.disablePinnedMessageNotifications) isMuted = true
             } catch (e: Exception) {
                 println("GetChat request failed (updateChatList): ${e.message}")
             }
@@ -331,7 +337,6 @@ class TgApi(
                                 title = chatTitle, // 使用从TdApi获取的标题
                                 message = newMessageText,
                                 isPinned = isPinned,
-                                isMuted = isMuted,
                                 isRead = isRead,
                                 isBot = isBot,
                                 isChannel = isChannel,
@@ -449,7 +454,6 @@ class TgApi(
         //println(newChat.positions.firstOrNull()?.isPinned ?: false)
 
         var isPinned = newChat.positions.firstOrNull()?.isPinned ?: false
-        var isMuted = false
         var isRead = false
         var isBot = false
         var isChannel = false
@@ -485,7 +489,6 @@ class TgApi(
                             }
                         }
                     }
-                    if (!chatResult.notificationSettings.disableMentionNotifications && !chatResult.notificationSettings.disablePinnedMessageNotifications) isMuted = true
                 }
             } catch (e: Exception) {
                 println("GetChat request failed (handleNewChat): ${e.message}")
@@ -510,7 +513,6 @@ class TgApi(
                                 title = chatTitle, // 使用从 TdApi 获取的标题
                                 message = lastMessage,
                                 isPinned = isPinned,
-                                isMuted = isMuted,
                                 isRead = isRead,
                                 isBot = isBot,
                                 isChannel = isChannel,

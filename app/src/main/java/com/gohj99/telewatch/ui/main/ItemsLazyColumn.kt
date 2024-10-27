@@ -34,7 +34,6 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.SearchBar
 import com.gohj99.telewatch.ui.verticalRotaryScroll
-import kotlinx.coroutines.runBlocking
 import org.drinkless.tdlib.TdApi
 
 // 字符串匹配
@@ -50,8 +49,6 @@ data class Chat(
     val title: String,
     val message: String,
     val isPinned: Boolean = false, // 是否在全部会话置顶
-    val isArchived: Boolean = false, // 是否为归档聊天
-    val isMuted: Boolean = false, // 是否为静音聊天
     val isRead: Boolean = false, // 聊天是否已读
     val isBot: Boolean = false, // 是否为机器人对话
     val isChannel: Boolean = false, // 是否为频道
@@ -92,7 +89,7 @@ fun <T> MutableState<List<T>>.add(item: T) {
 @Composable
 fun ChatLazyColumn(itemsList: MutableState<List<Chat>>,
                    callback: (Chat) -> Unit,
-                   chatsFolderId: Int = -1,
+                   chatsFolder: TdApi.ChatFolder? = null,
                    contactsList: List<Chat> = listOf()
 ) {
     val listState = rememberLazyListState()
@@ -127,7 +124,7 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>,
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-        if (chatsFolderId == -1) {
+        if (chatsFolder == null) {
             items(itemsList.value) { item ->
                 ChatView(item, callback, searchText, true)
             }
@@ -135,22 +132,12 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>,
                 ChatView(item, callback, searchText, false)
             }
         } else {
-            val chatFolderInfo = runBlocking { TgApiManager.tgApi?.getChatFolderInfo(chatsFolderId) }
-            println(chatFolderInfo)
-            if (chatFolderInfo != null) {
-                items(itemsList.value) { item ->
-                    ChatView(item, callback, searchText, true, chatFolderInfo, contactsList)
-                }
-                items(itemsList.value) { item ->
-                    ChatView(item, callback, searchText, false, chatFolderInfo, contactsList)
-                }
-            } else {
-                items(itemsList.value) { item ->
-                    ChatView(item, callback, searchText, true)
-                }
-                items(itemsList.value) { item ->
-                    ChatView(item, callback, searchText, false)
-                }
+            //println(chatsFolder)
+            items(itemsList.value) { item ->
+                ChatView(item, callback, searchText, true, chatsFolder, contactsList)
+            }
+            items(itemsList.value) { item ->
+                ChatView(item, callback, searchText, false, chatsFolder, contactsList)
             }
         }
         item {
@@ -220,15 +207,13 @@ fun ChatView(
             if (chat.id in chatFolderInfo.pinnedChatIds == pinnedView) {
                 var isShow = false
 
-                println(chat)
-
                 // 过滤聊天
                 //if (chat.isArchived == chatFolderInfo.excludeArchived) isShow = true
                 //if (chat.isMuted == chatFolderInfo.excludeMuted) isShow = true
                 //if (chat.isRead == chatFolderInfo.excludeRead) isShow = true
                 if (chat.isChannel && chatFolderInfo.includeChannels) isShow = true
                 if (chat.isGroup && chatFolderInfo.includeGroups) isShow = true
-                println(isShow)
+                //println(isShow)
                 if (chat.isPrivateChat) {
                     // 判断机器人
                     if (chat.isBot) {

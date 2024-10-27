@@ -110,4 +110,7 @@
     <string name="acra_toast_text">В программном обеспечении возникла ошибка, о которой было сообщено. Пожалуйста, перезапустите программное обеспечение.</string>
     <string name="author">Автор</string>
     <string name="Famous_Quotes">Знаменитые цитаты</string>
+    <string name="notice">Уведомление</string>
+    <string name="notice_about_1">Это программное обеспечение имеет открытый исходный код и является бесплатным.</string>
+    <string name="notice_about_2">Если вы приобрели это программное обеспечение где-либо, подайте жалобу и попросите вернуть деньги.</string>
 </resources>

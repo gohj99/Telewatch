@@ -130,9 +130,50 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
             ) {
                 Column(modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 14.dp, bottom = 9.dp)) {
                     Text(
+                        text = stringResource(R.string.notice),
+                        color = Color.White,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(25.dp),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(5.dp))
+
+                    Text(
+                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\nGitHub: https://github.com/gohj99/telewatch/",
+                        color = Color.White,
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp) // 只在左右添加 padding
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .clickable { },
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFF404953) // 设置 Card 的背景颜色
+                )
+            ) {
+                Column(modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 14.dp, bottom = 9.dp)) {
+                    Text(
                         text = stringResource(R.string.author),
                         color = Color.White,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(25.dp),
@@ -229,6 +270,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                         text = stringResource(R.string.Famous_Quotes),
                         color = Color.White,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(25.dp),
