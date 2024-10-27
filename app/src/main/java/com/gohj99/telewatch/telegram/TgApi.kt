@@ -34,7 +34,7 @@ class TgApi(
     private var chatsList: MutableState<List<Chat>>,
     private val UserId: String = "",
     private val topTitle: MutableState<String>,
-    private val chatsFoldersList: MutableState<List<TdApi.ChatFolderInfo>>
+    private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
     private var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
@@ -131,8 +131,16 @@ class TgApi(
 
     // 获取聊天文件夹
     private fun handleChatFoldersUpdate(update: TdApi.UpdateChatFolders) {
+        chatsFoldersList.value = emptyList()
         update.chatFolders?.let {
-            chatsFoldersList.value = it.toList()
+            it.toList().forEach {chatFolder ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    val chatFolderInfo = getChatFolderInfo(chatFolder.id)
+                    if (chatFolderInfo != null) {
+                        chatsFoldersList.value += listOf(chatFolderInfo)
+                    }
+                }
+            }
         }
     }
 
@@ -141,7 +149,7 @@ class TgApi(
         when (update.state.constructor) {
             TdApi.ConnectionStateReady.CONSTRUCTOR -> {
                 // 已经成功连接到 Telegram 服务器
-                topTitle.value = context.getString(R.string.HOME)
+                topTitle.value = ""
                 println("TgApi: Connection Ready")
             }
 
@@ -270,10 +278,35 @@ class TgApi(
         CoroutineScope(Dispatchers.IO).launch {
             var chatTitle = context.getString(R.string.Unknown_chat)
             var isPinned = false
+            var isRead = false
+            var isBot = false
+            var isChannel = false
+            var isGroup = false
+            var isPrivateChat = false
             try {
                 val chatResult = sendRequest(TdApi.GetChat(chatId))
                 chatTitle = if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) (chatResult as TdApi.Chat).title else chatTitle
                 isPinned = chatResult.positions.firstOrNull()?.isPinned ?: false
+                isRead = chatResult.isMarkedAsUnread
+                when (val messageType = chatResult.type) {
+                    is TdApi.ChatTypeSupergroup -> {
+                        if (messageType.isChannel) {
+                            isChannel = true
+                        } else {
+                            isGroup = true
+                        }
+                    }
+                    is TdApi.ChatTypeBasicGroup -> {
+                        isGroup = true
+                    }
+                    is TdApi.ChatTypePrivate -> {
+                        isPrivateChat = true
+                        val userResult = sendRequest(TdApi.GetUser(chatResult.id))
+                        if (userResult.type is TdApi.UserTypeBot) {
+                            isBot = true
+                        }
+                    }
+                }
             } catch (e: Exception) {
                 println("GetChat request failed (updateChatList): ${e.message}")
             }
@@ -303,7 +336,12 @@ class TgApi(
                                 id = chatId,
                                 title = chatTitle, // 使用从TdApi获取的标题
                                 message = newMessageText,
-                                isPinned = isPinned
+                                isPinned = isPinned,
+                                isRead = isRead,
+                                isBot = isBot,
+                                isChannel = isChannel,
+                                isGroup = isGroup,
+                                isPrivateChat = isPrivateChat
                             )
                         )
                     }
@@ -416,6 +454,11 @@ class TgApi(
         //println(newChat.positions.firstOrNull()?.isPinned ?: false)
 
         var isPinned = newChat.positions.firstOrNull()?.isPinned ?: false
+        var isRead = false
+        var isBot = false
+        var isChannel = false
+        var isGroup = false
+        var isPrivateChat = false
         var chatTitle = newChat.title
         var lastMessage = handleAllMessages(newChat.lastMessage)
         // 异步获取聊天标题
@@ -426,6 +469,26 @@ class TgApi(
                     isPinned = chatResult.positions.firstOrNull()?.isPinned ?: false
                     chatTitle = chatResult.title
                     lastMessage = handleAllMessages(chatResult.lastMessage)
+                    isRead = chatResult.isMarkedAsUnread
+                    when (val messageType = chatResult.type) {
+                        is TdApi.ChatTypeSupergroup -> {
+                            if (messageType.isChannel) {
+                                isChannel = true
+                            } else {
+                                isGroup = true
+                            }
+                        }
+                        is TdApi.ChatTypeBasicGroup -> {
+                            isGroup = true
+                        }
+                        is TdApi.ChatTypePrivate -> {
+                            isPrivateChat = true
+                            val userResult = sendRequest(TdApi.GetUser(chatResult.id))
+                            if (userResult.type is TdApi.UserTypeBot) {
+                                isBot = true
+                            }
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 println("GetChat request failed (handleNewChat): ${e.message}")
@@ -449,7 +512,12 @@ class TgApi(
                                 id = chatId,
                                 title = chatTitle, // 使用从 TdApi 获取的标题
                                 message = lastMessage,
-                                isPinned = isPinned
+                                isPinned = isPinned,
+                                isRead = isRead,
+                                isBot = isBot,
+                                isChannel = isChannel,
+                                isGroup = isGroup,
+                                isPrivateChat = isPrivateChat
                             )
                         )
                     }
@@ -727,7 +795,7 @@ class TgApi(
     }
 
     // 获取分组信息
-    suspend fun getChatFolder(chatFolderId: Int): TdApi.ChatFolder? {
+    suspend fun getChatFolderInfo(chatFolderId: Int): TdApi.ChatFolder? {
         try {
             val result = sendRequest(TdApi.GetChatFolder(chatFolderId))
             return result

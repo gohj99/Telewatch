@@ -107,4 +107,10 @@
     <string name="Search">Serĉu</string>
     <string name="Network_setting">Reta Agordo</string>
     <string name="Unknown_chat">Nekonata Babilejo</string>
+    <string name="acra_toast_text">La programaro renkontis eraron kaj ĝi estis raportita. Bonvolu rekomenci la programaron.</string>
+    <string name="author">Aŭtoro</string>
+    <string name="Famous_Quotes">Famaj Citaĵoj</string>
+    <string name="notice">Rimarku</string>
+    <string name="notice_about_1">Ĉi tiu programaro estas malferma fonto kaj senpaga.</string>
+    <string name="notice_about_2">Se vi aĉetis ĉi tiun programaron ie, bonvolu plendi kaj peti repagon.</string>
 </resources>

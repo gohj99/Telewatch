@@ -6,6 +6,8 @@
 -keep class org.bouncycastle.** { *; }
 -keep class org.conscrypt.** { *; }
 -keep class org.openjsse.** { *; }
+-keep class com.gohj99.telewatch.ReleaseInfo { *; }
+-keep class com.gohj99.telewatch.Asset { *; }
 -dontwarn okhttp3.internal.platform.**
 -dontwarn org.bouncycastle.jsse.**
 -dontwarn org.conscrypt.**

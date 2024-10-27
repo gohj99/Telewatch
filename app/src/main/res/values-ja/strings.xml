@@ -107,4 +107,10 @@
     <string name="Search">検索</string>
     <string name="Network_setting">ネットワーク設定</string>
     <string name="Unknown_chat">不明なチャット</string>
+    <string name="acra_toast_text">ソフトウェアでエラーが発生し、報告されました。ソフトウェアを再起動してください。</string>
+    <string name="author">著者</string>
+    <string name="Famous_Quotes">有名な名言</string>
+    <string name="notice">知らせ</string>
+    <string name="notice_about_1">このソフトウェアはオープンソースで無料です。</string>
+    <string name="notice_about_2">このソフトウェアをどこかで購入した場合は、苦情を申し立てて返金を求めてください。</string>
 </resources>

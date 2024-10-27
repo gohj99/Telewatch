@@ -10,10 +10,11 @@ package com.gohj99.telewatch
 
 import android.app.Application
 import android.content.Context
-import org.acra.ACRA
-import org.acra.config.CoreConfigurationBuilder
-import org.acra.config.HttpSenderConfigurationBuilder
+import org.acra.BuildConfig
+import org.acra.config.httpSender
+import org.acra.config.toast
 import org.acra.data.StringFormat
+import org.acra.ktx.initAcra
 import org.acra.sender.HttpSender
 
 class ACRA : Application() {
@@ -27,19 +28,27 @@ class ACRA : Application() {
 
         if (dataCollection) {
             // 初始化 com.gohj99.telewatch.ACRA 配置
-            val config = CoreConfigurationBuilder()
-                .withReportFormat(StringFormat.JSON) // 设置报告格式为 JSON
-                .withPluginConfigurations(
-                    HttpSenderConfigurationBuilder()
-                        .withUri("https://acra.gohj99.site/report") // 设置服务器 URI
-                        .withHttpMethod(HttpSender.Method.POST)     // 设置 HTTP 方法
-                        .withBasicAuthLogin("xxpsMCujsVtf3Sxu")     // 基本认证用户名
-                        .withBasicAuthPassword("1Ch23ThusrJhxVWD")  // 基本认证密码
-                        .build()
-                )
 
-            // 初始化 com.gohj99.telewatch.ACRA
-            ACRA.init(this, config)
+            initAcra {
+                // 核心配置
+                buildConfigClass = BuildConfig::class.java
+                reportFormat = StringFormat.JSON
+
+                // 配置 HTTP 发送器
+                httpSender {
+                    uri = "https://acra.gohj99.site/report" // 设置服务器 URI
+                    httpMethod = HttpSender.Method.POST     // 设置 HTTP 方法
+                    basicAuthLogin = "xxpsMCujsVtf3Sxu"     // 基本认证用户名
+                    basicAuthPassword = "1Ch23ThusrJhxVWD"  // 基本认证密码
+                    // 打开这个块自动启用插件
+                }
+
+                // 配置 Toast 插件
+                toast {
+                    text = getString(R.string.acra_toast_text)
+                    // 打开这个块自动启用插件
+                }
+            }
         }
     }
 }

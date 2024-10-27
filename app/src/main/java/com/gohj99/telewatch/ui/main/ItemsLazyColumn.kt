@@ -34,6 +34,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.SearchBar
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import org.drinkless.tdlib.TdApi
 
 // 字符串匹配
 fun matchingString(target: String, original: String): Boolean {
@@ -47,7 +48,12 @@ data class Chat(
     val id: Long,
     val title: String,
     val message: String,
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false, // 是否在全部会话置顶
+    val isRead: Boolean = false, // 聊天是否已读
+    val isBot: Boolean = false, // 是否为机器人对话
+    val isChannel: Boolean = false, // 是否为频道
+    val isGroup: Boolean = false, // 是否为群组或者超级群组（supergroups??
+    val isPrivateChat: Boolean = false // 是否为私人会话
 ) : Parcelable {
     override fun describeContents(): Int {
         return 0 // 通常返回0即可，除非有特殊情况需要返回其他值
@@ -81,9 +87,13 @@ fun <T> MutableState<List<T>>.add(item: T) {
 }
 
 @Composable
-fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit) {
+fun ChatLazyColumn(itemsList: MutableState<List<Chat>>,
+                   callback: (Chat) -> Unit,
+                   chatsFolder: TdApi.ChatFolder? = null,
+                   contactsList: List<Chat> = listOf()
+) {
     val listState = rememberLazyListState()
-    var searchText = rememberSaveable { mutableStateOf("") }
+    val searchText = rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
@@ -114,11 +124,21 @@ fun ChatLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
-        items(itemsList.value) { item ->
-            ChatView(item, callback, searchText, true)
-        }
-        items(itemsList.value) { item ->
-            ChatView(item, callback, searchText, false)
+        if (chatsFolder == null) {
+            items(itemsList.value) { item ->
+                ChatView(item, callback, searchText, true)
+            }
+            items(itemsList.value) { item ->
+                ChatView(item, callback, searchText, false)
+            }
+        } else {
+            //println(chatsFolder)
+            items(itemsList.value) { item ->
+                ChatView(item, callback, searchText, true, chatsFolder, contactsList)
+            }
+            items(itemsList.value) { item ->
+                ChatView(item, callback, searchText, false, chatsFolder, contactsList)
+            }
         }
         item {
             Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
@@ -153,30 +173,92 @@ fun ChatView(
     chat: Chat,
     callback: (Chat) -> Unit,
     searchText: MutableState<String> = mutableStateOf(""),
-    pinnedView: Boolean = false
+    pinnedView: Boolean = false,
+    chatFolderInfo: TdApi.ChatFolder? = null,
+    contactsList: List<Chat> = listOf()
 ) {
-    if (chat.isPinned == pinnedView) {
-        if (matchingString(searchText.value, chat.title)) {
-            MainCard(
-                column = {
-                    Text(
-                        text = chat.title,
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    if (chat.message.isNotEmpty()) {
+    if (chatFolderInfo == null){
+        if (chat.isPinned == pinnedView) {
+            if (matchingString(searchText.value, chat.title)) {
+                MainCard(
+                    column = {
                         Text(
-                            text = chat.message,
-                            color = Color(0xFF728AA5),
-                            style = MaterialTheme.typography.bodySmall
+                            text = chat.title,
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
                         )
+                        if (chat.message.isNotEmpty()) {
+                            Text(
+                                text = chat.message,
+                                color = Color(0xFF728AA5),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    },
+                    item = chat,
+                    callback = {
+                        callback(chat)
                     }
-                },
-                item = chat,
-                callback = {
-                    callback(chat)
+                )
+            }
+        }
+    } else {
+        if (matchingString(searchText.value, chat.title)) {
+            if (chat.id in chatFolderInfo.pinnedChatIds == pinnedView) {
+                var isShow = false
+
+                // 过滤聊天
+                //if (chat.isArchived == chatFolderInfo.excludeArchived) isShow = true
+                //if (chat.isMuted == chatFolderInfo.excludeMuted) isShow = true
+                //if (chat.isRead == chatFolderInfo.excludeRead) isShow = true
+                if (chat.isChannel && chatFolderInfo.includeChannels) isShow = true
+                if (chat.isGroup && chatFolderInfo.includeGroups) isShow = true
+                //println(isShow)
+                if (chat.isPrivateChat) {
+                    // 判断机器人
+                    if (chat.isBot) {
+                        if (chatFolderInfo.includeBots) isShow = true
+                    } else {
+                        // 判断是否为联系人
+                        if (contactsList.any { it.id == chat.id }) {
+                            if (chatFolderInfo.includeContacts) isShow = true
+                        } else {
+                            // 为临时会话（非联系人）
+                            if (chatFolderInfo.includeNonContacts) isShow = true
+                        }
+                    }
                 }
-            )
+
+                if (chat.id in chatFolderInfo.excludedChatIds) {
+                    isShow = false
+                }
+                if (chat.id in chatFolderInfo.includedChatIds) {
+                    isShow = true
+                }
+                if (isShow) {
+                    MainCard(
+                        column = {
+                            Text(
+                                text = chat.title,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            if (chat.message.isNotEmpty()) {
+                                Text(
+                                    text = chat.message,
+                                    color = Color(0xFF728AA5),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        },
+                        item = chat,
+                        callback = {
+                            callback(chat)
+                        }
+                    )
+                }
+
+            }
         }
     }
 }

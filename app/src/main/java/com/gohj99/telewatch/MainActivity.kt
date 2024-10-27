@@ -53,9 +53,10 @@ class MainActivity : ComponentActivity() {
     private var isLoggedIn: Boolean = false
     private var exceptionState by mutableStateOf<Exception?>(null)
     private var chatsList = mutableStateOf(listOf<Chat>())
-    private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolderInfo>())
+    private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolder>())
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
+    private val contacts = mutableStateOf(listOf<Chat>())
 
     override fun onDestroy() {
         super.onDestroy()
@@ -251,6 +252,7 @@ class MainActivity : ComponentActivity() {
                     chatsFoldersList = chatsFoldersList
                 )
                 TgApiManager.tgApi?.loadChats(15)
+                TgApiManager.tgApi?.getContacts(contacts)
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
@@ -264,9 +266,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 },
                                 settingList = settingList,
-                                getContacts = { contacts ->
-                                    TgApiManager.tgApi!!.getContacts(contacts)
-                                },
+                                contacts = contacts,
                                 topTitle = topTitle,
                                 chatsFoldersList = chatsFoldersList
                             )

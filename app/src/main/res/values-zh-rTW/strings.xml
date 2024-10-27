@@ -107,4 +107,10 @@
     <string name="Search">搜尋</string>
     <string name="Network_setting">網路設定</string>
     <string name="Unknown_chat">未知聊天</string>
+    <string name="acra_toast_text">軟體遇到錯誤，已通報。請重新啟動軟體。</string>
+    <string name="author">作者</string>
+    <string name="Famous_Quotes">名言</string>
+    <string name="notice">注意</string>
+    <string name="notice_about_1">該軟體是開源且免費的。</string>
+    <string name="notice_about_2">如果您在任何地方購買了該軟體，請投訴並要求退款。</string>
 </resources>
