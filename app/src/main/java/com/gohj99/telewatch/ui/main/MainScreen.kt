@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,21 +50,33 @@ fun MainScreen(
     chats: MutableState<List<Chat>>,
     chatPage: (Chat) -> Unit,
     settingList: MutableState<List<SettingItem>>,
-    getContacts: (MutableState<List<Chat>>) -> Unit,
+    contacts: MutableState<List<Chat>>,
     topTitle: MutableState<String>,
     chatsFoldersList: MutableState<List<TdApi.ChatFolderInfo>>
 ) {
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
     val setting = stringResource(id = R.string.Settings)
-    val contacts = remember { mutableStateOf(listOf<Chat>()) }
     var showMenu by remember { mutableStateOf(false) }
-    val allPages = listOf(
-        home,
+    val lastPages = listOf(
         contact,
         setting,
     )
+    var allPages by remember {
+        mutableStateOf(listOf(home) + lastPages)  // 直接合并两个列表
+    }
     var nowPage by remember { mutableStateOf(allPages[0]) }
+
+    LaunchedEffect(chatsFoldersList.value) {
+        allPages = mutableListOf<String>().apply {
+            add(home)
+            addAll(chatsFoldersList.value.map { it.title })
+            addAll(lastPages.toList())
+        }
+        if (nowPage !in allPages) {
+            nowPage = home
+        }
+    }
 
     // 使用 Column 包裹 Box 和 ChatLazyColumn
     Column(
@@ -114,7 +127,6 @@ fun MainScreen(
                 nowPage = { page ->
                     nowPage = page
                     showMenu = false
-                    if (page == contact) getContacts(contacts)
                 }
             )
         } else {
@@ -135,6 +147,16 @@ fun MainScreen(
 
                 setting -> {
                     SettingLazyColumn(settingList)
+                }
+                else -> {
+                    if (nowPage in chatsFoldersList.value.map { it.title }) {
+                        ChatLazyColumn(
+                            itemsList = chats,
+                            callback = chatPage,
+                            chatsFolderId = chatsFoldersList.value.find { it.title == nowPage }?.id?: -1,
+                            contactsList = contacts.value
+                        )
+                    }
                 }
             }
         }
@@ -189,15 +211,7 @@ fun MainScreenPreview() {
             chats = sampleChats,
             chatPage = {},
             settingList = settings,
-            getContacts = {
-                listOf(
-                    Chat(
-                        id = 1,
-                        title = "钱显康",
-                        message = "我是傻逼"
-                    )
-                )
-            },
+            contacts = remember { mutableStateOf(listOf()) },
             topTitle = remember { mutableStateOf("Home") },
             chatsFoldersList = remember { mutableStateOf(listOf()) }
         )

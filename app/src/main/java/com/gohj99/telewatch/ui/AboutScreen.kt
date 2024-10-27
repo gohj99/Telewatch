@@ -238,7 +238,11 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                     Spacer(modifier = Modifier.height(5.dp))
 
                     Text(
-                        text = "\nLife is dear, love is dearer. Both can be given up for freedom.\n\n宁鸣而死，不默而生\n\n己所不欲，勿施予人\n\nLiberté, Égalité, Fraternité\n\nWo man singt, da lass dich ruhig nieder, böse Menschen haben keine Lieder.\n\nСвобода лучше, чем несвобода.",
+                        text = "\nLife is dear, love is dearer. Both can be given up for freedom.\n\n" +
+                                "宁鸣而死，不默而生\n\n" +
+                                "Liberté, Égalité, Fraternité\n\n" +
+                                "cai san próta andreioméni,chaíre, o chaíre, Eleutheriá!\n\n" +
+                                "Свобода лучше, чем несвобода.",
                         color = Color.White,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         modifier = Modifier
