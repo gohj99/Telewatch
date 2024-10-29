@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 
 @Composable
-fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
+fun MenuLazyColumn(allPages: List<String>, nowPage: (Int) -> Unit) {
     val listState = rememberLazyListState()
     LazyColumn(
         state = listState,
@@ -36,8 +36,10 @@ fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
         item {
             Spacer(modifier = Modifier.height(12.dp)) // 添加一个高度为 12dp 的 Spacer
         }
+        var index = 0
         items(allPages) { page ->
-            MenuView(page, nowPage)
+            MenuView(page, nowPage, index)
+            index += 1
         }
         item {
             Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
@@ -46,14 +48,14 @@ fun MenuLazyColumn(allPages: List<String>, nowPage: (String) -> Unit) {
 }
 
 @Composable
-fun MenuView(page: String, nowPage: (String) -> Unit) {
+fun MenuView(page: String, nowPage: (Int) -> Unit, index: Int) {
     MainCard(
         column = {
             Text(text = page, color = Color.White, style = MaterialTheme.typography.titleMedium)
         },
         item = page,
         callback = {
-            nowPage(page)
+            nowPage(index)
         }
     )
 }

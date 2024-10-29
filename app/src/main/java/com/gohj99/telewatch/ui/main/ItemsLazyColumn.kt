@@ -244,10 +244,8 @@ fun ChatView(
         if (matchingString(searchText.value, chat.title) &&
             (chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
 
-            var isShow by rememberSaveable { mutableStateOf(false) }
-
             // 基于过滤条件设置显示标志
-            isShow = when {
+            val isShow by rememberSaveable { mutableStateOf(when {
                 chat.id in excludedChatIdsSet -> false
                 chat.id in includedChatIdsSet -> true
                 chat.isChannel && chatFolderInfo.includeChannels -> true
@@ -258,7 +256,7 @@ fun ChatView(
                     else -> chatFolderInfo.includeNonContacts
                 }
                 else -> false
-            }
+            }) }
 
             if (isShow) {
                 MainCard(

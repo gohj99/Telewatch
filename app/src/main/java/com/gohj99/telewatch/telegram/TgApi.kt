@@ -17,6 +17,8 @@ import com.gohj99.telewatch.ui.main.Chat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -132,14 +134,15 @@ class TgApi(
     // 获取聊天文件夹
     private fun handleChatFoldersUpdate(update: TdApi.UpdateChatFolders) {
         chatsFoldersList.value = emptyList()
-        update.chatFolders?.let {
-            it.toList().forEach {chatFolder ->
-                CoroutineScope(Dispatchers.IO).launch {
-                    val chatFolderInfo = getChatFolderInfo(chatFolder.id)
-                    if (chatFolderInfo != null) {
-                        chatsFoldersList.value += listOf(chatFolderInfo)
-                    }
-                }
+        update.chatFolders?.let { chatFolders ->
+            CoroutineScope(Dispatchers.IO).launch {
+                // 将每个异步任务放入列表
+                val foldersInfo = chatFolders.map { chatFolder ->
+                    async { getChatFolderInfo(chatFolder.id) }
+                }.awaitAll() // 等待所有异步任务完成
+
+                // 过滤非空结果，并按顺序更新 chatsFoldersList
+                chatsFoldersList.value = foldersInfo.filterNotNull()
             }
         }
     }
