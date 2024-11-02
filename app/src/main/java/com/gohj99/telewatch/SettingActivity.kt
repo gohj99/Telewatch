@@ -73,7 +73,7 @@ class SettingActivity : ComponentActivity() {
 
         val gson = Gson()
         val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
-        var userList = sharedPref.getString("userList", "")
+        val userList = sharedPref.getString("userList", "")
         var chatId = ""
         if (userList != "") {
             val jsonObject: JsonObject = gson.fromJson(userList, JsonObject::class.java)
@@ -195,6 +195,36 @@ class SettingActivity : ComponentActivity() {
             2 -> {
                 title = getString(R.string.App_setting)
                 settingsList.value = listOf(
+                    SettingItem.Switch(
+                        itemName = getString(R.string.show_unknown_message_type),
+                        isSelected = settingsSharedPref.getBoolean("show_unknown_message_type", false),
+                        onSelect = { dataCollection ->
+                            with(settingsSharedPref.edit()) {
+                                putBoolean("show_unknown_message_type", dataCollection)
+                                commit()
+                            }
+                        }
+                    ),
+                    SettingItem.Switch(
+                        itemName = getString(R.string.is_home_page_pin),
+                        isSelected = settingsSharedPref.getBoolean("is_home_page_pin", false),
+                        onSelect = { dataCollection ->
+                            with(settingsSharedPref.edit()) {
+                                putBoolean("is_home_page_pin", dataCollection)
+                                commit()
+                            }
+                        }
+                    ),
+                    SettingItem.Switch(
+                        itemName = getString(R.string.data_Collection),
+                        isSelected = settingsSharedPref.getBoolean("Data_Collection", false),
+                        onSelect = { dataCollection ->
+                            with(settingsSharedPref.edit()) {
+                                putBoolean("Data_Collection", dataCollection)
+                                commit()
+                            }
+                        }
+                    ),
                     SettingItem.Click(
                         itemName = getString(R.string.Clearing_cache),
                         onClick = {
@@ -318,17 +348,6 @@ class SettingActivity : ComponentActivity() {
                                 startActivity(intent)
                                 android.os.Process.killProcess(android.os.Process.myPid())
                             }, 1000)
-                        }
-                    ),
-                    SettingItem.Switch(
-                        itemName = getString(R.string.data_Collection),
-                        isSelected = settingsSharedPref.getBoolean("Data_Collection", false),
-                        onSelect = { dataCollection ->
-                            with(settingsSharedPref.edit()) {
-                                putBoolean("Data_Collection", dataCollection)
-                                //Log.d("SharedPreferences", "保存状态: " + commit() + "\n当前状态: " + dataCollection)
-                            }
-                            //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
                         }
                     )
                 )

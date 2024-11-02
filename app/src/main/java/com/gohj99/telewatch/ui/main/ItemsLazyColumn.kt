@@ -9,6 +9,7 @@
 package com.gohj99.telewatch.ui.main
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
@@ -42,7 +44,9 @@ import org.drinkless.tdlib.TdApi
 
 // 字符串匹配
 fun matchingString(target: String, original: String): Boolean {
-    return if (original != "") original.contains(target, ignoreCase = true)
+    return if (target != "")
+        if (original != "") original.contains(target, ignoreCase = true)
+        else false
     else true
 }
 
@@ -100,7 +104,7 @@ fun ChatLazyColumn(
     val listState = rememberLazyListState()
     val searchText = rememberSaveable { mutableStateOf("") }
 
-    // 优化1: 延迟加载时检测到滚动接近底部时加载更多聊天项
+    // 延迟加载时检测到滚动接近底部时加载更多聊天项
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { index ->
@@ -110,7 +114,13 @@ fun ChatLazyColumn(
             }
     }
 
-    // 优化2: 转换 contactsList 为 Set<Long>，确保类型统一
+    // 获取context
+    val context = LocalContext.current
+    // 获取is_home_page_pin值
+    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    val isHomePagePin = settingsSharedPref.getBoolean("is_home_page_pin", false)
+
+    // 转换 contactsList 为 Set<Long>，确保类型统一
     val contactsSet by remember(contactsList) {
         derivedStateOf { contactsList.map { it.id }.toSet() }
     }
@@ -148,11 +158,17 @@ fun ChatLazyColumn(
 
         // 渲染聊天列表，根据 chatsFolder 是否为空使用不同视图
         if (chatsFolder == null) {
-            items(itemsList.value) { item ->
-                ChatView(item, callback, searchText, true)
-            }
-            items(itemsList.value) { item ->
-                ChatView(item, callback, searchText, false)
+            if (isHomePagePin) {
+                items(itemsList.value) { item ->
+                    ChatView(item, callback, searchText, true)
+                }
+                items(itemsList.value) { item ->
+                    ChatView(item, callback, searchText, false)
+                }
+            } else {
+                items(itemsList.value) { item ->
+                    ChatView(item, callback, searchText)
+                }
             }
         } else {
             items(itemsList.value) { item ->
@@ -213,14 +229,14 @@ fun ChatView(
     chat: Chat,
     callback: (Chat) -> Unit,
     searchText: MutableState<String> = mutableStateOf(""),
-    pinnedView: Boolean = false,
+    pinnedView: Boolean? = null,
     chatFolderInfo: TdApi.ChatFolder? = null,
     contactsSet: Set<Long> = emptySet(),  // 确保类型为 Long
     includedChatIdsSet: Set<Long> = emptySet(),  // 确保类型为 Long
     excludedChatIdsSet: Set<Long> = emptySet()  // 确保类型为 Long
 ) {
     if (chatFolderInfo == null) {
-        if (chat.isPinned == pinnedView && matchingString(searchText.value, chat.title)) {
+        if (pinnedView == null) {
             MainCard(
                 column = {
                     Text(
@@ -239,6 +255,27 @@ fun ChatView(
                 item = chat,
                 callback = { callback(chat) }
             )
+        } else {
+            if (chat.isPinned == pinnedView && matchingString(searchText.value, chat.title)) {
+                MainCard(
+                    column = {
+                        Text(
+                            text = chat.title,
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        if (chat.message.isNotEmpty()) {
+                            Text(
+                                text = chat.message,
+                                color = Color(0xFF728AA5),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    },
+                    item = chat,
+                    callback = { callback(chat) }
+                )
+            }
         }
     } else {
         if (matchingString(searchText.value, chat.title) &&

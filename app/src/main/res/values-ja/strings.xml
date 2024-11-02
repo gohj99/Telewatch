@@ -33,7 +33,7 @@
     <string name="Login_Successful">ログイン成功</string>
     <string name="Retry">リトライ</string>
     <string name="Error">エラーが発生しました\nもう一度試してください</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">サポートされていないメッセージ</string>
     <string name="Contacts">連絡先</string>
     <string name="setting_all">All setting</string>
     <string name="About">About</string>
@@ -113,4 +113,11 @@
     <string name="notice">知らせ</string>
     <string name="notice_about_1">このソフトウェアはオープンソースで無料です。</string>
     <string name="notice_about_2">このソフトウェアをどこかで購入した場合は、苦情を申し立てて返金を求めてください。</string>
+    <string name="DeleteMessage">メッセージを削除する</string>
+    <string name="gohj99_description">主な開発者</string>
+    <string name="jelly_description">UIデザイン</string>
+    <string name="Beta_title">テスト版</string>
+    <string name="Beta_description">バージョンをテスト バージョンに変更します\nさまざまなバグがある可能性があります</string>
+    <string name="is_home_page_pin">ホームページのトップメッセージを取得するかどうか（バグがある可能性があります）</string>
+    <string name="show_unknown_message_type">サポートされていないメッセージ タイプを表示します</string>
 </resources>

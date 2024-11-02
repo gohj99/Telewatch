@@ -34,7 +34,7 @@ import kotlin.coroutines.resume
 class TgApi(
     private val context: Context,
     private var chatsList: MutableState<List<Chat>>,
-    private val UserId: String = "",
+    private val userId: String = "",
     private val topTitle: MutableState<String>,
     private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
@@ -58,8 +58,8 @@ class TgApi(
         val tdapiHash = config.getProperty("api_hash")
         val encryptionKeyString = sharedPref.getString("encryption_key", null)
         client.send(TdApi.SetTdlibParameters().apply {
-            databaseDirectory = externalDir.absolutePath + (if (UserId == "") "/tdlib" else {
-                "/$UserId/tdlib"
+            databaseDirectory = externalDir.absolutePath + (if (userId == "") "/tdlib" else {
+                "/$userId/tdlib"
             })
             useMessageDatabase = true
             useSecretChats = true
@@ -71,11 +71,9 @@ class TgApi(
             applicationVersion = getAppVersion(context)
             useSecretChats = false
             useMessageDatabase = true
-            databaseEncryptionKey = if (encryptionKeyString != null) {
-                encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-            } else {
-                throw IllegalStateException("Encryption key not found")
-            }
+            databaseEncryptionKey = encryptionKeyString?.chunked(2)?.map { it.toInt(16).toByte() }
+                ?.toByteArray()
+                ?: throw IllegalStateException("Encryption key not found")
         }) { result ->
             println("SetTdlibParameters result: $result")
             if (result is TdApi.Error) {
@@ -327,7 +325,13 @@ class TgApi(
                     val existingChatIndex = indexOfFirst { it.id == chatId }
                     if (existingChatIndex >= 0) {
                         val updatedChat = get(existingChatIndex).copy(
-                            message = newMessageText
+                            message = newMessageText,
+                            isPinned = isPinned,
+                            isRead = isRead,
+                            isBot = isBot,
+                            isChannel = isChannel,
+                            isGroup = isGroup,
+                            isPrivateChat = isPrivateChat
                         )
                         removeAt(existingChatIndex)
                         add(0, updatedChat)
@@ -357,7 +361,7 @@ class TgApi(
     private fun handleMessageContentUpdate(update: TdApi.UpdateMessageContent) {
         val chatId = update.chatId
         val messageId = update.messageId
-        val newContent = update.newContent
+        //val newContent = update.newContent
         println("Message content updated in chat ID $chatId for message ID $messageId")
 
         /*CoroutineScope(Dispatchers.Main).launch {
@@ -538,6 +542,7 @@ class TgApi(
             is TdApi.MessageVideo -> context.getString(R.string.Video)
             is TdApi.MessageVoiceNote -> context.getString(R.string.Voice)
             is TdApi.MessageAnimation -> context.getString(R.string.Animation)
+            is TdApi.MessageAnimatedEmoji -> if (content.emoji == "") context.getString(R.string.Unknown_Message) else content.emoji
             else -> context.getString(R.string.Unknown_Message)
         }
     }
@@ -674,14 +679,14 @@ class TgApi(
     fun getUser(userId: Long, onResult: (String) -> Unit) {
         val getUserRequest = TdApi.GetUser(userId)
 
-        client.send(getUserRequest, { result ->
+        client.send(getUserRequest) { result ->
             if (result is TdApi.User) {
                 val fullName = "${result.firstName} ${result.lastName}".trim()
                 onResult(fullName)
             } else {
                 onResult("Unknown User")
             }
-        })
+        }
     }
 
     // 获取聊天对象
@@ -690,7 +695,7 @@ class TgApi(
             val getChatRequest = TdApi.GetChat(chatId)
 
             // 发送异步请求
-            client.send(getChatRequest, Client.ResultHandler { result ->
+            client.send(getChatRequest) { result ->
                 if (result is TdApi.Chat) {
                     // 当结果是 TdApi.Chat 时，恢复协程并返回 Chat 对象
                     continuation.resume(result)
@@ -698,81 +703,82 @@ class TgApi(
                     // 在其他情况下，恢复协程并返回 null
                     continuation.resume(null)
                 }
-            })
+            }
         }
     }
 
     // 退出登录
     fun logOut() {
-        client.send(TdApi.LogOut(), object : Client.ResultHandler {
-            override fun onResult(result: TdApi.Object) {
-                when (result.constructor) {
-                    TdApi.Ok.CONSTRUCTOR -> {
-                        println("Logged out successfully")
-                    }
+        client.send(TdApi.LogOut()) { result ->
+            when (result.constructor) {
+                TdApi.Ok.CONSTRUCTOR -> {
+                    println("Logged out successfully")
+                }
 
-                    else -> {
-                        println("Failed to log out: $result")
-                    }
+                else -> {
+                    println("Failed to log out: $result")
                 }
             }
-        })
+        }
     }
 
     // 获取联系人
     fun getContacts(contacts: MutableState<List<Chat>>) {
         val request = TdApi.GetContacts()
         client.send(request) { result ->
-            if (result.constructor == TdApi.Error.CONSTRUCTOR) {
-                val error = result as TdApi.Error
-                println("Error getting contacts: ${error.message}")
-            } else if (result.constructor == TdApi.Users.CONSTRUCTOR) {
-                val users = result as TdApi.Users
-                val userIds = users.userIds
+            when (result.constructor) {
+                TdApi.Error.CONSTRUCTOR -> {
+                    val error = result as TdApi.Error
+                    println("Error getting contacts: ${error.message}")
+                }
+                TdApi.Users.CONSTRUCTOR -> {
+                    val users = result as TdApi.Users
+                    val userIds = users.userIds
 
-                // 异步获取每个用户的详细信息
-                CoroutineScope(Dispatchers.IO).launch {
-                    for (userId in userIds) {
-                        try {
-                            val userResult = sendRequest(TdApi.GetUser(userId))
-                            if (userResult.constructor == TdApi.User.CONSTRUCTOR) {
-                                val user = userResult as TdApi.User
-                                withContext(Dispatchers.Main) {
-                                    // 检查是否已存在相同 ID 的联系人
-                                    val existingContacts = contacts.value.toMutableList()
-                                    val existingContactIndex =
-                                        existingContacts.indexOfFirst { it.id == user.id }
-                                    if (existingContactIndex != -1) {
-                                        // 替换原有的联系人
-                                        existingContacts[existingContactIndex] = Chat(
-                                            id = user.id,
-                                            title = "${user.firstName} ${user.lastName}",
-                                            message = ""
-                                        )
-                                    } else {
-                                        // 添加新联系人
-                                        existingContacts.add(
-                                            Chat(
+                    // 异步获取每个用户的详细信息
+                    CoroutineScope(Dispatchers.IO).launch {
+                        for (userId in userIds) {
+                            try {
+                                val userResult = sendRequest(TdApi.GetUser(userId))
+                                if (userResult.constructor == TdApi.User.CONSTRUCTOR) {
+                                    val user = userResult as TdApi.User
+                                    withContext(Dispatchers.Main) {
+                                        // 检查是否已存在相同 ID 的联系人
+                                        val existingContacts = contacts.value.toMutableList()
+                                        val existingContactIndex =
+                                            existingContacts.indexOfFirst { it.id == user.id }
+                                        if (existingContactIndex != -1) {
+                                            // 替换原有的联系人
+                                            existingContacts[existingContactIndex] = Chat(
                                                 id = user.id,
                                                 title = "${user.firstName} ${user.lastName}",
                                                 message = ""
                                             )
-                                        )
+                                        } else {
+                                            // 添加新联系人
+                                            existingContacts.add(
+                                                Chat(
+                                                    id = user.id,
+                                                    title = "${user.firstName} ${user.lastName}",
+                                                    message = ""
+                                                )
+                                            )
+                                        }
+                                        // 更新状态
+                                        contacts.value = existingContacts
                                     }
-                                    // 更新状态
-                                    contacts.value = existingContacts
+                                } else {
+                                    println("Unexpected result type for user ID $userId: ${userResult.javaClass.name}")
                                 }
-                            } else if (userResult.constructor == TdApi.Error.CONSTRUCTOR) {
-                                val error = userResult as TdApi.Error
-                                println("Error getting user details for user ID $userId: ${error.message}")
+                            } catch (e: Exception) {
+                                println("GetUser request failed: ${e.message}")
                             }
-                        } catch (e: Exception) {
-                            println("GetUser request failed: ${e.message}")
                         }
                     }
                 }
-            } else {
-                println("Unexpected result type: ${result.constructor}")
+                else -> {
+                    println("Unexpected result type: ${result.constructor}")
+                }
             }
         }
     }
@@ -798,7 +804,7 @@ class TgApi(
     }
 
     // 获取分组信息
-    suspend fun getChatFolderInfo(chatFolderId: Int): TdApi.ChatFolder? {
+    private suspend fun getChatFolderInfo(chatFolderId: Int): TdApi.ChatFolder? {
         try {
             val result = sendRequest(TdApi.GetChatFolder(chatFolderId))
             return result
@@ -806,6 +812,14 @@ class TgApi(
             println("Error getting chat folders: ${e.message}")
         }
         return null
+    }
+
+    suspend fun CreatePrivateChat(userId: Long) {
+        try {
+            sendRequest(TdApi.CreatePrivateChat(userId, false))
+        } catch (e: Exception) {
+            println("Error create private chat: ${e.message}")
+        }
     }
 
     // 发送消息
@@ -840,6 +854,25 @@ class TgApi(
             println("LoadChats result: $result")
         } catch (e: Exception) {
             println("LoadChats request failed: ${e.message}")
+        }
+    }
+
+    // 根据消息id删除消息
+    fun deleteMessageById(messageId: Long) {
+        println("Deleting message")
+        runBlocking {
+            // 创建一个请求来删除指定 ID 的消息
+            val getMessageRequest = TdApi.DeleteMessages(saveChatId, longArrayOf(messageId) , true)
+            try {
+                val result = sendRequest(getMessageRequest)
+                if (result.constructor == TdApi.Message.CONSTRUCTOR) {
+                    println("Message deleted successfully")
+                } else {
+                    println("Failed to reload message with ID $messageId: $result")
+                }
+            } catch (e: Exception) {
+                println("DeleteMessage request failed: ${e.message}")
+            }
         }
     }
 

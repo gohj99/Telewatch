@@ -33,7 +33,7 @@
     <string name="Login_Successful">登入成功</string>
     <string name="Retry">重試</string>
     <string name="Error">發生錯誤\n請重試</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">不支援的消息</string>
     <string name="Contacts">聯絡方式</string>
     <string name="setting_all">所有設定</string>
     <string name="About">關於</string>
@@ -113,4 +113,11 @@
     <string name="notice">注意</string>
     <string name="notice_about_1">該軟體是開源且免費的。</string>
     <string name="notice_about_2">如果您在任何地方購買了該軟體，請投訴並要求退款。</string>
+    <string name="DeleteMessage">刪除留言</string>
+    <string name="gohj99_description">主要開發商</string>
+    <string name="jelly_description">使用者介面設計</string>
+    <string name="Beta_title">測試版</string>
+    <string name="Beta_description">將版本變更為測試版本\n可能存在各種錯誤</string>
+    <string name="is_home_page_pin">是否取得首頁置頂訊息（可能有bug）</string>
+    <string name="show_unknown_message_type">顯示不支援的訊息類型</string>
 </resources>

@@ -33,7 +33,7 @@ class AboutActivity : ComponentActivity() {
     }
 }
 
-private fun loadConfig(context: Context): Properties {
+fun loadConfig(context: Context): Properties {
     val properties = Properties()
     try {
         val inputStream = context.assets.open("config.properties")
