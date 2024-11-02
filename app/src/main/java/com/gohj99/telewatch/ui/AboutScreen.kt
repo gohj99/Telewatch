@@ -56,6 +56,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(scrollState)
+            .verticalRotaryScroll(scrollState)
             .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

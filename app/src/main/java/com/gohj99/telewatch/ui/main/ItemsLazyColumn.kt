@@ -245,18 +245,22 @@ fun ChatView(
             (chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
 
             // 基于过滤条件设置显示标志
-            val isShow by rememberSaveable { mutableStateOf(when {
-                chat.id in excludedChatIdsSet -> false
-                chat.id in includedChatIdsSet -> true
-                chat.isChannel && chatFolderInfo.includeChannels -> true
-                chat.isGroup && chatFolderInfo.includeGroups -> true
-                chat.isPrivateChat -> when {
-                    chat.isBot -> chatFolderInfo.includeBots
-                    chat.id in contactsSet -> chatFolderInfo.includeContacts
-                    else -> chatFolderInfo.includeNonContacts
+            val isShow by remember(chat) {
+                derivedStateOf {
+                    when {
+                        chat.id in excludedChatIdsSet -> false
+                        chat.id in includedChatIdsSet -> true
+                        chat.isChannel && chatFolderInfo.includeChannels -> true
+                        chat.isGroup && chatFolderInfo.includeGroups -> true
+                        chat.isPrivateChat -> when {
+                            chat.isBot -> chatFolderInfo.includeBots
+                            chat.id in contactsSet -> chatFolderInfo.includeContacts
+                            else -> chatFolderInfo.includeNonContacts
+                        }
+                        else -> false
+                    }
                 }
-                else -> false
-            }) }
+            }
 
             if (isShow) {
                 MainCard(

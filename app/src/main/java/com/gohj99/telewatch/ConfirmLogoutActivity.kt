@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
@@ -138,7 +139,8 @@ fun SplashConfirmLogoutActivityScreen(set: (Boolean) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+            .verticalRotaryScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

@@ -108,10 +108,13 @@ fun MainScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
-                    text = if (nowPage > allPages.size - lastPages.size)
-                        if (topTitle.value == "") allPages[nowPage]
-                        else topTitle.value
-                    else allPages[nowPage],
+                    text =
+                    if (showMenu) allPages[nowPage]
+                    else
+                        if (nowPage < allPages.size - lastPages.size)
+                            if (topTitle.value == "") allPages[nowPage]
+                            else topTitle.value
+                        else allPages[nowPage],
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
