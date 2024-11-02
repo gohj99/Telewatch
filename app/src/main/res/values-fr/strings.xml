@@ -33,7 +33,7 @@
     <string name="Login_Successful">Connexion réussie</string>
     <string name="Retry">Réessayer</string>
     <string name="Error">Une erreur s\'est produite\nVeuillez réessayer</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">Message non pris en charge</string>
     <string name="Contacts">Contacts</string>
     <string name="setting_all">Tous les réglages</string>
     <string name="About">About</string>
@@ -113,4 +113,11 @@
     <string name="notice">Avis</string>
     <string name="notice_about_1">Ce logiciel est open source et gratuit.</string>
     <string name="notice_about_2">Si vous avez acheté ce logiciel quelque part, veuillez vous plaindre et demander un remboursement.</string>
+    <string name="DeleteMessage">Supprimer le message</string>
+    <string name="gohj99_description">Principaux développeurs</string>
+    <string name="jelly_description">Conception de l\'interface utilisateur</string>
+    <string name="Beta_title">Version d\'essai</string>
+    <string name="Beta_description">Changer la version en version de test\nIl peut y avoir divers bugs</string>
+    <string name="is_home_page_pin">S\'il faut afficher le premier message sur la page d\'accueil (il peut y avoir un bug)</string>
+    <string name="show_unknown_message_type">Affiche les types de messages non pris en charge</string>
 </resources>

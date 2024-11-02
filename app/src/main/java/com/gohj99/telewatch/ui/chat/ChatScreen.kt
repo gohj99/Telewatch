@@ -9,6 +9,7 @@
 package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,6 +55,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -77,6 +81,11 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+// 反射机制获取MessageContent的类信息
+fun getMessageContentTypeName(messageContent: TdApi.MessageContent): String {
+    return messageContent::class.simpleName ?: "Unknown"
+}
 
 fun formatTimestampToTime(unixTimestamp: Int): String {
     // 将 Unix 时间戳从 Int 转换为 Long，并转换为毫秒
@@ -113,22 +122,27 @@ fun SplashChatScreen(
     chatTitle: String,
     chatList: MutableState<List<TdApi.Message>>,
     chatId: Long,
-    currentUserId: Long,
     sendCallback: (String) -> Unit,
     goToChat: (Chat) -> Unit,
     press: (TdApi.Message) -> Unit,
     longPress: suspend (String, TdApi.Message) -> String,
     chatObject: TdApi.Chat,
     lastReadOutboxMessageId: MutableState<Long>,
-    lastReadInboxMessageId: MutableState<Long>
+    lastReadInboxMessageId: MutableState<Long>,
+    listState: LazyListState = rememberLazyListState()
 ) {
-    val listState = rememberLazyListState()
     var isFloatingVisible by remember { mutableStateOf(true) }
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
     var isLongPressed by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
+
+    // 获取context
+    val context = LocalContext.current
+    // 获取show_unknown_message_type值
+    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    val showUnknownMessageType = settingsSharedPref.getBoolean("show_unknown_message_type", false)
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -418,9 +432,46 @@ fun SplashChatScreen(
                                                 }
                                             }
                                         }
+                                        // GIF信息
+                                        is TdApi.MessageAnimation -> {
+                                            val thumbnail = content.animation.thumbnail
+                                            if (thumbnail != null) {
+                                                ThumbnailImage(
+                                                    message = message,
+                                                    thumbnail = thumbnail.file,
+                                                    imageWidth = thumbnail.width,
+                                                    imageHeight = thumbnail.height,
+                                                    textColor = textColor
+                                                )
+                                            }
+                                        }
+                                        // 表情消息
+                                        is TdApi.MessageAnimatedEmoji -> {
+                                            val emoji = content.emoji
+                                            val thumbnail = content.animatedEmoji.sticker?.thumbnail
+                                            if (thumbnail != null) {
+                                                ThumbnailImage(
+                                                    message = message,
+                                                    thumbnail = thumbnail.file,
+                                                    imageWidth = thumbnail.width,
+                                                    imageHeight = thumbnail.height,
+                                                    textColor = textColor,
+                                                    loadingText = emoji
+                                                )
+                                            } else {
+                                                SelectionContainer {
+                                                    Text(
+                                                        text = emoji,
+                                                        color = textColor,
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+                                            }
+
+                                        }
                                         else -> {
                                             Text(
-                                                text = stringResource(id = R.string.Unknown_Message),
+                                                text = stringResource(id = R.string.Unknown_Message) + if (showUnknownMessageType) "\nType: TdApi." + getMessageContentTypeName(content) else "",
                                                 color = textColor,
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
@@ -536,72 +587,78 @@ fun SplashChatScreen(
             )
         )
 
+        var showKeyboard by remember { mutableStateOf(false) }
         val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
-        if (chatPermissions != null) {
+        if (chatPermissions == null) {
+            showKeyboard = true
+        } else {
             if (chatPermissions.canSendBasicMessages) {
-                if (isFloatingVisible) {
-                    Row(
+                showKeyboard = true
+            }
+        }
+        if (showKeyboard) {
+            if (isFloatingVisible) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 4.dp)
+                        .alpha(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
+                            keyboardController?.show() // 显示输入法
+                        },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 4.dp)
-                            .alpha(1f),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                            .size(84.dp)
                     ) {
-                        IconButton(
-                            onClick = {
-                                textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
-                                keyboardController?.show() // 显示输入法
-                            },
-                            modifier = Modifier
-                                .size(84.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_custom_keyboard),
-                                contentDescription = null,
-                                modifier = Modifier.size(82.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = {
-                                sendCallback(inputText.text)
-                                inputText = TextFieldValue("")
-                            },
-                            modifier = Modifier
-                                .size(45.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_custom_send),
-                                contentDescription = null,
-                                modifier = Modifier.size(45.dp)
-                            )
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_custom_keyboard),
+                            contentDescription = null,
+                            modifier = Modifier.size(82.dp)
+                        )
                     }
-                } else {
-                    Box(
+
+                    IconButton(
+                        onClick = {
+                            sendCallback(inputText.text)
+                            inputText = TextFieldValue("")
+                        },
                         modifier = Modifier
-                            .fillMaxHeight() // 使 Box 填满整个屏幕高度
-                            .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
-                        contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
+                            .size(45.dp)
                     ) {
-                        IconButton(
-                            onClick = {
-                                isFloatingVisible = true
-                            },
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_custom_send),
+                            contentDescription = null,
+                            modifier = Modifier.size(45.dp)
+                        )
+                    }
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight() // 使 Box 填满整个屏幕高度
+                        .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
+                    contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
+                ) {
+                    IconButton(
+                        onClick = {
+                            isFloatingVisible = true
+                        },
+                        modifier = Modifier
+                            .padding(3.dp) // 可选的内边距
+                            .size(20.dp) // 设置 IconButton 的大小
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
+                            contentDescription = null,
                             modifier = Modifier
-                                .padding(3.dp) // 可选的内边距
-                                .size(20.dp) // 设置 IconButton 的大小
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(20.dp) // 设置 Image 的大小
-                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                            )
-                        }
+                                .size(20.dp) // 设置 Image 的大小
+                                .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                        )
                     }
                 }
             }
@@ -616,7 +673,8 @@ fun ThumbnailImage(
     imageWidth: Int,
     imageHeight: Int,
     textColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    loadingText: String = stringResource(id = R.string.loading)
 ) {
     val isDownloaded = remember { mutableStateOf(thumbnail.local.isDownloadingCompleted) }
     val heightDp = with(LocalDensity.current) { imageHeight.toDp() }
@@ -628,7 +686,7 @@ fun ThumbnailImage(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(id = R.string.loading),
+                text = loadingText,
                 color = textColor,
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -728,11 +786,10 @@ fun SplashChatScreenPreview() {
             chatTitle = "XCちゃん",
             chatList = sampleMessages,
             chatId = 1L,
-            currentUserId = 1L,
-            goToChat = { },
             sendCallback = { text ->
                 println(text)
             },
+            goToChat = { },
             press = {
                 println("点击触发")
             },
@@ -742,8 +799,8 @@ fun SplashChatScreenPreview() {
                 return@SplashChatScreen select
             },
             chatObject = TdApi.Chat(),
-            lastReadOutboxMessageId = mutableStateOf(0L),
-            lastReadInboxMessageId = mutableStateOf(0L)
+            lastReadOutboxMessageId = mutableLongStateOf(0L),
+            lastReadInboxMessageId = mutableLongStateOf(0L)
         )
     }
 }

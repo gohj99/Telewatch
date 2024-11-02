@@ -43,6 +43,7 @@ jobs:
           echo "api_id=${{ secrets.API_ID }}" > app/src/main/assets/config.properties
           echo "api_hash=${{ secrets.API_HASH }}" >> app/src/main/assets/config.properties
           echo "BUILD_DATE=${{ env.BUILD_DATE }}" >> app/src/main/assets/config.properties
+          echo "BETA=false" >> app/src/main/assets/config.properties
 
       - uses: gradle/gradle-build-action@v3
         with:

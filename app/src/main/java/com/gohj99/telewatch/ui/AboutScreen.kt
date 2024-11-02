@@ -56,6 +56,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(scrollState)
+            .verticalRotaryScroll(scrollState)
             .background(Color.Black),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -143,7 +144,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                     Spacer(modifier = Modifier.height(5.dp))
 
                     Text(
-                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\nGitHub: https://github.com/gohj99/telewatch/",
+                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
                         color = Color.White,
                         fontSize = MaterialTheme.typography.titleMedium.fontSize,
                         modifier = Modifier
@@ -202,13 +203,13 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                         }
                         Spacer(modifier = Modifier.width(16.dp)) // 调整头像和文字之间的间距
                         Text(
-                            text = "gohj99",
+                            text = "gohj99\n" + stringResource(R.string.gohj99_description),
                             color = Color.White,
                             fontSize = MaterialTheme.typography.titleMedium.fontSize,
                             modifier = Modifier
                                 .weight(1f) // 使用 weight 确保文字占据剩余空间
-                                .height(25.dp),
-                            maxLines = 1,
+                                .height(50.dp),
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis // 如果文字过长，使用省略号表示
                         )
                     }
@@ -237,13 +238,13 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                         Spacer(modifier = Modifier.width(16.dp)) // 调整头像和文字之间的间距
 
                         Text(
-                            text = stringResource(id = R.string.little_jelly),
+                            text = stringResource(id = R.string.little_jelly) + "\n" + stringResource(R.string.jelly_description),
                             color = Color.White,
                             fontSize = MaterialTheme.typography.titleMedium.fontSize,
                             modifier = Modifier
                                 .weight(1f) // 使用 weight 确保文字占据剩余空间
-                                .height(25.dp),
-                            maxLines = 1,
+                                .height(50.dp),
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis // 如果文字过长，使用省略号表示
                         )
                     }

@@ -70,6 +70,15 @@ fun LongPressBox(
                 ) {
                     Column {
                         LPMainCard(
+                            text = stringResource(id = R.string.DeleteMessage),
+                            callback = {
+                                coroutineScope.launch {
+                                    callBack("DeleteMessage")
+                                    onDismiss()
+                                }
+                            }
+                        )
+                        LPMainCard(
                             text = stringResource(id = R.string.ReloadMessage),
                             callback = {
                                 coroutineScope.launch {

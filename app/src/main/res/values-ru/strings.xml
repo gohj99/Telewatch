@@ -33,7 +33,7 @@
     <string name="Login_Successful">Вход успешен</string>
     <string name="Retry">Повторить попытку</string>
     <string name="Error">Произошла ошибка\nПожалуйста, повторите попытку.</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">Неподдерживаемое сообщение</string>
     <string name="Contacts">Контакты</string>
     <string name="setting_all">Все настройки</string>
     <string name="About">О</string>
@@ -113,4 +113,11 @@
     <string name="notice">Уведомление</string>
     <string name="notice_about_1">Это программное обеспечение имеет открытый исходный код и является бесплатным.</string>
     <string name="notice_about_2">Если вы приобрели это программное обеспечение где-либо, подайте жалобу и попросите вернуть деньги.</string>
+    <string name="DeleteMessage">Удалить сообщение</string>
+    <string name="gohj99_description">Основные разработчики</string>
+    <string name="jelly_description">Дизайн пользовательского интерфейса</string>
+    <string name="Beta_title">Тестовая версия</string>
+    <string name="Beta_description">Смените версию на тестовую\nМогут быть различные ошибки</string>
+    <string name="is_home_page_pin">Получать ли верхнее сообщение на главной странице (может быть ошибка)</string>
+    <string name="show_unknown_message_type">Отображает неподдерживаемые типы сообщений</string>
 </resources>

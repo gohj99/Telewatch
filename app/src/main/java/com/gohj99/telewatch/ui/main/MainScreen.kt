@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,7 +66,7 @@ fun MainScreen(
     var allPages by remember {
         mutableStateOf(listOf(home) + lastPages)  // 直接合并两个列表
     }
-    var nowPage by remember { mutableStateOf(allPages[0]) }
+    var nowPage by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(chatsFoldersList.value) {
         allPages = mutableListOf<String>().apply {
@@ -73,8 +74,8 @@ fun MainScreen(
             addAll(chatsFoldersList.value.map { it.title })
             addAll(lastPages.toList())
         }
-        if (nowPage !in allPages) {
-            nowPage = home
+        if (nowPage > allPages.size) {
+            nowPage = 0
         }
     }
 
@@ -107,10 +108,13 @@ fun MainScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
-                    text = if (nowPage !in lastPages)
-                        if (topTitle.value == "") nowPage
-                        else topTitle.value
-                    else nowPage,
+                    text =
+                    if (showMenu) allPages[nowPage]
+                    else
+                        if (nowPage < allPages.size - lastPages.size)
+                            if (topTitle.value == "") allPages[nowPage]
+                            else topTitle.value
+                        else allPages[nowPage],
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -133,7 +137,7 @@ fun MainScreen(
                 }
             )
         } else {
-            when (nowPage) {
+            when (allPages[nowPage]) {
                 home -> {
                     ChatLazyColumn(
                         itemsList = chats,
@@ -152,11 +156,11 @@ fun MainScreen(
                     SettingLazyColumn(settingList)
                 }
                 else -> {
-                    if (nowPage in chatsFoldersList.value.map { it.title }) {
+                    if (allPages[nowPage] in chatsFoldersList.value.map { it.title }) {
                         ChatLazyColumn(
                             itemsList = chats,
                             callback = chatPage,
-                            chatsFolder = chatsFoldersList.value.find { it.title == nowPage },
+                            chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
                             contactsList = contacts.value
                         )
                     }

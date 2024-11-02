@@ -117,6 +117,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initMain() {
+        val config = loadConfig(this)
+        if (config.getProperty("BETA") == "true") {
+            startActivity(
+                Intent(
+                    this,
+                    IsBetaActivity::class.java
+                )
+            )
+        }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val gson = Gson()
@@ -247,7 +256,7 @@ class MainActivity : ComponentActivity() {
                 TgApiManager.tgApi = TgApi(
                     this@MainActivity,
                     chatsList = chatsList,
-                    UserId = jsonObject.keySet().firstOrNull().toString(),
+                    userId = jsonObject.keySet().firstOrNull().toString(),
                     topTitle = topTitle,
                     chatsFoldersList = chatsFoldersList
                 )

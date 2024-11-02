@@ -46,7 +46,6 @@ adb install Telewatch.apk
 - Viewing or downloading text, images, and videos
 - Saving images or videos
 - Text messaging
-- Message editing
 - Message deletion
 - Support for rotating the digital crown
 

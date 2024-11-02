@@ -50,6 +50,7 @@ import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
@@ -324,7 +325,8 @@ fun SplashUpdateView(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+            .verticalRotaryScroll(scrollState),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
