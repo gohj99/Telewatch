@@ -20,6 +20,11 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
