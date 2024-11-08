@@ -114,10 +114,13 @@
     <string name="notice_about_1">該軟體是開源且免費的。</string>
     <string name="notice_about_2">如果您在任何地方購買了該軟體，請投訴並要求退款。</string>
     <string name="DeleteMessage">刪除留言</string>
-    <string name="gohj99_description">主要開發商</string>
+    <string name="gohj99_description">主要開發者</string>
     <string name="jelly_description">使用者介面設計</string>
     <string name="Beta_title">測試版</string>
     <string name="Beta_description">將版本變更為測試版本\n可能存在各種錯誤</string>
     <string name="is_home_page_pin">是否取得首頁置頂訊息（可能有bug）</string>
     <string name="show_unknown_message_type">顯示不支援的訊息類型</string>
+    <string name="GoToCheckUpdateActivity_title">檢查更新警告</string>
+    <string name="GoToCheckUpdateActivity_description">我們將從官方 GitHub 儲存庫檢查更新。</string>
+    <string name="don_remind_me_again">不要再提醒我</string>
 </resources>

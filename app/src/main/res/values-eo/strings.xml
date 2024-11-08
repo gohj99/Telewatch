@@ -120,4 +120,7 @@
     <string name="Beta_description">Ŝanĝu la version al testa versio\nPovas esti diversaj eraroj</string>
     <string name="is_home_page_pin">Ĉu ricevi la supran mesaĝon sur la hejmpaĝo (eble havas cimon)</string>
     <string name="show_unknown_message_type">Montras nesubtenatajn mesaĝtipojn</string>
+    <string name="GoToCheckUpdateActivity_title">Kontrolu averton pri ĝisdatigoj</string>
+    <string name="GoToCheckUpdateActivity_description">Ni kontrolos ĝisdatigojn de la oficiala GitHub-deponejo.</string>
+    <string name="don_remind_me_again">Ne rememorigu min</string>
 </resources>

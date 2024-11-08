@@ -222,7 +222,7 @@ class MainActivity : ComponentActivity() {
                             startActivity(
                                 Intent(
                                     this@MainActivity,
-                                    CheckUpdateActivity::class.java
+                                    GoToCheckUpdateActivity::class.java
                                 )
                             )
                         }

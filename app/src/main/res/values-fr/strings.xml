@@ -120,4 +120,7 @@
     <string name="Beta_description">Changer la version en version de test\nIl peut y avoir divers bugs</string>
     <string name="is_home_page_pin">S\'il faut afficher le premier message sur la page d\'accueil (il peut y avoir un bug)</string>
     <string name="show_unknown_message_type">Affiche les types de messages non pris en charge</string>
+    <string name="GoToCheckUpdateActivity_title">Vérifier les mises à jour, avertissement</string>
+    <string name="GoToCheckUpdateActivity_description">Nous vérifierons les mises à jour du référentiel officiel GitHub.</string>
+    <string name="don_remind_me_again">Ne me le rappelle plus</string>
 </resources>

@@ -36,7 +36,7 @@ jobs:
         run: sdkmanager "build-tools;29.0.3"
 
       - name: Extract formatted build date
-        run: echo "BUILD_DATE=$(date -u '+%Y%m%d%H')" >> $GITHUB_ENV
+        run: echo "BUILD_DATE=null" >> $GITHUB_ENV
 
       - name: Inject Secrets into config.properties
         run: |

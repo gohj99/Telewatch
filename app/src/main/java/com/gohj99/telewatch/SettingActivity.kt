@@ -127,7 +127,7 @@ class SettingActivity : ComponentActivity() {
                             startActivity(
                                 Intent(
                                     this,
-                                    CheckUpdateActivity::class.java
+                                    GoToCheckUpdateActivity::class.java
                                 )
                             )
                         }

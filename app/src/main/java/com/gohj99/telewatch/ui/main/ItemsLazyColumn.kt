@@ -108,7 +108,7 @@ fun ChatLazyColumn(
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { index ->
-                if (index >= itemsList.value.size - 5) { // 检测是否到倒数第五项
+                if (index >= itemsList.value.size - 5) {
                     TgApiManager.tgApi?.loadChats(itemsList.value.size + 1)
                 }
             }
@@ -116,7 +116,6 @@ fun ChatLazyColumn(
 
     // 获取context
     val context = LocalContext.current
-    // 获取is_home_page_pin值
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val isHomePagePin = settingsSharedPref.getBoolean("is_home_page_pin", false)
 
@@ -125,14 +124,49 @@ fun ChatLazyColumn(
         derivedStateOf { contactsList.map { it.id }.toSet() }
     }
 
-    // 使用集合优化过滤速度，并确保集合中的 ID 类型为 Long
     var includedChatIdsSet: Set<Long> by remember { mutableStateOf(emptySet()) }
     var excludedChatIdsSet: Set<Long> by remember { mutableStateOf(emptySet()) }
 
-    // 仅当 chatsFolder 不为空时更新集合
     if (chatsFolder != null) {
         includedChatIdsSet = chatsFolder.includedChatIds.map { it }.toSet()
         excludedChatIdsSet = chatsFolder.excludedChatIds.map { it }.toSet()
+    }
+
+    // 只有首次加载时分区数据，之后直接更新 pinned 和 regular 数据
+    val pinnedChats = remember { mutableStateOf<List<Chat>>(emptyList()) }
+    val regularChats = remember { mutableStateOf<List<Chat>>(emptyList()) }
+
+    // 每次itemsList更新时，增量更新 pinnedChats 和 regularChats
+    LaunchedEffect(itemsList.value) {
+        if (chatsFolder == null) {
+            if (isHomePagePin) {
+                val newPinnedChats = itemsList.value.filter { it.isPinned }
+                val newRegularChats = itemsList.value.filter { it !in newPinnedChats }
+
+                if (newPinnedChats != pinnedChats.value) {
+                    pinnedChats.value = newPinnedChats
+                }
+
+                if (newRegularChats != regularChats.value) {
+                    regularChats.value = newRegularChats
+                }
+            } else {
+                // 如果 chatsFolder 为 null 且 isHomePagePin 为 false，不需要进行置顶消息分割
+                pinnedChats.value = emptyList()
+                regularChats.value = emptyList()
+            }
+        } else {
+            val newPinnedChats = itemsList.value.filter { it.id in chatsFolder.pinnedChatIds } // 通过 pinnedChatIds 判断
+            val newRegularChats = itemsList.value.filter { it !in newPinnedChats }
+
+            if (newPinnedChats != pinnedChats.value) {
+                pinnedChats.value = newPinnedChats
+            }
+
+            if (newRegularChats != regularChats.value) {
+                regularChats.value = newRegularChats
+            }
+        }
     }
 
     LazyColumn(
@@ -156,22 +190,26 @@ fun ChatLazyColumn(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // 渲染聊天列表，根据 chatsFolder 是否为空使用不同视图
+        // 渲染聊天列表，首先渲染置顶消息
         if (chatsFolder == null) {
             if (isHomePagePin) {
-                items(itemsList.value) { item ->
-                    ChatView(item, callback, searchText, true)
+                // 渲染置顶消息
+                items(pinnedChats.value, key = { "${it.id}_${it.title}_${it.isPinned}" }) { item ->
+                    ChatView(item, callback, searchText, pinnedView = true)
                 }
-                items(itemsList.value) { item ->
-                    ChatView(item, callback, searchText, false)
+                // 渲染普通消息
+                items(regularChats.value, key = { "${it.id}_${it.title}" }) { item ->
+                    ChatView(item, callback, searchText, pinnedView = false)
                 }
             } else {
-                items(itemsList.value) { item ->
+                // 渲染所有消息（置顶和非置顶）
+                items(itemsList.value, key = { "${it.id}_${it.title}" }) { item ->
                     ChatView(item, callback, searchText)
                 }
             }
         } else {
-            items(itemsList.value) { item ->
+            // 渲染置顶消息
+            items(pinnedChats.value, key = { "${it.id}_${it.title}_${chatsFolder.title}_${it.isPinned}" }) { item ->
                 ChatView(
                     chat = item,
                     callback = callback,
@@ -183,7 +221,8 @@ fun ChatLazyColumn(
                     excludedChatIdsSet = excludedChatIdsSet
                 )
             }
-            items(itemsList.value) { item ->
+            // 渲染普通消息
+            items(regularChats.value, key = { "${it.id}_${it.title}_${chatsFolder.title}" }) { item ->
                 ChatView(
                     chat = item,
                     callback = callback,
@@ -196,6 +235,7 @@ fun ChatLazyColumn(
                 )
             }
         }
+
         item {
             Spacer(modifier = Modifier.height(50.dp))
         }
@@ -235,6 +275,11 @@ fun ChatView(
     includedChatIdsSet: Set<Long> = emptySet(),  // 确保类型为 Long
     excludedChatIdsSet: Set<Long> = emptySet()  // 确保类型为 Long
 ) {
+    // 使用 derivedStateOf 来确保不必要的重渲染
+    val isMatchingSearchText by remember(searchText.value) {
+        derivedStateOf { matchingString(searchText.value, chat.title) }
+    }
+
     if (chatFolderInfo == null) {
         if (pinnedView == null) {
             MainCard(
@@ -245,18 +290,14 @@ fun ChatView(
                         style = MaterialTheme.typography.titleMedium
                     )
                     if (chat.message.isNotEmpty()) {
-                        Text(
-                            text = chat.message,
-                            color = Color(0xFF728AA5),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        MessageView(message = chat.message)
                     }
                 },
                 item = chat,
                 callback = { callback(chat) }
             )
         } else {
-            if (chat.isPinned == pinnedView && matchingString(searchText.value, chat.title)) {
+            if (chat.isPinned == pinnedView && isMatchingSearchText) {
                 MainCard(
                     column = {
                         Text(
@@ -265,11 +306,7 @@ fun ChatView(
                             style = MaterialTheme.typography.titleMedium
                         )
                         if (chat.message.isNotEmpty()) {
-                            Text(
-                                text = chat.message,
-                                color = Color(0xFF728AA5),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            MessageView(message = chat.message)
                         }
                     },
                     item = chat,
@@ -278,11 +315,10 @@ fun ChatView(
             }
         }
     } else {
-        if (matchingString(searchText.value, chat.title) &&
-            (chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
+        if (isMatchingSearchText && (chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
 
-            // 基于过滤条件设置显示标志
-            val isShow by remember(chat) {
+            // 基于过滤条件设置显示会话
+            val isShow by remember(chat.id, includedChatIdsSet, excludedChatIdsSet, contactsSet) {
                 derivedStateOf {
                     when {
                         chat.id in excludedChatIdsSet -> false
@@ -308,11 +344,7 @@ fun ChatView(
                             style = MaterialTheme.typography.titleMedium
                         )
                         if (chat.message.isNotEmpty()) {
-                            Text(
-                                text = chat.message,
-                                color = Color(0xFF728AA5),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                            MessageView(message = chat.message)
                         }
                     },
                     item = chat,
@@ -320,5 +352,23 @@ fun ChatView(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun MessageView(message: String) {
+    var currentMessage by remember { mutableStateOf(message) }
+
+    // 如果消息更新了，才重新设置状态
+    if (currentMessage != message) {
+        currentMessage = message
+    }
+
+    if (currentMessage.isNotEmpty()) {
+        Text(
+            text = currentMessage,
+            color = Color(0xFF728AA5),
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }

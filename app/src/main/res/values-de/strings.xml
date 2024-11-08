@@ -1,0 +1,126 @@
+<!--
+  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
+  -->
+
+<resources>
+    <string name="title_activity_login" translatable="false">LoginActivity</string>
+    <string name="title_activity_main" translatable="false">MainActivity</string>
+    <string name="title_activity_setting" translatable="false">SettingActivity</string>
+    <string name="title_activity_welcome" translatable="false">WelcomeActivity</string>
+    <string name="chat_activity_main" translatable="false">chat_activity_main</string>
+    <string name="about_activity_setting" translatable="false">about_activity_setting</string>
+    <string name="img_activity_view" translatable="false">img_activity_view</string>
+    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="Start_messaging">Beginnen Sie mit dem Versenden von Nachrichten</string>
+    <string name="Welcome_to_app">Willkommen bei der Telewatch-App</string>
+    <string name="Network">Netzwerk</string>
+    <string name="Settings">Einstellungen</string>
+    <string name="Clearing_cache">Cache leeren</string>
+    <string name="Reset_self">Selbst zurücksetzen (Neustart)</string>
+    <string name="Successful">Erfolgreich</string>
+    <string name="Password">Passwort</string>
+    <string name="Password_Error">Passwortfehler</string>
+    <string name="OK" translatable="false">OK</string>
+    <string name="Done">Erledigt</string>
+    <string name="scan_qr">Formulartelegramm scannen</string>
+    <string name="loading">Laden…</string>
+    <string name="Request_error">Fehler bei der Anfrage</string>
+    <string name="HOME">Heim</string>
+    <string name="Login_Successful">Anmeldung erfolgreich</string>
+    <string name="Retry">Wiederholen</string>
+    <string name="Error">Es ist ein Fehler aufgetreten\nBitte versuchen Sie es erneut</string>
+    <string name="Unknown_Message">Nicht unterstützte Nachricht</string>
+    <string name="Contacts">Kontakte</string>
+    <string name="setting_all">Alle Einstellungen</string>
+    <string name="About">Um</string>
+    <string name="little_jelly">kleines Gelee</string>
+    <string name="Version">Version</string>
+    <string name="Build_Date">Baudatum:</string>
+    <string name="Photo">Foto</string>
+    <string name="Unknown_Photo">Unbekanntes Foto</string>
+    <string name="Restart">Neustart</string>
+    <string name="No_thumbnail_available">Keine Miniaturansicht verfügbar</string>
+    <string name="Video">Video</string>
+    <string name="Voice">Stimme</string>
+    <string name="Animation">GIF</string>
+    <string name="Error_ImgView">Es handelt sich nicht um ein Bild oder Sie können kein Bild herunterladen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="ReloadMessage">Nachricht neu laden</string>
+    <string name="GetMessage">Erhalten Sie Nachrichteninformationen</string>
+    <string name="Same_name_image_exists">Habe das gleiche Bild</string>
+    <string name="failling">scheitern</string>
+    <string name="Read_failed">Das Lesen ist fehlgeschlagen</string>
+    <string name="Save_success">Erfolg sichern</string>
+    <string name="Select_player">Spieler auswählen</string>
+    <string name="No_player">Kein Spieler gefunden</string>
+    <string name="Save">Speichern</string>
+    <string name="Download_first">Zuerst herunterladen</string>
+    <string name="Same_name_video_exists">Habe das gleiche Video</string>
+    <string name="No_need_to_save">Kein Grund zum Speichern</string>
+    <string name="Download">Herunterladen</string>
+    <string name="Play">Spielen</string>
+    <string name="Clear_cache">Cache leeren</string>
+    <string name="Clear_thumbnails">Klare Miniaturansichten</string>
+    <string name="Clear_photos">Klare Fotos</string>
+    <string name="Clear_videos">Klare Videos</string>
+    <string name="error_activity_view">Fehlerseite</string>
+    <string name="allow_data_Collection">Datenerfassung zulassen</string>
+    <string name="data_collection_description">Wir verwenden das Open-Source-Erfassungstool ACRA, um Absturzberichte anonym zu sammeln, die am häufigsten verwendeten Funktionen zu verfolgen und Nutzungsmusterdaten zu sammeln, um Telewatch benutzerfreundlicher zu machen. Sie können diese Funktion jederzeit in den Einstellungen deaktivieren.</string>
+    <string name="data_collection_title">Anonyme Statistiken\nAbsturzberichte</string>
+    <string name="disagree">NEIN</string>
+    <string name="agree">JA</string>
+    <string name="data_Collection">Datenerfassung</string>
+    <string name="UI_Edit">UI-Bearbeitung</string>
+    <string name="App_setting">App-Einstellungen</string>
+    <string name="Add_Account">Konto hinzufügen</string>
+    <string name="Switch_Account">Konto wechseln</string>
+    <string name="switch_account_sure">Sind Sie sicher, dass Sie zum Konto %s wechseln möchten\?</string>
+    <string name="title_medium_font_size">Schriftgröße des Homepage-Chattitels</string>
+    <string name="body_medium_font_size">Schriftgröße des Inhalts der Chat-Seite</string>
+    <string name="body_small_font_size">Schriftgröße für Home-Chat-Inhalte</string>
+    <string name="size">Größe</string>
+    <string name="pre_release">Vorveröffentlichung</string>
+    <string name="release">Veröffentlichungen</string>
+    <string name="Check_Update">Überprüfen Sie die Aktualisierung</string>
+    <string name="already_latest">Bereits die neueste Version</string>
+    <string name="New_version">Neue Version</string>
+    <string name="version">Version</string>
+    <string name="Release_type">Release-Typ</string>
+    <string name="Release_time">Release-Zeit</string>
+    <string name="downloads">Downloads</string>
+    <string name="install">Installieren</string>
+    <string name="unknown_apps_install_permission_denied">Sie müssen die Installation von Apps aus unbekannten Quellen zulassen, um weiterhin Updates installieren zu können</string>
+    <string name="Connecting">Verbinden</string>
+    <string name="Update">Aktualisieren</string>
+    <string name="Offline">Offline</string>
+    <string name="Reset_libtd">libtd zurücksetzen (neue Konten oder alte Versionsreste löschen, die nicht angemeldet sind)</string>
+    <string name="Duplicate_account">Doppeltes Konto</string>
+    <string name="Log_out">Abmelden</string>
+    <string name="Confirm_Logout">Bestätigen Sie die Abmeldung</string>
+    <string name="Confirm_logout_sure">Sind Sie sicher, dass Sie sich abmelden möchten\?</string>
+    <string name="Update_tips">Tipps: Nach dem Herunterladen wird es im System-Download-Ordner gespeichert</string>
+    <string name="Install_Apk">Apk installieren</string>
+    <string name="Search">Suchen</string>
+    <string name="Network_setting">Netzwerkeinstellung</string>
+    <string name="Unknown_chat">Unbekannter Chat</string>
+    <string name="acra_toast_text">Die Software hat einen Fehler festgestellt und dieser wurde gemeldet. Bitte starten Sie die Software neu.</string>
+    <string name="author">Autor</string>
+    <string name="Famous_Quotes">Berühmte Zitate</string>
+    <string name="notice">Beachten</string>
+    <string name="notice_about_1">Diese Software ist Open Source und kostenlos.</string>
+    <string name="notice_about_2">If you purchased this software anywhere, please complain and ask for a refund.</string>
+    <string name="DeleteMessage">Delete message</string>
+    <string name="gohj99_description">Main developer</string>
+    <string name="jelly_description">UI Design</string>
+    <string name="Beta_title">Test version</string>
+    <string name="Beta_description">Change the version to a test version\nThere may be various bugs</string>
+    <string name="is_home_page_pin">Whether to get the top message on the homepage (may have a bug)</string>
+    <string name="show_unknown_message_type">Displays unsupported message types</string>
+    <string name="GoToCheckUpdateActivity_title">Check updates warning</string>
+    <string name="GoToCheckUpdateActivity_description">We will check for updates from the official GitHub repository.</string>
+    <string name="don_remind_me_again">Don\'t remind me again</string>
+</resources>
