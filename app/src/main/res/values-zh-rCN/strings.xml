@@ -114,10 +114,13 @@
     <string name="notice_about_1">本软件开源免费</string>
     <string name="notice_about_2">如果您在任何地方购买了该软件，请投诉并要求退款。\n请勿在中国大陆内使用本软件</string>
     <string name="DeleteMessage">删除留言</string>
-    <string name="gohj99_description">主要开发商</string>
-    <string name="jelly_description">用户界面设计</string>
+    <string name="gohj99_description">主要开发者</string>
+    <string name="jelly_description">UI设计</string>
     <string name="Beta_title">测试版</string>
-    <string name="Beta_description">将版本更改为测试版本\n可能存在各种错误</string>
+    <string name="Beta_description">该版本为测试版本\n可能存在错误</string>
     <string name="is_home_page_pin">是否获取首页置顶消息（可能有bug）</string>
     <string name="show_unknown_message_type">显示不支持的消息类型</string>
+    <string name="GoToCheckUpdateActivity_title">检查更新警告</string>
+    <string name="GoToCheckUpdateActivity_description">我们将从官方 GitHub 存储库检查更新。</string>
+    <string name="don_remind_me_again">不要再提醒我</string>
 </resources>

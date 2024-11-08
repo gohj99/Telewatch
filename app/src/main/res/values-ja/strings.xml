@@ -120,4 +120,7 @@
     <string name="Beta_description">バージョンをテスト バージョンに変更します\nさまざまなバグがある可能性があります</string>
     <string name="is_home_page_pin">ホームページのトップメッセージを取得するかどうか（バグがある可能性があります）</string>
     <string name="show_unknown_message_type">サポートされていないメッセージ タイプを表示します</string>
+    <string name="GoToCheckUpdateActivity_title">アップデートの警告を確認してください</string>
+    <string name="GoToCheckUpdateActivity_description">公式 GitHub リポジトリからの更新を確認します。</string>
+    <string name="don_remind_me_again">二度と思い出さないでください</string>
 </resources>

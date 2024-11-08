@@ -120,4 +120,7 @@
     <string name="Beta_description">Смените версию на тестовую\nМогут быть различные ошибки</string>
     <string name="is_home_page_pin">Получать ли верхнее сообщение на главной странице (может быть ошибка)</string>
     <string name="show_unknown_message_type">Отображает неподдерживаемые типы сообщений</string>
+    <string name="GoToCheckUpdateActivity_title">Проверьте предупреждение об обновлениях</string>
+    <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.</string>
+    <string name="don_remind_me_again">Не напоминай мне больше</string>
 </resources>

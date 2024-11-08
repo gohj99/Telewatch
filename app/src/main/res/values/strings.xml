@@ -114,10 +114,13 @@
     <string name="notice_about_1">This software is open source and free.</string>
     <string name="notice_about_2">If you purchased this software anywhere, please complain and ask for a refund.</string>
     <string name="DeleteMessage">Delete message</string>
-    <string name="gohj99_description">Main developers</string>
+    <string name="gohj99_description">Main developer</string>
     <string name="jelly_description">UI Design</string>
     <string name="Beta_title">Test version</string>
     <string name="Beta_description">Change the version to a test version\nThere may be various bugs</string>
     <string name="is_home_page_pin">Whether to get the top message on the homepage (may have a bug)</string>
     <string name="show_unknown_message_type">Displays unsupported message types</string>
+    <string name="GoToCheckUpdateActivity_title">Check updates warning</string>
+    <string name="GoToCheckUpdateActivity_description">We will check for updates from the official GitHub repository.</string>
+    <string name="don_remind_me_again">Don\'t remind me again</string>
 </resources>

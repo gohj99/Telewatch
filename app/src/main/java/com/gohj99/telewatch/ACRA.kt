@@ -24,7 +24,7 @@ class ACRA : Application() {
 
         // 获取是否同意获取数据
         val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        val dataCollection = settingsSharedPref.getBoolean("Data_Collection", true)
+        val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
 
         if (dataCollection) {
             // 初始化 com.gohj99.telewatch.ACRA 配置

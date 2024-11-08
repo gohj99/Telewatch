@@ -109,12 +109,14 @@ fun MainScreen(
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
                     text =
-                    if (showMenu) allPages[nowPage]
+                    if (showMenu) if (nowPage <= allPages.size) allPages[nowPage] else "error$nowPage"
                     else
-                        if (nowPage < allPages.size - lastPages.size)
-                            if (topTitle.value == "") allPages[nowPage]
-                            else topTitle.value
-                        else allPages[nowPage],
+                        if (nowPage <= allPages.size)
+                            if (nowPage < allPages.size - lastPages.size)
+                                if (topTitle.value == "") allPages[nowPage]
+                                else topTitle.value
+                            else allPages[nowPage]
+                        else "error",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -137,7 +139,7 @@ fun MainScreen(
                 }
             )
         } else {
-            when (allPages[nowPage]) {
+            when (if (nowPage <= allPages.size) allPages[nowPage] else "error") {
                 home -> {
                     ChatLazyColumn(
                         itemsList = chats,
@@ -155,14 +157,17 @@ fun MainScreen(
                 setting -> {
                     SettingLazyColumn(settingList)
                 }
+
                 else -> {
-                    if (allPages[nowPage] in chatsFoldersList.value.map { it.title }) {
-                        ChatLazyColumn(
-                            itemsList = chats,
-                            callback = chatPage,
-                            chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
-                            contactsList = contacts.value
-                        )
+                    if (nowPage <= allPages.size) {
+                        if (allPages[nowPage] in chatsFoldersList.value.map { it.title }) {
+                            ChatLazyColumn(
+                                itemsList = chats,
+                                callback = chatPage,
+                                chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
+                                contactsList = contacts.value
+                            )
+                        }
                     }
                 }
             }

@@ -31,6 +31,11 @@
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
+            android:name=".GoToCheckUpdateActivity"
+            android:exported="false"
+            android:label="@string/Beta_title"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".IsBetaActivity"
             android:exported="false"
             android:label="@string/Beta_title"
