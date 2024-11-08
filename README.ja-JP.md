@@ -20,6 +20,11 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.gohj99.telewatch&style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
@@ -46,8 +51,7 @@ adb install Telewatch.apk
 - テキスト、画像、ビデオの閲覧またはダウンロード
 - 画像やビデオの保存
 - テキスト送信
-- メッセージ編集処理
-- メッセージ削除処理
+- メッセージ削除
 - クラウンローテーションのサポート
 
 ## 最小構成と推奨構成

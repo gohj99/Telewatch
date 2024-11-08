@@ -14,9 +14,9 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="app_name" translatable="false">TelewatchLite</string>
     <string name="Start_messaging">Démarrer la messagerie</string>
-    <string name="Welcome_to_app">Bienvenue sur l\'application Telewatch</string>
+    <string name="Welcome_to_app">Bienvenue sur l\'application TelewatchLite</string>
     <string name="Network">Réseau</string>
     <string name="Settings">Paramètre</string>
     <string name="Clearing_cache">Vider le cache</string>
@@ -33,7 +33,7 @@
     <string name="Login_Successful">Connexion réussie</string>
     <string name="Retry">Réessayer</string>
     <string name="Error">Une erreur s\'est produite\nVeuillez réessayer</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">Message non pris en charge</string>
     <string name="Contacts">Contacts</string>
     <string name="setting_all">Tous les réglages</string>
     <string name="About">About</string>
@@ -69,7 +69,7 @@
     <string name="Clear_videos">Vidéos claires</string>
     <string name="error_activity_view">Page d\'erreur</string>
     <string name="allow_data_Collection">Autoriser la collecte de données</string>
-    <string name="data_collection_description">Nous utilisons l\'outil de collecte open source ACRA pour collecter de manière anonyme des rapports d\'erreur, suivre les fonctionnalités les plus fréquemment utilisées et collecter des données sur les modèles d\'utilisation afin de rendre Telewatch plus convivial. Vous pouvez désactiver cette fonctionnalité à tout moment dans les paramètres.</string>
+    <string name="data_collection_description">Nous utilisons l\'outil de collecte open source ACRA pour collecter de manière anonyme des rapports d\'erreur, suivre les fonctionnalités les plus fréquemment utilisées et collecter des données sur les modèles d\'utilisation afin de rendre TelewatchLite plus convivial. Vous pouvez désactiver cette fonctionnalité à tout moment dans les paramètres.</string>
     <string name="data_collection_title">Statistiques anonymes\nRapports d\'accidents</string>
     <string name="disagree">Non</string>
     <string name="agree">OUI</string>
@@ -105,4 +105,22 @@
     <string name="Update_tips"><![CDATA[Conseils : Après le téléchargement, il sera stocké dans le dossier de téléchargement du système.]]></string>
     <string name="Install_Apk">Installer l\'Apk</string>
     <string name="Search">Recherche</string>
+    <string name="Network_setting">Paramètres réseau</string>
+    <string name="Unknown_chat">Discussion inconnue</string>
+    <string name="acra_toast_text">Le logiciel a rencontré une erreur et celle-ci a été signalée. Veuillez redémarrer le logiciel.</string>
+    <string name="author">Auteur</string>
+    <string name="Famous_Quotes">Citations célèbres</string>
+    <string name="notice">Avis</string>
+    <string name="notice_about_1">Ce logiciel est open source et gratuit.</string>
+    <string name="notice_about_2">Si vous avez acheté ce logiciel quelque part, veuillez vous plaindre et demander un remboursement.</string>
+    <string name="DeleteMessage">Supprimer le message</string>
+    <string name="gohj99_description">Principaux développeurs</string>
+    <string name="jelly_description">Conception de l\'interface utilisateur</string>
+    <string name="Beta_title">Version d\'essai</string>
+    <string name="Beta_description">Changer la version en version de test\nIl peut y avoir divers bugs</string>
+    <string name="is_home_page_pin">S\'il faut afficher le premier message sur la page d\'accueil (il peut y avoir un bug)</string>
+    <string name="show_unknown_message_type">Affiche les types de messages non pris en charge</string>
+    <string name="GoToCheckUpdateActivity_title">Vérifier les mises à jour, avertissement</string>
+    <string name="GoToCheckUpdateActivity_description">Nous vérifierons les mises à jour du référentiel officiel GitHub.</string>
+    <string name="don_remind_me_again">Ne me le rappelle plus</string>
 </resources>

@@ -20,6 +20,11 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.gohj99.telewatch&style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
@@ -46,8 +51,7 @@ adb install Telewatch.apk
 - 文字、图片、视频查看或下载
 - 保存图片或视频
 - 文字发送
-- 编辑消息处理
-- 删除消息处理
+- 删除消息
 - 支持表冠旋转
 
 ## 最低配置和推荐配置

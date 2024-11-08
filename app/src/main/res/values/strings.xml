@@ -14,9 +14,9 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="app_name" translatable="false">TelewatchLite</string>
     <string name="Start_messaging">Start messaging</string>
-    <string name="Welcome_to_app">Welcome to telewatch app</string>
+    <string name="Welcome_to_app">Welcome to TelewatchLite app</string>
     <string name="Network">Network</string>
     <string name="Settings">Settings</string>
     <string name="Clearing_cache">Clearing cache</string>
@@ -33,7 +33,7 @@
     <string name="Login_Successful">Login Successful</string>
     <string name="Retry">Retry</string>
     <string name="Error">An error occurred\nPlease try again</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">Unsupported message</string>
     <string name="Contacts">Contacts</string>
     <string name="setting_all">All setting</string>
     <string name="About">About</string>
@@ -69,7 +69,7 @@
     <string name="Clear_videos">Clear videos</string>
     <string name="error_activity_view">Error Page</string>
     <string name="allow_data_Collection">Allow Data Collection</string>
-    <string name="data_collection_description">We use the open source collection tool ACRA to anonymously collect crash reports, track the most frequently used features, and gather usage pattern data to make Telewatch more user-friendly. You can disable this feature at any time in the settings.</string>
+    <string name="data_collection_description">We use the open source collection tool ACRA to anonymously collect crash reports, track the most frequently used features, and gather usage pattern data to make TelewatchLite more user-friendly. You can disable this feature at any time in the settings.</string>
     <string name="data_collection_title">Anonymous Statistics\nCrash Reporting</string>
     <string name="disagree">No</string>
     <string name="agree">YES</string>
@@ -105,4 +105,22 @@
     <string name="Update_tips">Tips: After downloading, it will be stored in the system download folder</string>
     <string name="Install_Apk">Install Apk</string>
     <string name="Search">Search</string>
+    <string name="Network_setting">Network Setting</string>
+    <string name="Unknown_chat">Unknown Chat</string>
+    <string name="acra_toast_text">The software has encountered an error and it has been reported. Please restart the software.</string>
+    <string name="author">Author</string>
+    <string name="Famous_Quotes">Famous Quotes</string>
+    <string name="notice">Notice</string>
+    <string name="notice_about_1">This software is open source and free.</string>
+    <string name="notice_about_2">If you purchased this software anywhere, please complain and ask for a refund.</string>
+    <string name="DeleteMessage">Delete message</string>
+    <string name="gohj99_description">Main developer</string>
+    <string name="jelly_description">UI Design</string>
+    <string name="Beta_title">Test version</string>
+    <string name="Beta_description">Change the version to a test version\nThere may be various bugs</string>
+    <string name="is_home_page_pin">Whether to get the top message on the homepage (may have a bug)</string>
+    <string name="show_unknown_message_type">Displays unsupported message types</string>
+    <string name="GoToCheckUpdateActivity_title">Check updates warning</string>
+    <string name="GoToCheckUpdateActivity_description">We will check for updates from the official GitHub repository.</string>
+    <string name="don_remind_me_again">Don\'t remind me again</string>
 </resources>

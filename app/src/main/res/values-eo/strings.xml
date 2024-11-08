@@ -14,9 +14,9 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="app_name" translatable="false">TelewatchLite</string>
     <string name="Start_messaging">Komencu mesaĝadon</string>
-    <string name="Welcome_to_app">Bonvenon al telewatch-apliko</string>
+    <string name="Welcome_to_app">Bonvenon al TelewatchLite-apliko</string>
     <string name="Network">Reto</string>
     <string name="Settings">Agordo</string>
     <string name="Clearing_cache">Forigante kaŝmemoron</string>
@@ -33,7 +33,7 @@
     <string name="Login_Successful">Ensaluto Sukcesa</string>
     <string name="Retry">Reprovi</string>
     <string name="Error">Eraro okazis\nBonvolu provi denove</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">Nesubtenata mesaĝo</string>
     <string name="Contacts">Kontaktoj</string>
     <string name="setting_all">Ĉiuj agordoj</string>
     <string name="About">Pri</string>
@@ -69,7 +69,7 @@
     <string name="Clear_videos">Klara filmetoj</string>
     <string name="error_activity_view">Erarpaĝo</string>
     <string name="allow_data_Collection">Permesu Kolekton de Datumoj</string>
-    <string name="data_collection_description">Ni uzas la malfermfontan kolektan ilon ACRA por anonime kolekti kraŝraportojn, spuri la plej ofte uzatajn funkciojn kaj kolekti uzajn ŝablonojn por fari Telewatch pli afabla. Vi povas malŝalti ĉi tiun funkcion iam ajn en la agordoj.</string>
+    <string name="data_collection_description">Ni uzas la malfermfontan kolektan ilon ACRA por anonime kolekti kraŝraportojn, spuri la plej ofte uzatajn funkciojn kaj kolekti uzajn ŝablonojn por fari TelewatchLite pli afabla. Vi povas malŝalti ĉi tiun funkcion iam ajn en la agordoj.</string>
     <string name="data_collection_title">Anonimaj Statistikoj\nFrakasa Raportado</string>
     <string name="disagree">Ne</string>
     <string name="agree">JES</string>
@@ -105,4 +105,22 @@
     <string name="Update_tips">Konsiloj: Post elŝuto, ĝi estos konservita en la sistema elŝuta dosierujo</string>
     <string name="Install_Apk">Instalu Apk</string>
     <string name="Search">Serĉu</string>
+    <string name="Network_setting">Reta Agordo</string>
+    <string name="Unknown_chat">Nekonata Babilejo</string>
+    <string name="acra_toast_text">La programaro renkontis eraron kaj ĝi estis raportita. Bonvolu rekomenci la programaron.</string>
+    <string name="author">Aŭtoro</string>
+    <string name="Famous_Quotes">Famaj Citaĵoj</string>
+    <string name="notice">Rimarku</string>
+    <string name="notice_about_1">Ĉi tiu programaro estas malferma fonto kaj senpaga.</string>
+    <string name="notice_about_2">Se vi aĉetis ĉi tiun programaron ie, bonvolu plendi kaj peti repagon.</string>
+    <string name="DeleteMessage">Forigi mesaĝon</string>
+    <string name="gohj99_description">Ĉefaj programistoj</string>
+    <string name="jelly_description">UI-Dezajno</string>
+    <string name="Beta_title">Testversio</string>
+    <string name="Beta_description">Ŝanĝu la version al testa versio\nPovas esti diversaj eraroj</string>
+    <string name="is_home_page_pin">Ĉu ricevi la supran mesaĝon sur la hejmpaĝo (eble havas cimon)</string>
+    <string name="show_unknown_message_type">Montras nesubtenatajn mesaĝtipojn</string>
+    <string name="GoToCheckUpdateActivity_title">Kontrolu averton pri ĝisdatigoj</string>
+    <string name="GoToCheckUpdateActivity_description">Ni kontrolos ĝisdatigojn de la oficiala GitHub-deponejo.</string>
+    <string name="don_remind_me_again">Ne rememorigu min</string>
 </resources>

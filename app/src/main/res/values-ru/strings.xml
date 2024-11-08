@@ -14,9 +14,9 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="app_name" translatable="false">TelewatchLite</string>
     <string name="Start_messaging">Начать обмен сообщениями</string>
-    <string name="Welcome_to_app">Добро пожаловать в приложение TeleWatch</string>
+    <string name="Welcome_to_app">Добро пожаловать в приложение TelewatchLite</string>
     <string name="Network">Сеть</string>
     <string name="Settings">Параметр</string>
     <string name="Clearing_cache">Очистка кэша</string>
@@ -33,7 +33,7 @@
     <string name="Login_Successful">Вход успешен</string>
     <string name="Retry">Повторить попытку</string>
     <string name="Error">Произошла ошибка\nПожалуйста, повторите попытку.</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">Неподдерживаемое сообщение</string>
     <string name="Contacts">Контакты</string>
     <string name="setting_all">Все настройки</string>
     <string name="About">О</string>
@@ -69,7 +69,7 @@
     <string name="Clear_videos">Очистить видео</string>
     <string name="error_activity_view">Страница ошибки</string>
     <string name="allow_data_Collection">Разрешить сбор данных</string>
-    <string name="data_collection_description">Мы используем инструмент сбора данных ACRA с открытым исходным кодом для анонимного сбора отчетов о сбоях, отслеживания наиболее часто используемых функций и сбора данных о шаблонах использования, чтобы сделать Telewatch более удобным для пользователя. Вы можете отключить эту функцию в любой момент в настройках.</string>
+    <string name="data_collection_description">Мы используем инструмент сбора данных ACRA с открытым исходным кодом для анонимного сбора отчетов о сбоях, отслеживания наиболее часто используемых функций и сбора данных о шаблонах использования, чтобы сделать TelewatchLite более удобным для пользователя. Вы можете отключить эту функцию в любой момент в настройках.</string>
     <string name="data_collection_title">Анонимная статистика\nОтчеты о сбоях</string>
     <string name="disagree">Нет</string>
     <string name="agree">ДА</string>
@@ -105,4 +105,22 @@
     <string name="Update_tips">Советы: После загрузки он будет сохранен в системной папке загрузки.</string>
     <string name="Install_Apk">Установить АПК</string>
     <string name="Search">Поиск</string>
+    <string name="Network_setting">Настройка сети</string>
+    <string name="Unknown_chat">Неизвестный чат</string>
+    <string name="acra_toast_text">В программном обеспечении возникла ошибка, о которой было сообщено. Пожалуйста, перезапустите программное обеспечение.</string>
+    <string name="author">Автор</string>
+    <string name="Famous_Quotes">Знаменитые цитаты</string>
+    <string name="notice">Уведомление</string>
+    <string name="notice_about_1">Это программное обеспечение имеет открытый исходный код и является бесплатным.</string>
+    <string name="notice_about_2">Если вы приобрели это программное обеспечение где-либо, подайте жалобу и попросите вернуть деньги.</string>
+    <string name="DeleteMessage">Удалить сообщение</string>
+    <string name="gohj99_description">Основные разработчики</string>
+    <string name="jelly_description">Дизайн пользовательского интерфейса</string>
+    <string name="Beta_title">Тестовая версия</string>
+    <string name="Beta_description">Смените версию на тестовую\nМогут быть различные ошибки</string>
+    <string name="is_home_page_pin">Получать ли верхнее сообщение на главной странице (может быть ошибка)</string>
+    <string name="show_unknown_message_type">Отображает неподдерживаемые типы сообщений</string>
+    <string name="GoToCheckUpdateActivity_title">Проверьте предупреждение об обновлениях</string>
+    <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.</string>
+    <string name="don_remind_me_again">Не напоминай мне больше</string>
 </resources>

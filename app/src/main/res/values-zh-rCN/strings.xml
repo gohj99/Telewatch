@@ -14,9 +14,9 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="app_name" translatable="false">TelewatchLite</string>
     <string name="Start_messaging">开始</string>
-    <string name="Welcome_to_app">欢迎使用Telewatch应用程序</string>
+    <string name="Welcome_to_app">欢迎使用TelewatchLite应用程序</string>
     <string name="Network">网络设置</string>
     <string name="Settings">设置</string>
     <string name="Clearing_cache">清除缓存</string>
@@ -69,7 +69,7 @@
     <string name="Clear_videos">清除视频</string>
     <string name="error_activity_view">错误页面</string>
     <string name="allow_data_Collection">允许数据收集</string>
-    <string name="data_collection_description">我们使用开源收集工具 ACRA 来匿名地收集崩溃信息和最常被人们使用的功能和一些使用习惯数据来使得 Telewatch 变得更加实用。您可以随时在设置中关闭此功能</string>
+    <string name="data_collection_description">我们使用开源收集工具 ACRA 来匿名地收集崩溃信息和最常被人们使用的功能和一些使用习惯数据来使得 TelewatchLite 变得更加实用。您可以随时在设置中关闭此功能</string>
     <string name="data_collection_title">匿名统计\n崩溃报告</string>
     <string name="disagree">不好</string>
     <string name="agree">好</string>
@@ -105,4 +105,22 @@
     <string name="Update_tips">小提示：下载后将存放于系统下载文件夹</string>
     <string name="Install_Apk">安装APK</string>
     <string name="Search">搜索</string>
+    <string name="Network_setting">网络设置</string>
+    <string name="Unknown_chat">未知聊天</string>
+    <string name="acra_toast_text">软件遇到错误，已报告。请重新启动软件。</string>
+    <string name="author">作者</string>
+    <string name="Famous_Quotes">名言</string>
+    <string name="notice">注意</string>
+    <string name="notice_about_1">本软件开源免费</string>
+    <string name="notice_about_2">如果您在任何地方购买了该软件，请投诉并要求退款。\n请勿在中国大陆内使用本软件</string>
+    <string name="DeleteMessage">删除留言</string>
+    <string name="gohj99_description">主要开发者</string>
+    <string name="jelly_description">UI设计</string>
+    <string name="Beta_title">测试版</string>
+    <string name="Beta_description">该版本为测试版本\n可能存在错误</string>
+    <string name="is_home_page_pin">是否获取首页置顶消息（可能有bug）</string>
+    <string name="show_unknown_message_type">显示不支持的消息类型</string>
+    <string name="GoToCheckUpdateActivity_title">检查更新警告</string>
+    <string name="GoToCheckUpdateActivity_description">我们将从官方 GitHub 存储库检查更新。</string>
+    <string name="don_remind_me_again">不要再提醒我</string>
 </resources>

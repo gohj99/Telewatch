@@ -27,68 +27,68 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Telewatch"
+        android:theme="@style/Theme.TelewatchLite"
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
             android:name=".InstallApkActivity"
             android:exported="false"
             android:label="@string/Install_Apk"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".ConfirmLogoutActivity"
             android:exported="false"
             android:label="@string/Confirm_Logout"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".CheckUpdateActivity"
             android:exported="false"
             android:label="@string/Check_Update"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".SwitchAccountActivity"
             android:exported="false"
             android:label="@string/Switch_Account"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".AllowDataCollectionActivity"
             android:exported="false"
             android:label="@string/allow_data_Collection"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".ImgViewActivity"
             android:exported="false"
             android:label="@string/img_activity_view"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".AboutActivity"
             android:exported="false"
             android:label="@string/about_activity_setting"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".ChatActivity"
             android:exported="false"
             android:label="@string/chat_activity_main"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".SettingActivity"
             android:exported="false"
             android:label="@string/title_activity_setting"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".LoginActivity"
             android:exported="false"
             android:label="@string/title_activity_login"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".WelcomeActivity"
             android:exported="false"
             android:label="@string/title_activity_welcome"
-            android:theme="@style/Theme.Telewatch" />
+            android:theme="@style/Theme.TelewatchLite" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Telewatch">
+            android:theme="@style/Theme.TelewatchLite">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

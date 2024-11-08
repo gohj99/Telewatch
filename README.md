@@ -20,6 +20,11 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.gohj99.telewatch&style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
@@ -46,7 +51,6 @@ adb install Telewatch.apk
 - Viewing or downloading text, images, and videos
 - Saving images or videos
 - Text messaging
-- Message editing
 - Message deletion
 - Support for rotating the digital crown
 

@@ -14,7 +14,7 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="app_name" translatable="false">Telewatch</string>
+    <string name="app_name" translatable="false">TelewatchLite</string>
     <string name="Start_messaging">メッセージングを開始する</string>
     <string name="Welcome_to_app">テレビウォッチアプリへようこそ</string>
     <string name="Network">ネットワーク</string>
@@ -33,7 +33,7 @@
     <string name="Login_Successful">ログイン成功</string>
     <string name="Retry">リトライ</string>
     <string name="Error">エラーが発生しました\nもう一度試してください</string>
-    <string name="Unknown_Message">Unknown message type</string>
+    <string name="Unknown_Message">サポートされていないメッセージ</string>
     <string name="Contacts">連絡先</string>
     <string name="setting_all">All setting</string>
     <string name="About">About</string>
@@ -69,7 +69,7 @@
     <string name="Clear_videos">鮮明なビデオ</string>
     <string name="error_activity_view">エラーページ</string>
     <string name="allow_data_Collection">データ収集を許可する</string>
-    <string name="data_collection_description">当社はオープンソース収集ツール ACRA を使用して匿名でクラッシュ レポートを収集し、最も頻繁に使用される機能を追跡し、使用パターン データを収集して Telewatch をより使いやすくしています。この機能は設定でいつでも無効にできます。</string>
+    <string name="data_collection_description">当社はオープンソース収集ツール ACRA を使用して匿名でクラッシュ レポートを収集し、最も頻繁に使用される機能を追跡し、使用パターン データを収集して TelewatchLite をより使いやすくしています。この機能は設定でいつでも無効にできます。</string>
     <string name="data_collection_title">匿名の統計\nクラッシュ レポート</string>
     <string name="disagree">いいえ</string>
     <string name="agree">はい</string>
@@ -105,4 +105,22 @@
     <string name="Update_tips">ヒント: ダウンロード後、システムのダウンロード フォルダーに保存されます。</string>
     <string name="Install_Apk">APKをインストールする</string>
     <string name="Search">検索</string>
+    <string name="Network_setting">ネットワーク設定</string>
+    <string name="Unknown_chat">不明なチャット</string>
+    <string name="acra_toast_text">ソフトウェアでエラーが発生し、報告されました。ソフトウェアを再起動してください。</string>
+    <string name="author">著者</string>
+    <string name="Famous_Quotes">有名な名言</string>
+    <string name="notice">知らせ</string>
+    <string name="notice_about_1">このソフトウェアはオープンソースで無料です。</string>
+    <string name="notice_about_2">このソフトウェアをどこかで購入した場合は、苦情を申し立てて返金を求めてください。</string>
+    <string name="DeleteMessage">メッセージを削除する</string>
+    <string name="gohj99_description">主な開発者</string>
+    <string name="jelly_description">UIデザイン</string>
+    <string name="Beta_title">テスト版</string>
+    <string name="Beta_description">バージョンをテスト バージョンに変更します\nさまざまなバグがある可能性があります</string>
+    <string name="is_home_page_pin">ホームページのトップメッセージを取得するかどうか（バグがある可能性があります）</string>
+    <string name="show_unknown_message_type">サポートされていないメッセージ タイプを表示します</string>
+    <string name="GoToCheckUpdateActivity_title">アップデートの警告を確認してください</string>
+    <string name="GoToCheckUpdateActivity_description">公式 GitHub リポジトリからの更新を確認します。</string>
+    <string name="don_remind_me_again">二度と思い出さないでください</string>
 </resources>

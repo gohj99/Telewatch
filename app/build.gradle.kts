@@ -12,16 +12,16 @@ plugins {
 }
 
 android {
-    namespace = "com.gohj99.telewatch"
+    namespace = "com.gohj99.telewatchlite"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.gohj99.telewatch"
+        applicationId = "com.gohj99.telewatchlite"
         minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.2.1"
+        versionCode = 18
+        versionName = "1.2.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
