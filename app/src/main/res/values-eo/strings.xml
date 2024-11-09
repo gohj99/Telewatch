@@ -124,4 +124,5 @@
     <string name="GoToCheckUpdateActivity_description">Ni kontrolos ĝisdatigojn de la oficiala GitHub-deponejo.</string>
     <string name="don_remind_me_again">Ne rememorigu min</string>
     <string name="announcement_title">Anonco</string>
+    <string name="No_app_to_handle_this_url">Neniu aplikaĵo por trakti ĉi tiun URL</string>
 </resources>

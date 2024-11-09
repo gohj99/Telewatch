@@ -71,6 +71,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.main.Chat
+import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
@@ -129,7 +130,8 @@ fun SplashChatScreen(
     chatObject: TdApi.Chat,
     lastReadOutboxMessageId: MutableState<Long>,
     lastReadInboxMessageId: MutableState<Long>,
-    listState: LazyListState = rememberLazyListState()
+    listState: LazyListState = rememberLazyListState(),
+    onLinkClick: (String) -> Unit
 ) {
     var isFloatingVisible by remember { mutableStateOf(true) }
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
@@ -330,10 +332,11 @@ fun SplashChatScreen(
                                     when (val content = message.content) {
                                         is TdApi.MessageText -> {
                                             SelectionContainer {
-                                                Text(
+                                                LinkText(
                                                     text = content.text.text,
-                                                    color = textColor,
-                                                    style = MaterialTheme.typography.bodyMedium
+                                                    color = Color(0xFFFEFEFE),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    onLinkClick = onLinkClick
                                                 )
                                             }
                                         }
@@ -345,23 +348,24 @@ fun SplashChatScreen(
                                                     thumbnail = thumbnail.photo,
                                                     imageWidth = thumbnail.width,
                                                     imageHeight = thumbnail.height,
-                                                    textColor = textColor
+                                                    textColor = Color(0xFFFEFEFE)
                                                 )
                                             } else {
                                                 // 处理没有缩略图的情况
                                                 Text(
                                                     text = stringResource(id = R.string.No_thumbnail_available),
-                                                    color = textColor,
+                                                    color = Color(0xFFFEFEFE),
                                                     style = MaterialTheme.typography.bodyMedium
                                                 )
                                             }
                                             content.caption?.text?.let {
                                                 SelectionContainer {
-                                                    Text(
+                                                    LinkText(
                                                         text = it,
-                                                        color = textColor,
+                                                        color = Color(0xFFFEFEFE),
                                                         modifier = Modifier.padding(top = 4.dp),
-                                                        style = MaterialTheme.typography.bodyMedium
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        onLinkClick = onLinkClick
                                                     )
                                                 }
                                             }
@@ -377,7 +381,7 @@ fun SplashChatScreen(
                                                         thumbnail = thumbnail.file,
                                                         imageWidth = thumbnail.width,
                                                         imageHeight = thumbnail.height,
-                                                        textColor = textColor
+                                                        textColor = Color(0xFFFEFEFE)
                                                     )
                                                     Box(
                                                         modifier = Modifier
@@ -388,7 +392,7 @@ fun SplashChatScreen(
                                                     // 处理没有缩略图的情况
                                                     Text(
                                                         text = stringResource(id = R.string.No_thumbnail_available),
-                                                        color = textColor,
+                                                        color = Color(0xFFFEFEFE),
                                                         style = MaterialTheme.typography.bodyMedium
                                                     )
                                                 }
@@ -396,11 +400,12 @@ fun SplashChatScreen(
                                                 // 视频文字
                                                 content.caption?.text?.let {
                                                     SelectionContainer {
-                                                        Text(
+                                                        LinkText(
                                                             text = it,
-                                                            color = textColor,
+                                                            color = Color(0xFFFEFEFE),
                                                             modifier = Modifier.padding(top = 4.dp),
-                                                            style = MaterialTheme.typography.bodyMedium
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            onLinkClick = onLinkClick
                                                         )
                                                     }
                                                 }
@@ -822,7 +827,8 @@ fun SplashChatScreenPreview() {
             },
             chatObject = TdApi.Chat(),
             lastReadOutboxMessageId = mutableLongStateOf(0L),
-            lastReadInboxMessageId = mutableLongStateOf(0L)
+            lastReadInboxMessageId = mutableLongStateOf(0L),
+            onLinkClick = {}
         )
     }
 }

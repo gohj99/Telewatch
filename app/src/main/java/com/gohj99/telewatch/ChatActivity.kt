@@ -12,6 +12,8 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -243,10 +245,6 @@ class ChatActivity : ComponentActivity() {
                                         is TdApi.MessageVoiceNote -> {
                                             println("语音消息")
                                         }
-
-                                        is TdApi.MessageAnimation -> {
-                                            println("动画消息")
-                                        }
                                     }
                                 },
                                 longPress = { select, message ->
@@ -352,7 +350,19 @@ class ChatActivity : ComponentActivity() {
                                 chatObject = itChatObject,
                                 lastReadOutboxMessageId = lastReadOutboxMessageId,
                                 lastReadInboxMessageId = lastReadInboxMessageId,
-                                listState = listState
+                                listState = listState,
+                                onLinkClick = { url ->
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    val packageManager: PackageManager = packageManager
+                                    val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+
+                                    if (activities.isNotEmpty()) {
+                                        startActivity(intent)
+                                    } else {
+                                        // 处理没有可用浏览器的情况
+                                        Toast.makeText(this, getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             )
                         }
                     }

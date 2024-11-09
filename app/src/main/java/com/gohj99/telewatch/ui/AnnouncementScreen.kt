@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,6 +93,32 @@ fun SplashAnnouncementScreen(
                         maxLines = 1, // 限制为一行
                         overflow = TextOverflow.Ellipsis // 超出部分省略
                     )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp)) // 添加间距
+
+                val scrollState = rememberScrollState()
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .verticalScroll(scrollState)
+                        .verticalRotaryScroll(scrollState)
+                ) {
+                    Spacer(modifier = Modifier.height(35.dp)) // 添加一个高度为 8dp 的 Spacer
+                    MainCard(
+                        column = {
+                            Text(
+                                text = jsonObject["content"]?.asString ?: "Error",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        },
+                        item = "content",
+                        color = Color(0xFF2C323A)
+                    )
+                    Spacer(modifier = Modifier.height(50.dp))
                 }
             }
         }
