@@ -123,4 +123,5 @@
     <string name="GoToCheckUpdateActivity_title">Vérifier les mises à jour, avertissement</string>
     <string name="GoToCheckUpdateActivity_description">Nous vérifierons les mises à jour du référentiel officiel GitHub.</string>
     <string name="don_remind_me_again">Ne me le rappelle plus</string>
+    <string name="announcement_title">Annonce</string>
 </resources>

@@ -543,6 +543,7 @@ class TgApi(
             is TdApi.MessageVoiceNote -> context.getString(R.string.Voice)
             is TdApi.MessageAnimation -> context.getString(R.string.Animation)
             is TdApi.MessageAnimatedEmoji -> if (content.emoji == "") context.getString(R.string.Unknown_Message) else content.emoji
+            is TdApi.MessageSticker -> if (content.sticker.emoji == "") context.getString(R.string.Unknown_Message) else content.sticker.emoji
             else -> context.getString(R.string.Unknown_Message)
         }
     }
@@ -796,7 +797,7 @@ class TgApi(
         // 发送 ViewMessages 请求
         client.send(viewMessagesRequest) { response ->
             if (response is TdApi.Ok) {
-                println("Messages successfully marked as read in chat ID $saveChatId")
+                //println("Messages successfully marked as read in chat ID $saveChatId")
             } else {
                 println("Failed to mark messages as read: $response")
             }
@@ -887,7 +888,7 @@ class TgApi(
                 if (result.constructor == TdApi.Message.CONSTRUCTOR) {
                     val message = result as TdApi.Message
 
-                    println(message)
+                    //println(message)
 
                     // 使用重新加载的消息更新 saveChatList
                     withContext(Dispatchers.Main) {

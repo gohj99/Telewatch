@@ -123,4 +123,5 @@
     <string name="GoToCheckUpdateActivity_title">Проверьте предупреждение об обновлениях</string>
     <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.</string>
     <string name="don_remind_me_again">Не напоминай мне больше</string>
+    <string name="announcement_title">Объявление</string>
 </resources>

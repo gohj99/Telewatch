@@ -80,6 +80,7 @@ data class Asset(
 class CheckUpdateActivity : ComponentActivity() {
     private var downloadId: Long = -1
     private var fileName = ""
+    private var filePath = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -164,12 +165,13 @@ class CheckUpdateActivity : ComponentActivity() {
                                                         downloadProgress = progress
                                                     }, {
                                                         isDownloadComplete = true
+                                                        filePath = fileName
                                                         copyFileToDownloads(fileName)
                                                     })
                                                 },
                                                 downloadProgress = downloadProgress,
                                                 onInstallClick = {
-                                                    startInstallActivity(fileName)
+                                                    startInstallActivity(filePath)
                                                 },
                                                 isDownloadComplete = isDownloadComplete
                                             )
@@ -202,7 +204,10 @@ class CheckUpdateActivity : ComponentActivity() {
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
-                            ErrorScreen(onRetry = { init() })
+                            ErrorScreen(
+                                onRetry = { init() },
+                                cause = e.message ?: ""
+                            )
                         }
                     }
                 }

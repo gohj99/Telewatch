@@ -467,7 +467,29 @@ fun SplashChatScreen(
                                                     )
                                                 }
                                             }
-
+                                        }
+                                        // 贴纸表情消息
+                                        is TdApi.MessageSticker -> {
+                                            val emoji = content.sticker.emoji
+                                            val thumbnail = content.sticker.thumbnail
+                                            if (thumbnail != null) {
+                                                ThumbnailImage(
+                                                    message = message,
+                                                    thumbnail = thumbnail.file,
+                                                    imageWidth = thumbnail.width,
+                                                    imageHeight = thumbnail.height,
+                                                    textColor = textColor,
+                                                    loadingText = emoji
+                                                )
+                                            } else {
+                                                SelectionContainer {
+                                                    Text(
+                                                        text = emoji,
+                                                        color = textColor,
+                                                        style = MaterialTheme.typography.bodyMedium
+                                                    )
+                                                }
+                                            }
                                         }
                                         else -> {
                                             Text(

@@ -123,4 +123,5 @@
     <string name="GoToCheckUpdateActivity_title">检查更新警告</string>
     <string name="GoToCheckUpdateActivity_description">我们将从官方 GitHub 存储库检查更新。</string>
     <string name="don_remind_me_again">不要再提醒我</string>
+    <string name="announcement_title">公告</string>
 </resources>

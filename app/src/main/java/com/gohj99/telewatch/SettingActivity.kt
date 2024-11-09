@@ -132,6 +132,18 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    // 公告
+                    SettingItem.Click(
+                        itemName = getString(R.string.announcement_title),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    AnnouncementActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 关于
                     SettingItem.Click(
                         itemName = getString(R.string.About),

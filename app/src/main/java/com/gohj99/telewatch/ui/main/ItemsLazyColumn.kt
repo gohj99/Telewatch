@@ -194,22 +194,22 @@ fun ChatLazyColumn(
         if (chatsFolder == null) {
             if (isHomePagePin) {
                 // 渲染置顶消息
-                items(pinnedChats.value, key = { "${it.id}_${it.title}_${it.isPinned}" }) { item ->
+                items(pinnedChats.value, key = { "${it.id}_${it.isPinned}" }) { item ->
                     ChatView(item, callback, searchText, pinnedView = true)
                 }
                 // 渲染普通消息
-                items(regularChats.value, key = { "${it.id}_${it.title}" }) { item ->
+                items(regularChats.value, key = { it.id }) { item ->
                     ChatView(item, callback, searchText, pinnedView = false)
                 }
             } else {
                 // 渲染所有消息（置顶和非置顶）
-                items(itemsList.value, key = { "${it.id}_${it.title}" }) { item ->
+                items(itemsList.value, key = { it.id }) { item ->
                     ChatView(item, callback, searchText)
                 }
             }
         } else {
             // 渲染置顶消息
-            items(pinnedChats.value, key = { "${it.id}_${it.title}_${chatsFolder.title}_${it.isPinned}" }) { item ->
+            items(pinnedChats.value, key = { "${it.id}_${chatsFolder.title}_${it.isPinned}" }) { item ->
                 ChatView(
                     chat = item,
                     callback = callback,
@@ -222,7 +222,7 @@ fun ChatLazyColumn(
                 )
             }
             // 渲染普通消息
-            items(regularChats.value, key = { "${it.id}_${it.title}_${chatsFolder.title}" }) { item ->
+            items(regularChats.value, key = { "${it.id}_${chatsFolder.title}" }) { item ->
                 ChatView(
                     chat = item,
                     callback = callback,

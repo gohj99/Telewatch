@@ -208,6 +208,22 @@ class ChatActivity : ComponentActivity() {
                                             startActivity(intent)
                                         }
 
+                                        // 贴纸消息
+                                        is TdApi.MessageSticker -> {
+                                            println("贴纸消息")
+                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            intent.putExtra("messageId", message.id)
+                                            startActivity(intent)
+                                        }
+
+                                        // GIF消息
+                                        is TdApi.MessageAnimation -> {
+                                            println("GIF消息")
+                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            intent.putExtra("messageId", message.id)
+                                            startActivity(intent)
+                                        }
+
                                         is TdApi.MessageVideo -> {
                                             println("视频消息")
                                             lifecycleScope.launch {
