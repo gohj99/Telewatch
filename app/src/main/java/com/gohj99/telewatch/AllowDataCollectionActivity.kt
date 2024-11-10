@@ -15,14 +15,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -107,28 +106,15 @@ fun SplashAllowDataCollectionScreen(set: (Boolean) -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // 不同意和同意按钮
-        Row(
-            horizontalArrangement = Arrangement.Center,
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 64.dp, start = 16.dp, end = 16.dp)
+                .padding(bottom = 4.dp, start = 16.dp, end = 16.dp)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             Button(
-                onClick = { set(false) },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3E4D58),  // 按钮背景颜色
-                    contentColor = Color.White   // 按钮文字颜色
-                )
-            ) {
-                Text(text = stringResource(id = R.string.disagree))
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
                 onClick = { set(true) },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF3A7FBE),  // 按钮背景颜色
                     contentColor = Color.White   // 按钮文字颜色
@@ -137,6 +123,55 @@ fun SplashAllowDataCollectionScreen(set: (Boolean) -> Unit) {
                 Text(text = stringResource(id = R.string.agree))
             }
         }
+        Box(
+            modifier = Modifier
+                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = { set(false) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF3E4D58),  // 按钮背景颜色
+                    contentColor = Color.White   // 按钮文字颜色
+                )
+            ) {
+                Text(text = stringResource(id = R.string.disagree))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(42.dp))
+//        Row(
+//            horizontalArrangement = Arrangement.Center,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(bottom = 64.dp, start = 16.dp, end = 16.dp)
+//        ) {
+//            Button(
+//                onClick = { set(false) },
+//                modifier = Modifier.weight(1f),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color(0xFF3E4D58),  // 按钮背景颜色
+//                    contentColor = Color.White   // 按钮文字颜色
+//                )
+//            ) {
+//                Text(text = stringResource(id = R.string.disagree))
+//            }
+//
+//            Spacer(modifier = Modifier.width(8.dp))
+//
+//            Button(
+//                onClick = { set(true) },
+//                modifier = Modifier.weight(1f),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color(0xFF3A7FBE),  // 按钮背景颜色
+//                    contentColor = Color.White   // 按钮文字颜色
+//                )
+//            ) {
+//                Text(text = stringResource(id = R.string.agree))
+//            }
+//        }
     }
 }
 

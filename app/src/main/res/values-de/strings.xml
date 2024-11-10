@@ -123,4 +123,10 @@
     <string name="GoToCheckUpdateActivity_title">Check updates warning</string>
     <string name="GoToCheckUpdateActivity_description">We will check for updates from the official GitHub repository.</string>
     <string name="don_remind_me_again">Don\'t remind me again</string>
+    <string name="announcement_title">Bekanntmachung</string>
+    <string name="No_app_to_handle_this_url">Keine App, die diese URL verarbeiten kann</string>
+    <string name="Global_Search">Globale Suche</string>
+    <string name="GoToAnnouncementActivity_title">Erinnerung zur Ankündigungsansicht</string>
+    <string name="GoToAnnouncementActivity_description">Für diese Funktion ist Zugriff auf den API-Server des Autors erforderlich</string>
+    <string name="join_in">dazu kommen</string>
 </resources>

@@ -194,22 +194,22 @@ fun ChatLazyColumn(
         if (chatsFolder == null) {
             if (isHomePagePin) {
                 // 渲染置顶消息
-                items(pinnedChats.value, key = { "${it.id}_${it.title}_${it.isPinned}" }) { item ->
+                items(pinnedChats.value, key = { "${it.id}_${it.isPinned}" }) { item ->
                     ChatView(item, callback, searchText, pinnedView = true)
                 }
                 // 渲染普通消息
-                items(regularChats.value, key = { "${it.id}_${it.title}" }) { item ->
+                items(regularChats.value, key = { it.id }) { item ->
                     ChatView(item, callback, searchText, pinnedView = false)
                 }
             } else {
                 // 渲染所有消息（置顶和非置顶）
-                items(itemsList.value, key = { "${it.id}_${it.title}" }) { item ->
+                items(itemsList.value, key = { it.id }) { item ->
                     ChatView(item, callback, searchText)
                 }
             }
         } else {
             // 渲染置顶消息
-            items(pinnedChats.value, key = { "${it.id}_${it.title}_${chatsFolder.title}_${it.isPinned}" }) { item ->
+            items(pinnedChats.value, key = { "${it.id}_${chatsFolder.title}_${it.isPinned}" }) { item ->
                 ChatView(
                     chat = item,
                     callback = callback,
@@ -222,7 +222,7 @@ fun ChatLazyColumn(
                 )
             }
             // 渲染普通消息
-            items(regularChats.value, key = { "${it.id}_${it.title}_${chatsFolder.title}" }) { item ->
+            items(regularChats.value, key = { "${it.id}_${chatsFolder.title}" }) { item ->
                 ChatView(
                     chat = item,
                     callback = callback,
@@ -273,31 +273,17 @@ fun ChatView(
     chatFolderInfo: TdApi.ChatFolder? = null,
     contactsSet: Set<Long> = emptySet(),  // 确保类型为 Long
     includedChatIdsSet: Set<Long> = emptySet(),  // 确保类型为 Long
-    excludedChatIdsSet: Set<Long> = emptySet()  // 确保类型为 Long
+    excludedChatIdsSet: Set<Long> = emptySet(),  // 确保类型为 Long
+    notJoin: Boolean = false
 ) {
     // 使用 derivedStateOf 来确保不必要的重渲染
     val isMatchingSearchText by remember(searchText.value) {
         derivedStateOf { matchingString(searchText.value, chat.title) }
     }
 
-    if (chatFolderInfo == null) {
-        if (pinnedView == null) {
-            MainCard(
-                column = {
-                    Text(
-                        text = chat.title,
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    if (chat.message.isNotEmpty()) {
-                        MessageView(message = chat.message)
-                    }
-                },
-                item = chat,
-                callback = { callback(chat) }
-            )
-        } else {
-            if (chat.isPinned == pinnedView && isMatchingSearchText) {
+    if (isMatchingSearchText) {
+        if (chatFolderInfo == null) {
+            if (pinnedView == null) {
                 MainCard(
                     column = {
                         Text(
@@ -312,44 +298,61 @@ fun ChatView(
                     item = chat,
                     callback = { callback(chat) }
                 )
-            }
-        }
-    } else {
-        if (isMatchingSearchText && (chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
-
-            // 基于过滤条件设置显示会话
-            val isShow by remember(chat.id, includedChatIdsSet, excludedChatIdsSet, contactsSet) {
-                derivedStateOf {
-                    when {
-                        chat.id in excludedChatIdsSet -> false
-                        chat.id in includedChatIdsSet -> true
-                        chat.isChannel && chatFolderInfo.includeChannels -> true
-                        chat.isGroup && chatFolderInfo.includeGroups -> true
-                        chat.isPrivateChat -> when {
-                            chat.isBot -> chatFolderInfo.includeBots
-                            chat.id in contactsSet -> chatFolderInfo.includeContacts
-                            else -> chatFolderInfo.includeNonContacts
-                        }
-                        else -> false
-                    }
+            } else {
+                if (chat.isPinned == pinnedView) {
+                    MainCard(
+                        column = {
+                            Text(
+                                text = chat.title,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            if (chat.message.isNotEmpty()) {
+                                MessageView(message = chat.message)
+                            }
+                        },
+                        item = chat,
+                        callback = { callback(chat) }
+                    )
                 }
             }
+        } else {
+            if ((chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
 
-            if (isShow) {
-                MainCard(
-                    column = {
-                        Text(
-                            text = chat.title,
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        if (chat.message.isNotEmpty()) {
-                            MessageView(message = chat.message)
+                // 基于过滤条件设置显示会话
+                val isShow by remember(chat.id, includedChatIdsSet, excludedChatIdsSet, contactsSet) {
+                    derivedStateOf {
+                        when {
+                            chat.id in excludedChatIdsSet -> false
+                            chat.id in includedChatIdsSet -> true
+                            chat.isChannel && chatFolderInfo.includeChannels -> true
+                            chat.isGroup && chatFolderInfo.includeGroups -> true
+                            chat.isPrivateChat -> when {
+                                chat.isBot -> chatFolderInfo.includeBots
+                                chat.id in contactsSet -> chatFolderInfo.includeContacts
+                                else -> chatFolderInfo.includeNonContacts
+                            }
+                            else -> false
                         }
-                    },
-                    item = chat,
-                    callback = { callback(chat) }
-                )
+                    }
+                }
+
+                if (isShow) {
+                    MainCard(
+                        column = {
+                            Text(
+                                text = chat.title,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            if (chat.message.isNotEmpty()) {
+                                MessageView(message = chat.message)
+                            }
+                        },
+                        item = chat,
+                        callback = { callback(chat) }
+                    )
+                }
             }
         }
     }

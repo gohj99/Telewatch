@@ -20,8 +20,8 @@ android {
         minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 18
-        versionName = "1.2.7"
+        versionCode = 19
+        versionName = "1.2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -108,11 +108,15 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.gson)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
     testImplementation(libs.junit)
     implementation(libs.zxing.core)
     implementation(libs.acra.http)
     implementation(libs.acra.toast)
     implementation(project(":libtd"))
+    implementation(libs.lottie)
+    implementation(libs.lottie.compose)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

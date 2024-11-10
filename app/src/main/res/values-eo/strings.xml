@@ -123,4 +123,10 @@
     <string name="GoToCheckUpdateActivity_title">Kontrolu averton pri ĝisdatigoj</string>
     <string name="GoToCheckUpdateActivity_description">Ni kontrolos ĝisdatigojn de la oficiala GitHub-deponejo.</string>
     <string name="don_remind_me_again">Ne rememorigu min</string>
+    <string name="announcement_title">Anonco</string>
+    <string name="No_app_to_handle_this_url">Neniu aplikaĵo por trakti ĉi tiun URL</string>
+    <string name="Global_Search">Tutmonda Serĉo</string>
+    <string name="GoToAnnouncementActivity_title">Anonco Vidi Rememorigilon</string>
+    <string name="GoToAnnouncementActivity_description">Ĉi tiu funkcio postulas aliron al la API-servilo de la aŭtoro</string>
+    <string name="join_in">aliĝu</string>
 </resources>

@@ -22,6 +22,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -47,6 +48,11 @@ import java.io.File
 object TgApiManager {
     @SuppressLint("StaticFieldLeak")
     var tgApi: TgApi? = null
+}
+
+object chatsListManager {
+    @SuppressLint("StaticFieldLeak")
+    var chatsList: MutableState<List<Chat>> = mutableStateOf(listOf())
 }
 
 class MainActivity : ComponentActivity() {
@@ -260,6 +266,7 @@ class MainActivity : ComponentActivity() {
                     topTitle = topTitle,
                     chatsFoldersList = chatsFoldersList
                 )
+                chatsListManager.chatsList = chatsList
                 TgApiManager.tgApi?.loadChats(15)
                 TgApiManager.tgApi?.getContacts(contacts)
                 launch(Dispatchers.Main) {

@@ -210,6 +210,9 @@ fun SettingProgressBarView(
                         onClick = {
                             if (parameterValue > minValue) {
                                 parameterValue -= base
+                                parameterValue = BigDecimal(parameterValue.toString())
+                                    .setScale(decimalPlaces, RoundingMode.HALF_UP)
+                                    .toFloat()
                                 callback(parameterValue)
                             }
                         },
@@ -249,6 +252,9 @@ fun SettingProgressBarView(
                         onClick = {
                             if (parameterValue < maxValue) {
                                 parameterValue += base
+                                parameterValue = BigDecimal(parameterValue.toString())
+                                    .setScale(decimalPlaces, RoundingMode.HALF_UP)
+                                    .toFloat()
                                 callback(parameterValue)
                             }
                         },

@@ -60,7 +60,7 @@
       <SelectionState runConfigName="SplashSettingScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="SplashSettingLazyColumnScreenPreview">
+      <SelectionState runConfigName="SplashAllowDataCollectionScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

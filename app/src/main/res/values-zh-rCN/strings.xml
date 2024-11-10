@@ -123,4 +123,10 @@
     <string name="GoToCheckUpdateActivity_title">检查更新警告</string>
     <string name="GoToCheckUpdateActivity_description">我们将从官方 GitHub 存储库检查更新。</string>
     <string name="don_remind_me_again">不要再提醒我</string>
+    <string name="announcement_title">公告</string>
+    <string name="No_app_to_handle_this_url">没有应用程序可以处理此网址</string>
+    <string name="Global_Search">全球搜索</string>
+    <string name="GoToAnnouncementActivity_title">公告查看提醒</string>
+    <string name="GoToAnnouncementActivity_description">此功能需要访问作者的 API 服务器</string>
+    <string name="join_in">加入</string>
 </resources>

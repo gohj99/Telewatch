@@ -12,6 +12,8 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -131,7 +133,7 @@ class ChatActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun init(lastRun: Boolean = false) {
+    private suspend fun init(parameter: String? = null) {
         tgApi = TgApiManager.tgApi
 
         // 接收传递的 Chat 对象
@@ -208,6 +210,22 @@ class ChatActivity : ComponentActivity() {
                                             startActivity(intent)
                                         }
 
+                                        // 贴纸消息
+                                        is TdApi.MessageSticker -> {
+                                            println("贴纸消息")
+                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            intent.putExtra("messageId", message.id)
+                                            startActivity(intent)
+                                        }
+
+                                        // GIF消息
+                                        is TdApi.MessageAnimation -> {
+                                            println("GIF消息")
+                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            intent.putExtra("messageId", message.id)
+                                            startActivity(intent)
+                                        }
+
                                         is TdApi.MessageVideo -> {
                                             println("视频消息")
                                             lifecycleScope.launch {
@@ -226,10 +244,6 @@ class ChatActivity : ComponentActivity() {
 
                                         is TdApi.MessageVoiceNote -> {
                                             println("语音消息")
-                                        }
-
-                                        is TdApi.MessageAnimation -> {
-                                            println("动画消息")
                                         }
                                     }
                                 },
@@ -336,19 +350,36 @@ class ChatActivity : ComponentActivity() {
                                 chatObject = itChatObject,
                                 lastReadOutboxMessageId = lastReadOutboxMessageId,
                                 lastReadInboxMessageId = lastReadInboxMessageId,
-                                listState = listState
+                                listState = listState,
+                                onLinkClick = { url ->
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    val packageManager: PackageManager = packageManager
+                                    val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+
+                                    if (activities.isNotEmpty()) {
+                                        startActivity(intent)
+                                    } else {
+                                        // 处理没有可用浏览器的情况
+                                        Toast.makeText(this, getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                reInit = {
+                                    lifecycleScope.launch {
+                                        init()
+                                    }
+                                }
                             )
                         }
                     }
                 }
             }
             if (chatObject == null) {
-                if (lastRun) {
+                if (parameter == "lastRun") {
                     throw IllegalStateException("Unable to create private chat")
                 } else {
-                    tgApi!!.CreatePrivateChat(chat!!.id)
+                    tgApi!!.createPrivateChat(chat!!.id)
                     lifecycleScope.launch(Dispatchers.IO) {
-                        init(true)
+                        init("lastRun")
                     }
                 }
             }
