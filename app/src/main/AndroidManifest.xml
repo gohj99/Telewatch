@@ -32,13 +32,18 @@
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
+            android:name=".GoToAnnouncementActivity"
+            android:exported="true"
+            android:label="@string/announcement_title"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".AnnouncementActivity"
             android:exported="false"
             android:label="@string/announcement_title"
             android:theme="@style/Theme.Telewatch" />
         <activity
             android:name=".GoToCheckUpdateActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/Beta_title"
             android:theme="@style/Theme.Telewatch" />
         <activity
@@ -83,7 +88,7 @@
             android:theme="@style/Theme.Telewatch" />
         <activity
             android:name=".AboutActivity"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/about_activity_setting"
             android:theme="@style/Theme.Telewatch" />
         <activity

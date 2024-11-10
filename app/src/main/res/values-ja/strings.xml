@@ -125,4 +125,8 @@
     <string name="don_remind_me_again">二度と思い出さないでください</string>
     <string name="announcement_title">発表</string>
     <string name="No_app_to_handle_this_url">この URL を処理するアプリはありません</string>
+    <string name="Global_Search">グローバル検索</string>
+    <string name="GoToAnnouncementActivity_title">お知らせのリマインダーを表示</string>
+    <string name="GoToAnnouncementActivity_description">この機能には、作成者の API サーバーへのアクセスが必要です</string>
+    <string name="join_in">参加する</string>
 </resources>

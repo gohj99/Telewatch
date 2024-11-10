@@ -46,7 +46,7 @@ fun LinkText(
 
             // Append the link with a different style
             pushStringAnnotation(tag = "URL", annotation = result.value)
-            withStyle(style = SpanStyle(color = Color(0xFF66D3FE), textDecoration = TextDecoration.Underline)) {
+            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
                 append(result.value)
             }
             pop()

@@ -125,4 +125,8 @@
     <string name="don_remind_me_again">Не напоминай мне больше</string>
     <string name="announcement_title">Объявление</string>
     <string name="No_app_to_handle_this_url">Нет приложения для обработки этого URL.</string>
+    <string name="Global_Search">Глобальный поиск</string>
+    <string name="GoToAnnouncementActivity_title">Напоминание о просмотре объявления</string>
+    <string name="GoToAnnouncementActivity_description">Для этой функции требуется доступ к API-серверу автора.</string>
+    <string name="join_in">присоединиться</string>
 </resources>

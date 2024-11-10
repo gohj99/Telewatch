@@ -139,7 +139,7 @@ class SettingActivity : ComponentActivity() {
                             startActivity(
                                 Intent(
                                     this,
-                                    AnnouncementActivity::class.java
+                                    GoToAnnouncementActivity::class.java
                                 )
                             )
                         }

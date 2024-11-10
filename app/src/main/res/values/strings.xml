@@ -125,4 +125,8 @@
     <string name="don_remind_me_again">Don\'t remind me again</string>
     <string name="announcement_title">Announcement</string>
     <string name="No_app_to_handle_this_url">No app to handle this url</string>
+    <string name="Global_Search">Global Search</string>
+    <string name="GoToAnnouncementActivity_title">Announcement View Reminder</string>
+    <string name="GoToAnnouncementActivity_description">This feature requires access to the author\'s API server</string>
+    <string name="join_in">join in</string>
 </resources>

@@ -133,7 +133,7 @@ class ChatActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun init(lastRun: Boolean = false) {
+    private suspend fun init(parameter: String? = null) {
         tgApi = TgApiManager.tgApi
 
         // 接收传递的 Chat 对象
@@ -362,6 +362,11 @@ class ChatActivity : ComponentActivity() {
                                         // 处理没有可用浏览器的情况
                                         Toast.makeText(this, getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
                                     }
+                                },
+                                reInit = {
+                                    lifecycleScope.launch {
+                                        init()
+                                    }
                                 }
                             )
                         }
@@ -369,12 +374,12 @@ class ChatActivity : ComponentActivity() {
                 }
             }
             if (chatObject == null) {
-                if (lastRun) {
+                if (parameter == "lastRun") {
                     throw IllegalStateException("Unable to create private chat")
                 } else {
-                    tgApi!!.CreatePrivateChat(chat!!.id)
+                    tgApi!!.createPrivateChat(chat!!.id)
                     lifecycleScope.launch(Dispatchers.IO) {
-                        init(true)
+                        init("lastRun")
                     }
                 }
             }

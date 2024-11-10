@@ -41,31 +41,31 @@ import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 
-class GoToCheckUpdateActivity : ComponentActivity() {
+class GoToAnnouncementActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        if (settingsSharedPref.getBoolean("Skip_GoToCheckUpdateActivity", false)) {
+        if (settingsSharedPref.getBoolean("Skip_GoToAnnouncementActivity", false)) {
             startActivity(
                 Intent(
-                    this@GoToCheckUpdateActivity,
-                    CheckUpdateActivity::class.java
+                    this@GoToAnnouncementActivity,
+                    AnnouncementActivity::class.java
                 )
             )
             finish()
         } else {
             setContent {
                 TelewatchTheme {
-                    SplashGoToCheckUpdateScreen { isSkip ->
+                    SplashAnnouncementActivityScreen { isSkip ->
                         with(settingsSharedPref.edit()) {
-                            putBoolean("Skip_GoToCheckUpdateActivity", isSkip)
+                            putBoolean("Skip_GoToAnnouncementActivity", isSkip)
                             commit()
                             startActivity(
                                 Intent(
-                                    this@GoToCheckUpdateActivity,
-                                    CheckUpdateActivity::class.java
+                                    this@GoToAnnouncementActivity,
+                                    AnnouncementActivity::class.java
                                 )
                             )
                             finish()
@@ -78,7 +78,7 @@ class GoToCheckUpdateActivity : ComponentActivity() {
 }
 
 @Composable
-fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
+fun SplashAnnouncementActivityScreen(set: (Boolean) -> Unit) {
     val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
         scrollState.scrollTo(80)
@@ -94,7 +94,7 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
     ) {
         // 标题
         Text(
-            text = stringResource(id = R.string.GoToCheckUpdateActivity_title),
+            text = stringResource(id = R.string.GoToAnnouncementActivity_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -104,7 +104,7 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
 
         // 主要说明部分
         Text(
-            text = stringResource(id = R.string.GoToCheckUpdateActivity_description),
+            text = stringResource(id = R.string.GoToAnnouncementActivity_description),
             fontSize = 16.sp,
             color = Color.White,
             textAlign = TextAlign.Center,
@@ -155,8 +155,8 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun SplashGoToCheckUpdateScreenPreview() {
+fun SplashGoToAnnouncementActivityPreview() {
     TelewatchTheme {
-        SplashAllowDataCollectionScreen { /*TODO*/ }
+        SplashAnnouncementActivityScreen { /*TODO*/ }
     }
 }

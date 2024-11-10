@@ -125,4 +125,8 @@
     <string name="don_remind_me_again">Ne me le rappelle plus</string>
     <string name="announcement_title">Annonce</string>
     <string name="No_app_to_handle_this_url">Aucune application pour gérer cette URL</string>
+    <string name="Global_Search">Recherche globale</string>
+    <string name="GoToAnnouncementActivity_title">Annonce Voir Rappel</string>
+    <string name="GoToAnnouncementActivity_description">Cette fonctionnalité nécessite un accès au serveur API de l\'auteur</string>
+    <string name="join_in">se joindre à</string>
 </resources>

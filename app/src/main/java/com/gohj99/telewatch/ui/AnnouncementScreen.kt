@@ -8,6 +8,11 @@
 
 package com.gohj99.telewatch.ui
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.Announcement
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
 import com.google.gson.JsonObject
 
@@ -48,6 +56,8 @@ fun SplashAnnouncementScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
+        val context = LocalContext.current
+
         if (jsonObject == null) {
             // 包含 Row 的 Box
             Box(
@@ -109,15 +119,41 @@ fun SplashAnnouncementScreen(
                     Spacer(modifier = Modifier.height(35.dp)) // 添加一个高度为 8dp 的 Spacer
                     MainCard(
                         column = {
-                            Text(
-                                text = jsonObject["content"]?.asString ?: "Error",
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                            SelectionContainer {
+                                LinkText(
+                                    text = jsonObject["content"]?.asString ?: "Error",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    onLinkClick = { url ->
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                        val packageManager: PackageManager = context.packageManager
+                                        val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+
+                                        if (activities.isNotEmpty()) {
+                                            context.startActivity(intent)
+                                        } else {
+                                            // 处理没有可用浏览器的情况
+                                            Toast.makeText(context, context.getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                )
+                            }
                         },
                         item = "content",
                         color = Color(0xFF2C323A)
                     )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = jsonObject["created_at"]?.asString ?: "",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier
+                                .padding(top = 12.dp)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(50.dp))
                 }
             }
