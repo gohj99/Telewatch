@@ -84,6 +84,8 @@ class MainActivity : ComponentActivity() {
             )
             finish()
         } else {
+            initializeApp()
+            /*
             // 显示启动页面
             setContent {
                 TelewatchTheme {
@@ -95,6 +97,7 @@ class MainActivity : ComponentActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 initializeApp()
             }, 600) // 延迟
+            */
         }
     }
 

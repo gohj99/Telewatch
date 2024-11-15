@@ -8,6 +8,11 @@
 
 package com.gohj99.telewatch.ui
 
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,11 +51,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 
 @Composable
 fun SplashAboutScreen(appVersion: String, buildDate: String) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -144,6 +152,25 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                     )
 
                     Spacer(modifier = Modifier.height(5.dp))
+
+
+                    LinkText(
+                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        onLinkClick = { url ->
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            val packageManager: PackageManager = context.packageManager
+                            val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+
+                            if (activities.isNotEmpty()) {
+                                context.startActivity(intent)
+                            } else {
+                                // 处理没有可用浏览器的情况
+                                Toast.makeText(context, context.getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
 
                     Text(
                         text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
