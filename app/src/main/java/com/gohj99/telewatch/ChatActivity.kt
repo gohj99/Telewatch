@@ -12,8 +12,6 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -31,12 +29,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.chat.SplashChatScreen
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
@@ -352,15 +351,8 @@ class ChatActivity : ComponentActivity() {
                                 lastReadInboxMessageId = lastReadInboxMessageId,
                                 listState = listState,
                                 onLinkClick = { url ->
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                    val packageManager: PackageManager = packageManager
-                                    val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
-
-                                    if (activities.isNotEmpty()) {
-                                        startActivity(intent)
-                                    } else {
-                                        // 处理没有可用浏览器的情况
-                                        Toast.makeText(this, getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
+                                    urlHandle(url, this) {
+                                        if (it) goToChat.value = true
                                     }
                                 },
                                 reInit = {

@@ -8,11 +8,6 @@
 
 package com.gohj99.telewatch.ui
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.urlHandle
 
 
 @Composable
@@ -159,16 +155,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         onLinkClick = { url ->
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                            val packageManager: PackageManager = context.packageManager
-                            val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
-
-                            if (activities.isNotEmpty()) {
-                                context.startActivity(intent)
-                            } else {
-                                // 处理没有可用浏览器的情况
-                                Toast.makeText(context, context.getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
-                            }
+                            urlHandle(url, context)
                         }
                     )
 
@@ -312,6 +299,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                     Text(
                         text = "\nLife is dear, love is dearer. Both can be given up for freedom.\n\n" +
                                 "宁鸣而死，不默而生\n\n" +
+                                "总有地上的生灵 敢于直面雷霆的威光\n\n" +
                                 "Liberté, Égalité, Fraternité\n\n" +
                                 "cai san próta andreioméni,chaíre, o chaíre, Eleutheriá!\n\n" +
                                 "Свобода лучше, чем несвобода.",

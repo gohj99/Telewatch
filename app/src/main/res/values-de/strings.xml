@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">Erinnerung zur Ankündigungsansicht</string>
     <string name="GoToAnnouncementActivity_description">Für diese Funktion ist Zugriff auf den API-Server des Autors erforderlich</string>
     <string name="join_in">dazu kommen</string>
+    <string name="Unable_get_username">Unable to get username</string>
 </resources>

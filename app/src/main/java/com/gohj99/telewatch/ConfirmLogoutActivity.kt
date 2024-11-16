@@ -39,9 +39,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import com.gohj99.telewatch.utils.telegram.TgApi
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File

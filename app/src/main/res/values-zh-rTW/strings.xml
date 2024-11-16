@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">公告查看提醒</string>
     <string name="GoToAnnouncementActivity_description">此功能需要存取作者的 API 伺服器</string>
     <string name="join_in">加入</string>
+    <string name="Unable_get_username">無法取得用戶名</string>
 </resources>

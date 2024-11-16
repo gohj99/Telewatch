@@ -119,6 +119,7 @@ fun formatTimestampToDate(unixTimestamp: Int): String {
     return dateFormat.format(date)
 }
 
+@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SplashChatScreen(
     chatTitle: String,
@@ -141,6 +142,7 @@ fun SplashChatScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     var isLongPressed by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
+    val senderNameMap by remember { mutableStateOf(mutableMapOf<Long, String?>()) }
     var notJoin = false
 
     // 获取context
@@ -274,8 +276,13 @@ fun SplashChatScreen(
                                         fontWeight = FontWeight.Bold,
                                     )
                                     LaunchedEffect(message.senderId) {
-                                        TgApiManager.tgApi?.getUser(it) { user ->
-                                            senderName = user
+                                        if (it in senderNameMap) {
+                                            senderName = senderNameMap[it]!!
+                                        } else {
+                                            TgApiManager.tgApi?.getUser(it) { user ->
+                                                senderName = user
+                                                senderNameMap[it] = user
+                                            }
                                         }
                                     }
                                 }

@@ -6,10 +6,11 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.gohj99.telewatch
+package com.gohj99.telewatch.utils
 
 import android.app.Application
 import android.content.Context
+import com.gohj99.telewatch.R
 import org.acra.BuildConfig
 import org.acra.config.httpSender
 import org.acra.config.toast
@@ -27,7 +28,7 @@ class ACRA : Application() {
         val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
 
         if (dataCollection) {
-            // 初始化 com.gohj99.telewatch.ACRA 配置
+            // 初始化 com.gohj99.telewatch.utils.ACRA 配置
 
             initAcra {
                 // 核心配置
