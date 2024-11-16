@@ -37,7 +37,7 @@ fun LinkText(
         // 支持 http、https 和常见域名后缀的正则表达式
         val regex = Regex(
             "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" + // 支持协议或无协议
-                    "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in)" + // 常见域名后缀
+                    "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" + // 常见域名后缀
                     "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)" // 路径和查询参数
         )
         var lastIndex = 0
