@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">Annonce Voir Rappel</string>
     <string name="GoToAnnouncementActivity_description">Cette fonctionnalité nécessite un accès au serveur API de l\'auteur</string>
     <string name="join_in">se joindre à</string>
+    <string name="Unable_get_username">Impossible d\'obtenir le nom d\'utilisateur</string>
 </resources>

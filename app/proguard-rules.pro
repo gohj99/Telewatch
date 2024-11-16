@@ -12,3 +12,5 @@
 -dontwarn org.bouncycastle.jsse.**
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
+-keepattributes Signature
+-keep class com.google.gson.reflect.TypeToken { *; }

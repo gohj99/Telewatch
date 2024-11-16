@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">お知らせのリマインダーを表示</string>
     <string name="GoToAnnouncementActivity_description">この機能には、作成者の API サーバーへのアクセスが必要です</string>
     <string name="join_in">参加する</string>
+    <string name="Unable_get_username">ユーザー名を取得できません</string>
 </resources>

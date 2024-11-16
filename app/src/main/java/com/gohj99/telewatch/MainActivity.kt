@@ -31,12 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.lifecycleScope
-import com.gohj99.telewatch.telegram.TgApi
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.telegram.TgApi
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -84,6 +84,8 @@ class MainActivity : ComponentActivity() {
             )
             finish()
         } else {
+            initializeApp()
+            /*
             // 显示启动页面
             setContent {
                 TelewatchTheme {
@@ -95,6 +97,7 @@ class MainActivity : ComponentActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 initializeApp()
             }, 600) // 延迟
+            */
         }
     }
 

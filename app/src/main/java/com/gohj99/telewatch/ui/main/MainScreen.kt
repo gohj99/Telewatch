@@ -141,41 +141,39 @@ fun MainScreen(
                 }
             )
         } else {
-            when (if (nowPage <= allPages.size) allPages[nowPage] else "error") {
-                home -> {
+            if (nowPage < (allPages.size - lastPages.size) && nowPage != 0) {
+                if (allPages[nowPage] in chatsFoldersList.value.map { it.title }) {
                     ChatLazyColumn(
                         itemsList = chats,
-                        callback = chatPage
+                        callback = chatPage,
+                        chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
+                        contactsList = contacts.value
                     )
                 }
+            } else {
+                when (if (nowPage <= allPages.size) allPages[nowPage] else "error") {
+                    home -> {
+                        ChatLazyColumn(
+                            itemsList = chats,
+                            callback = chatPage
+                        )
+                    }
 
-                search -> {
-                    SearchLazyColumn(
-                        callback = chatPage
-                    )
-                }
+                    search -> {
+                        SearchLazyColumn(
+                            callback = chatPage
+                        )
+                    }
 
-                contact -> {
-                    ContactsLazyColumn(
-                        itemsList = contacts.value,
-                        callback = chatPage
-                    )
-                }
+                    contact -> {
+                        ContactsLazyColumn(
+                            itemsList = contacts.value,
+                            callback = chatPage
+                        )
+                    }
 
-                setting -> {
-                    SettingLazyColumn(settingList)
-                }
-
-                else -> {
-                    if (nowPage <= allPages.size) {
-                        if (allPages[nowPage] in chatsFoldersList.value.map { it.title }) {
-                            ChatLazyColumn(
-                                itemsList = chats,
-                                callback = chatPage,
-                                chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
-                                contactsList = contacts.value
-                            )
-                        }
+                    setting -> {
+                        SettingLazyColumn(settingList)
                     }
                 }
             }

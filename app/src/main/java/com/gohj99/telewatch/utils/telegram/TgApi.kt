@@ -6,7 +6,7 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.gohj99.telewatch.telegram
+package com.gohj99.telewatch.utils.telegram
 
 import android.content.Context
 import android.os.Build
@@ -47,6 +47,7 @@ class TgApi(
     private var isExitChatPage = true
     private var lastReadOutboxMessageId = mutableStateOf(0L)
     private var lastReadInboxMessageId = mutableStateOf(0L)
+    private var currentUser: List<String> = emptyList()
 
     init {
         // 获取应用外部数据目录
@@ -751,8 +752,19 @@ class TgApi(
         }
     }
 
+    fun searchPublicChat(username: String, callback: (TdApi.Chat?) -> Unit) {
+        // 异步搜索公共聊天
+        client.send(TdApi.SearchPublicChat(username)) { response ->
+            if (response is TdApi.Chat) {
+                callback(response)
+            } else {
+                callback(null)
+            }
+        }
+    }
+
     // 按用户名搜索公共聊天
-    suspend fun searchPublicChat(
+    suspend fun searchPublicChats(
         query: String,
         searchList: MutableState<List<Chat>>
     ) {
@@ -1088,17 +1100,22 @@ class TgApi(
 
     // 获取当前用户 ID 的方法
     suspend fun getCurrentUser(): List<String> {
-        try {
-            val result = sendRequest(TdApi.GetMe())
-            if (result.constructor == TdApi.User.CONSTRUCTOR) {
-                val user = result as TdApi.User
-                return listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
-            } else {
+        if (currentUser.isEmpty()) {
+            try {
+                val result = sendRequest(TdApi.GetMe())
+                if (result.constructor == TdApi.User.CONSTRUCTOR) {
+                    val user = result as TdApi.User
+                    currentUser = listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
+                    return currentUser
+                } else {
+                    throw IllegalStateException("Failed to get current user ID")
+                }
+            } catch (e: Exception) {
+                println("GetMe request failed: ${e.message}")
                 throw IllegalStateException("Failed to get current user ID")
             }
-        } catch (e: Exception) {
-            println("GetMe request failed: ${e.message}")
-            throw IllegalStateException("Failed to get current user ID")
+        } else {
+            return currentUser
         }
     }
 

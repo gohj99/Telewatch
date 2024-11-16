@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">Напоминание о просмотре объявления</string>
     <string name="GoToAnnouncementActivity_description">Для этой функции требуется доступ к API-серверу автора.</string>
     <string name="join_in">присоединиться</string>
+    <string name="Unable_get_username">Не удалось получить имя пользователя</string>
 </resources>

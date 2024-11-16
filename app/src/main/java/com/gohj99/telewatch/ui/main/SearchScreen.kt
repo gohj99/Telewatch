@@ -35,7 +35,7 @@ fun SearchLazyColumn(callback: (Chat) -> Unit) {
 
     LaunchedEffect(searchText.value) {
         if (searchText.value != ""){
-            TgApiManager.tgApi!!.searchPublicChat(
+            TgApiManager.tgApi!!.searchPublicChats(
                 query = searchText.value,
                 searchList = searchList
             )

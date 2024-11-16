@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">Announcement View Reminder</string>
     <string name="GoToAnnouncementActivity_description">This feature requires access to the author\'s API server</string>
     <string name="join_in">join in</string>
+    <string name="Unable_get_username">Unable to get username</string>
 </resources>

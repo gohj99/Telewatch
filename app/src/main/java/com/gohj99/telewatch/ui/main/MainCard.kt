@@ -34,7 +34,12 @@ fun LinkText(
     onLinkClick: ((String) -> Unit)? = null
 ) {
     val annotatedString = buildAnnotatedString {
-        val regex = Regex("(https?://[\\w-]+(\\.[\\w-]+)*(:[0-9]+)?(/[\\w-?=&%.]*)?)")
+        // 支持 http、https 和常见域名后缀的正则表达式
+        val regex = Regex(
+            "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" + // 支持协议或无协议
+                    "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" + // 常见域名后缀
+                    "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)" // 路径和查询参数
+        )
         var lastIndex = 0
 
         regex.findAll(text).forEach { result ->
@@ -55,7 +60,9 @@ fun LinkText(
         }
 
         // Append remaining text
-        append(text.substring(lastIndex))
+        if (lastIndex < text.length) {
+            append(text.substring(lastIndex))
+        }
     }
 
     ClickableText(
@@ -65,12 +72,18 @@ fun LinkText(
         onClick = { offset ->
             annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
                 .firstOrNull()?.let { annotation ->
-                    // Handle click on the URL
-                    onLinkClick?.invoke(annotation.item)
+                    // 如果链接没有协议，补充 http://
+                    val url = if (!annotation.item.startsWith("http", ignoreCase = true)) {
+                        "http://${annotation.item}"
+                    } else {
+                        annotation.item
+                    }
+                    onLinkClick?.invoke(url)
                 }
         }
     )
 }
+
 
 @Composable
 fun <T> MainCard(

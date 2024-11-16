@@ -55,7 +55,7 @@ fun matchingString(target: String, original: String): Boolean {
 data class Chat(
     val id: Long,
     val title: String,
-    val message: String,
+    val message: String = "",
     val isPinned: Boolean = false, // 是否在全部会话置顶
     val isRead: Boolean = false, // 聊天是否已读
     val isBot: Boolean = false, // 是否为机器人对话

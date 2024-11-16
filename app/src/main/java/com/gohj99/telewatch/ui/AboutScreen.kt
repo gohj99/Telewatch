@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,11 +46,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.urlHandle
 
 
 @Composable
 fun SplashAboutScreen(appVersion: String, buildDate: String) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
 
     Column(
@@ -144,6 +148,16 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                     )
 
                     Spacer(modifier = Modifier.height(5.dp))
+
+
+                    LinkText(
+                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        onLinkClick = { url ->
+                            urlHandle(url, context)
+                        }
+                    )
 
                     Text(
                         text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
@@ -285,6 +299,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                     Text(
                         text = "\nLife is dear, love is dearer. Both can be given up for freedom.\n\n" +
                                 "宁鸣而死，不默而生\n\n" +
+                                "总有地上的生灵 敢于直面雷霆的威光\n\n" +
                                 "Liberté, Égalité, Fraternité\n\n" +
                                 "cai san próta andreioméni,chaíre, o chaíre, Eleutheriá!\n\n" +
                                 "Свобода лучше, чем несвобода.",

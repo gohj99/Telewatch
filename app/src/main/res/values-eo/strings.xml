@@ -129,4 +129,5 @@
     <string name="GoToAnnouncementActivity_title">Anonco Vidi Rememorigilon</string>
     <string name="GoToAnnouncementActivity_description">Ĉi tiu funkcio postulas aliron al la API-servilo de la aŭtoro</string>
     <string name="join_in">aliĝu</string>
+    <string name="Unable_get_username">Ne eblas akiri uzantnomon</string>
 </resources>

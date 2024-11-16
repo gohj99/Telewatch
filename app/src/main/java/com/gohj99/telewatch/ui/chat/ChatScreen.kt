@@ -70,7 +70,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
-import com.gohj99.telewatch.chatsListManager
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.LinkText
@@ -120,6 +119,7 @@ fun formatTimestampToDate(unixTimestamp: Int): String {
     return dateFormat.format(date)
 }
 
+@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SplashChatScreen(
     chatTitle: String,
@@ -142,6 +142,7 @@ fun SplashChatScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
     var isLongPressed by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
+    val senderNameMap by remember { mutableStateOf(mutableMapOf<Long, String?>()) }
     var notJoin = false
 
     // 获取context
@@ -151,7 +152,14 @@ fun SplashChatScreen(
     val showUnknownMessageType = settingsSharedPref.getBoolean("show_unknown_message_type", false)
 
     //println(chatsListManager.chatsList.value)
-    if (!chatsListManager.chatsList.value.any { it.id == chatId }) notJoin = true
+    val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
+    if (chatPermissions != null) {
+        if (!chatPermissions.canSendBasicMessages) {
+            if (chatObject.positions.isEmpty()) notJoin = true
+        }
+    } else {
+        if (chatObject.positions.isEmpty()) notJoin = true
+    }
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -268,8 +276,13 @@ fun SplashChatScreen(
                                         fontWeight = FontWeight.Bold,
                                     )
                                     LaunchedEffect(message.senderId) {
-                                        TgApiManager.tgApi?.getUser(it) { user ->
-                                            senderName = user
+                                        if (it in senderNameMap) {
+                                            senderName = senderNameMap[it]!!
+                                        } else {
+                                            TgApiManager.tgApi?.getUser(it) { user ->
+                                                senderName = user
+                                                senderNameMap[it] = user
+                                            }
                                         }
                                     }
                                 }
@@ -369,6 +382,7 @@ fun SplashChatScreen(
                                                     style = MaterialTheme.typography.bodyMedium
                                                 )
                                             }
+                                            // 图片文字
                                             content.caption?.text?.let {
                                                 SelectionContainer {
                                                     LinkText(
@@ -408,19 +422,6 @@ fun SplashChatScreen(
                                                     )
                                                 }
 
-                                                // 视频文字
-                                                content.caption?.text?.let {
-                                                    SelectionContainer {
-                                                        LinkText(
-                                                            text = it,
-                                                            color = Color(0xFFFEFEFE),
-                                                            modifier = Modifier.padding(top = 4.dp),
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            onLinkClick = onLinkClick
-                                                        )
-                                                    }
-                                                }
-
                                                 if (videoDownload) SplashLoadingScreen()
                                                 val videoFile =
                                                     (message.content as TdApi.MessageVideo).video.video
@@ -445,6 +446,19 @@ fun SplashChatScreen(
                                                                 .size(36.dp) // 设置图标大小为 24dp
                                                         )
                                                     }
+                                                }
+                                            }
+
+                                            // 视频文字
+                                            content.caption?.text?.let {
+                                                SelectionContainer {
+                                                    LinkText(
+                                                        text = it,
+                                                        color = Color(0xFFFEFEFE),
+                                                        modifier = Modifier.padding(top = 4.dp),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        onLinkClick = onLinkClick
+                                                    )
                                                 }
                                             }
                                         }
@@ -508,11 +522,13 @@ fun SplashChatScreen(
                                             }
                                         }
                                         else -> {
-                                            Text(
-                                                text = stringResource(id = R.string.Unknown_Message) + if (showUnknownMessageType) "\nType: TdApi." + getMessageContentTypeName(content) else "",
-                                                color = textColor,
-                                                style = MaterialTheme.typography.bodyMedium
-                                            )
+                                            SelectionContainer {
+                                                Text(
+                                                    text = stringResource(id = R.string.Unknown_Message) + if (showUnknownMessageType) "\nType: TdApi." + getMessageContentTypeName(content) else "",
+                                                    color = textColor,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                            }
                                         }
                                     }
 
@@ -627,7 +643,6 @@ fun SplashChatScreen(
 
         // 消息发送部分
         var showKeyboard by remember { mutableStateOf(false) }
-        val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
         if (notJoin) {
             showKeyboard = true
         } else {
