@@ -14,6 +14,7 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
+    <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">开始</string>
     <string name="Welcome_to_app">欢迎使用Telewatch应用程序</string>
@@ -121,7 +122,7 @@
     <string name="is_home_page_pin">是否获取首页置顶消息（可能有bug）</string>
     <string name="show_unknown_message_type">显示不支持的消息类型</string>
     <string name="GoToCheckUpdateActivity_title">检查更新警告</string>
-    <string name="GoToCheckUpdateActivity_description">我们将从官方 GitHub 存储库检查更新。</string>
+    <string name="GoToCheckUpdateActivity_description">我们将从官方 GitHub 存储库检查更新。\n如果您从 IzzyOnDroid/F-Droid 等安装了应用程序，则不会运行它们的软件附加检查。</string>
     <string name="don_remind_me_again">不要再提醒我</string>
     <string name="announcement_title">公告</string>
     <string name="No_app_to_handle_this_url">没有应用程序可以处理此网址</string>
@@ -130,4 +131,10 @@
     <string name="GoToAnnouncementActivity_description">此功能需要访问作者的 API 服务器</string>
     <string name="join_in">加入</string>
     <string name="Unable_get_username">无法获取此用户名</string>
+    <string name="Chat_Info">聊天信息</string>
+    <string name="Online">在线</string>
+    <string name="Unknown">未知</string>
+    <string name="Lately">近期上线</string>
+    <string name="Last_week">上星期</string>
+    <string name="Last_month">上个月</string>
 </resources>

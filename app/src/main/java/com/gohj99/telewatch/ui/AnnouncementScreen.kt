@@ -8,11 +8,6 @@
 
 package com.gohj99.telewatch.ui
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +39,7 @@ import com.gohj99.telewatch.Announcement
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
+import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.JsonObject
 
 @Composable
@@ -125,16 +121,7 @@ fun SplashAnnouncementScreen(
                                     color = Color.White,
                                     style = MaterialTheme.typography.titleMedium,
                                     onLinkClick = { url ->
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                        val packageManager: PackageManager = context.packageManager
-                                        val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
-
-                                        if (activities.isNotEmpty()) {
-                                            context.startActivity(intent)
-                                        } else {
-                                            // 处理没有可用浏览器的情况
-                                            Toast.makeText(context, context.getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
-                                        }
+                                        urlHandle(url, context)
                                     }
                                 )
                             }

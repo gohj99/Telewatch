@@ -14,6 +14,7 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
+    <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">Komencu mesaĝadon</string>
     <string name="Welcome_to_app">Bonvenon al telewatch-apliko</string>
@@ -121,7 +122,7 @@
     <string name="is_home_page_pin">Ĉu ricevi la supran mesaĝon sur la hejmpaĝo (eble havas cimon)</string>
     <string name="show_unknown_message_type">Montras nesubtenatajn mesaĝtipojn</string>
     <string name="GoToCheckUpdateActivity_title">Kontrolu averton pri ĝisdatigoj</string>
-    <string name="GoToCheckUpdateActivity_description">Ni kontrolos ĝisdatigojn de la oficiala GitHub-deponejo.</string>
+    <string name="GoToCheckUpdateActivity_description">Ni kontrolos ĝisdatigojn de la oficiala GitHub-deponejo.\nSe vi instalis la apon de ekz. IzzyOnDroid/F-Droid, iliaj kromaj kontroloj ne estos rulitaj.</string>
     <string name="don_remind_me_again">Ne rememorigu min</string>
     <string name="announcement_title">Anonco</string>
     <string name="No_app_to_handle_this_url">Neniu aplikaĵo por trakti ĉi tiun URL</string>
@@ -130,4 +131,10 @@
     <string name="GoToAnnouncementActivity_description">Ĉi tiu funkcio postulas aliron al la API-servilo de la aŭtoro</string>
     <string name="join_in">aliĝu</string>
     <string name="Unable_get_username">Ne eblas akiri uzantnomon</string>
+    <string name="Chat_Info">Babilaj Informoj</string>
+    <string name="Online">Rete</string>
+    <string name="Unknown">Nekonata</string>
+    <string name="Lately">Lastatempe</string>
+    <string name="Last_week">Pasintsemajne</string>
+    <string name="Last_month">Lastan monaton</string>
 </resources>

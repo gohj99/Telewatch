@@ -13,4 +13,6 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
 -keepattributes Signature
+-keepattributes EnclosingMethod
 -keep class com.google.gson.reflect.TypeToken { *; }
+-keep class com.gohj99.telewatch.Announcement { *; }

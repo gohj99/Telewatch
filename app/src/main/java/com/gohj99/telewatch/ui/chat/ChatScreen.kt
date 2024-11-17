@@ -10,6 +10,7 @@ package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -30,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -61,6 +63,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -68,6 +71,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.gohj99.telewatch.ChatInfoActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.ui.CustomButton
@@ -193,11 +197,20 @@ fun SplashChatScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             //println("开始渲染")
-            Text(
-                text = if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle,
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+            ClickableText(
+                text = AnnotatedString(if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle),
+                style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFFEFEFE), fontWeight = FontWeight.Bold),
+                onClick = {
+                    context.startActivity(
+                        Intent(context, ChatInfoActivity::class.java).apply {
+                            putExtra("chat", Chat(
+                                id = chatId,
+                                title = chatTitle
+                                )
+                            )
+                        }
+                    )
+                }
             )
 
             LazyColumn(
@@ -279,7 +292,7 @@ fun SplashChatScreen(
                                         if (it in senderNameMap) {
                                             senderName = senderNameMap[it]!!
                                         } else {
-                                            TgApiManager.tgApi?.getUser(it) { user ->
+                                            TgApiManager.tgApi?.getUserName(it) { user ->
                                                 senderName = user
                                                 senderNameMap[it] = user
                                             }

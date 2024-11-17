@@ -863,7 +863,7 @@ class TgApi(
     }
 
     // 获取用户名
-    fun getUser(userId: Long, onResult: (String) -> Unit) {
+    fun getUserName(userId: Long, onResult: (String) -> Unit) {
         val getUserRequest = TdApi.GetUser(userId)
 
         client.send(getUserRequest) { result ->
@@ -872,6 +872,19 @@ class TgApi(
                 onResult(fullName)
             } else {
                 onResult("Unknown User")
+            }
+        }
+    }
+
+    // 获取用户
+    fun getUser(userId: Long, onResult: ((TdApi.User)?) -> Unit) {
+        val getUserRequest = TdApi.GetUser(userId)
+
+        client.send(getUserRequest) { result ->
+            if (result is TdApi.User) {
+                onResult(result)
+            } else {
+                onResult(null)
             }
         }
     }

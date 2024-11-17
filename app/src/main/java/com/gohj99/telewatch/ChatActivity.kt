@@ -566,10 +566,10 @@ class ChatActivity : ComponentActivity() {
         // 返回Uri
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
     }
+}
 
-    private fun formatJson(jsonString: String): String {
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val jsonElement = gson.fromJson(jsonString, Any::class.java)
-        return gson.toJson(jsonElement)
-    }
+fun formatJson(jsonString: String): String {
+    val gson = GsonBuilder().setPrettyPrinting().create()
+    val jsonElement = gson.fromJson(jsonString, Any::class.java)
+    return gson.toJson(jsonElement)
 }

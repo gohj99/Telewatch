@@ -1,4 +1,5 @@
 Functions :
+
 - Multi-account support
 - Interface font adjustment
 - Unread/read indicator

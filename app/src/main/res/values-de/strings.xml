@@ -14,6 +14,7 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
+    <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">Beginnen Sie mit dem Versenden von Nachrichten</string>
     <string name="Welcome_to_app">Willkommen bei der Telewatch-App</string>
@@ -121,7 +122,7 @@
     <string name="is_home_page_pin">Whether to get the top message on the homepage (may have a bug)</string>
     <string name="show_unknown_message_type">Displays unsupported message types</string>
     <string name="GoToCheckUpdateActivity_title">Check updates warning</string>
-    <string name="GoToCheckUpdateActivity_description">We will check for updates from the official GitHub repository.</string>
+    <string name="GoToCheckUpdateActivity_description"><![CDATA[Wir werden im offiziellen GitHub-Repository nach Updates suchen.\nWenn Sie die App z. B. von IzzyOnDroid/F-Droid, ihre zusätzlichen Prüfungen werden nicht ausgeführt.]]></string>
     <string name="don_remind_me_again">Don\'t remind me again</string>
     <string name="announcement_title">Bekanntmachung</string>
     <string name="No_app_to_handle_this_url">Keine App, die diese URL verarbeiten kann</string>
@@ -130,4 +131,10 @@
     <string name="GoToAnnouncementActivity_description">Für diese Funktion ist Zugriff auf den API-Server des Autors erforderlich</string>
     <string name="join_in">dazu kommen</string>
     <string name="Unable_get_username">Unable to get username</string>
+    <string name="Chat_Info">Chat-Informationen</string>
+    <string name="Online">Online</string>
+    <string name="Unknown">Unbekannt</string>
+    <string name="Lately">In letzter Zeit</string>
+    <string name="Last_week">Letzte Woche</string>
+    <string name="Last_month">Letzten Monat</string>
 </resources>

@@ -32,6 +32,11 @@
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
+            android:name=".ChatInfoActivity"
+            android:exported="true"
+            android:label="@string/chat_info_activity_main"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".GoToAnnouncementActivity"
             android:exported="true"
             android:label="@string/announcement_title"
