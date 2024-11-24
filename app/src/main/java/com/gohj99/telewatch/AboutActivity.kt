@@ -51,5 +51,5 @@ private fun getAppVersion(context: Context): String {
         pInfo.versionName
     } catch (e: Exception) {
         "1.0.0"
-    }
+    }.toString()
 }

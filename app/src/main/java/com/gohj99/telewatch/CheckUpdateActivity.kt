@@ -46,13 +46,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import com.gohj99.telewatch.model.ReleaseInfo
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.Call
@@ -65,17 +65,6 @@ import java.io.IOException
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-data class ReleaseInfo(
-    @SerializedName("tag_name") val tagName: String,
-    @SerializedName("prerelease") val prerelease: Boolean,
-    @SerializedName("published_at") val publishedAt: String,
-    @SerializedName("assets") val assets: List<Asset>
-)
-
-data class Asset(
-    @SerializedName("name") val name: String,
-    @SerializedName("browser_download_url") val browserDownloadUrl: String
-)
 
 class CheckUpdateActivity : ComponentActivity() {
     private var downloadId: Long = -1
@@ -128,7 +117,7 @@ class CheckUpdateActivity : ComponentActivity() {
 
                                 val pInfo = packageManager.getPackageInfo(packageName, 0)
                                 val localVersion = pInfo.versionName
-                                val needsUpdate = compareVersions(version, localVersion)
+                                val needsUpdate = compareVersions(version, localVersion.toString())
 
                                 val publishedAt = releaseInfo.publishedAt
                                 val zonedDateTime = ZonedDateTime.parse(publishedAt)

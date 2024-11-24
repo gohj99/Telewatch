@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,7 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.SettingItem
+import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import java.math.BigDecimal
@@ -67,7 +66,8 @@ fun SettingLazyColumn(
         item {
             Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
         }
-        items(itemsList.value) { item ->
+        items(itemsList.value.size) { index ->
+            val item = itemsList.value[index]
             when (item) {
                 is SettingItem.Click -> {
                     SettingClickView(item.itemName, item.onClick, item.color)

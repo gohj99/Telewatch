@@ -41,7 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.SettingItem
+import com.gohj99.telewatch.model.Chat
+import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.setting.SettingLazyColumn
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import org.drinkless.tdlib.TdApi

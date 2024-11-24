@@ -137,4 +137,14 @@
     <string name="Lately">最近</string>
     <string name="Last_week">先週</string>
     <string name="Last_month">先月</string>
+    <string name="Show_more">もっと見る</string>
+    <string name="Private_Chat">プライベートチャット</string>
+    <string name="Group_Chat">グループチャット</string>
+    <string name="Member">メンバー</string>
+    <string name="Supergroup_Chat">スーパーグループチャット</string>
+    <string name="Channel">チャネル</string>
+    <string name="Subscribers">購読者</string>
+    <string name="username">ユーザー名</string>
+    <string name="Information">情報</string>
+    <string name="phoneNumber">電話番号</string>
 </resources>

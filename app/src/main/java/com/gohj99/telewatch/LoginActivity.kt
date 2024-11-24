@@ -107,7 +107,7 @@ class LoginActivity : ComponentActivity() {
             pInfo.versionName
         } catch (e: Exception) {
             "1.0.0"
-        }
+        }.toString()
     }
 
     // 处理 TDLib 更新的函数

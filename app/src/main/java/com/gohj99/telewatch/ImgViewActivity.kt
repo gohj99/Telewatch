@@ -53,6 +53,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.gohj99.telewatch.model.tgFile
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
@@ -87,72 +88,72 @@ class ImgViewActivity : ComponentActivity() {
     private fun initSelf() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val chatId = intent.getLongExtra("messageId", -1L)
                 tgApi = TgApiManager.tgApi
-                val message = tgApi?.getMessageTypeById(chatId)
-                val content = message?.content
-
-                when (content) {
-                    is TdApi.MessagePhoto -> {
-                        val photo = content.photo
-                        val photoSizes = photo.sizes
-                        println(photoSizes)
-                        val highestResPhoto = photoSizes.maxByOrNull { it.width * it.height }
-
-                        highestResPhoto?.let {
-                            val file = it.photo
-                            if (!file.local.isDownloadingCompleted) {
-                                tgApi?.downloadPhoto(file) { isSuccess, path ->
-                                    if (isSuccess) {
-                                        if (path != null) {
-                                            checkFileAndShowImage(path, showImage(path))
-                                        } else {
-                                            checkFileAndShowImage(file.local.path, showImage(file.local.path))
-                                        }
-                                    } else {
-                                        showError()
-                                    }
-                                }
-                            } else {
-                                checkFileAndShowImage(file.local.path, showImage(file.local.path))
-                            }
-                        } ?: showError()
-                    }
-
-                    is TdApi.MessageSticker -> {
-                        println("贴纸消息处理中")
-                        val photo = content.sticker.sticker
-
-                        if (!photo.local.isDownloadingCompleted) {
-                            tgApi?.downloadPhoto(photo) { isSuccess, path ->
+                val chatId = intent.getLongExtra("messageId", -1L)
+                if (chatId == -1L) {
+                    val fFile: tgFile? = intent.getParcelableExtra("file")
+                    if (fFile != null) {
+                        val file = fFile.file
+                        if (!file.local.isDownloadingCompleted) {
+                            tgApi?.downloadPhoto(file) { isSuccess, path ->
                                 if (isSuccess) {
                                     if (path != null) {
-                                        checkFileAndShowImage(path, showTgs(path))
+                                        checkFileAndShowImage(path, showImage(path))
                                     } else {
-                                        checkFileAndShowImage(photo.local.path, showTgs(photo.local.path))
+                                        checkFileAndShowImage(file.local.path, showImage(file.local.path))
                                     }
                                 } else {
                                     showError()
                                 }
                             }
                         } else {
-                            //println(photo.local.path)
-                            checkFileAndShowImage(photo.local.path, showTgs(photo.local.path))
+                            checkFileAndShowImage(file.local.path, showImage(file.local.path))
                         }
+                    } else {
+                        showError()
                     }
+                } else {
+                    val message = tgApi?.getMessageTypeById(chatId)
+                    val content = message?.content
 
-                    is TdApi.MessageAnimation -> {
-                        println("GIF消息处理中")
-                        val photo = content.animation.animation
+                    when (content) {
+                        is TdApi.MessagePhoto -> {
+                            val photo = content.photo
+                            val photoSizes = photo.sizes
+                            println(photoSizes)
+                            val highestResPhoto = photoSizes.maxByOrNull { it.width * it.height }
 
-                        if (content.animation.mimeType == "image/gif") {
+                            highestResPhoto?.let {
+                                val file = it.photo
+                                if (!file.local.isDownloadingCompleted) {
+                                    tgApi?.downloadPhoto(file) { isSuccess, path ->
+                                        if (isSuccess) {
+                                            if (path != null) {
+                                                checkFileAndShowImage(path, showImage(path))
+                                            } else {
+                                                checkFileAndShowImage(file.local.path, showImage(file.local.path))
+                                            }
+                                        } else {
+                                            showError()
+                                        }
+                                    }
+                                } else {
+                                    checkFileAndShowImage(file.local.path, showImage(file.local.path))
+                                }
+                            } ?: showError()
+                        }
+
+                        is TdApi.MessageSticker -> {
+                            println("贴纸消息处理中")
+                            val photo = content.sticker.sticker
+
                             if (!photo.local.isDownloadingCompleted) {
                                 tgApi?.downloadPhoto(photo) { isSuccess, path ->
                                     if (isSuccess) {
                                         if (path != null) {
-                                            checkFileAndShowImage(path, showImage(path))
+                                            checkFileAndShowImage(path, showTgs(path))
                                         } else {
-                                            checkFileAndShowImage(photo.local.path, showImage(photo.local.path))
+                                            checkFileAndShowImage(photo.local.path, showTgs(photo.local.path))
                                         }
                                     } else {
                                         showError()
@@ -160,29 +161,53 @@ class ImgViewActivity : ComponentActivity() {
                                 }
                             } else {
                                 //println(photo.local.path)
-                                checkFileAndShowImage(photo.local.path, showImage(photo.local.path))
-                            }
-                        } else if (content.animation.mimeType == "video/mp4") {
-                            if (!photo.local.isDownloadingCompleted) {
-                                tgApi?.downloadPhoto(photo) { isSuccess, path ->
-                                    if (isSuccess) {
-                                        if (path != null) {
-                                            checkFileAndShowImage(path, showMp4(path))
-                                        } else {
-                                            checkFileAndShowImage(photo.local.path, showMp4(photo.local.path))
-                                        }
-                                    } else {
-                                        showError()
-                                    }
-                                }
-                            } else {
-                                //println(photo.local.path)
-                                checkFileAndShowImage(photo.local.path, showMp4(photo.local.path))
+                                checkFileAndShowImage(photo.local.path, showTgs(photo.local.path))
                             }
                         }
-                    }
 
-                    else -> showError()
+                        is TdApi.MessageAnimation -> {
+                            println("GIF消息处理中")
+                            val photo = content.animation.animation
+
+                            if (content.animation.mimeType == "image/gif") {
+                                if (!photo.local.isDownloadingCompleted) {
+                                    tgApi?.downloadPhoto(photo) { isSuccess, path ->
+                                        if (isSuccess) {
+                                            if (path != null) {
+                                                checkFileAndShowImage(path, showImage(path))
+                                            } else {
+                                                checkFileAndShowImage(photo.local.path, showImage(photo.local.path))
+                                            }
+                                        } else {
+                                            showError()
+                                        }
+                                    }
+                                } else {
+                                    //println(photo.local.path)
+                                    checkFileAndShowImage(photo.local.path, showImage(photo.local.path))
+                                }
+                            } else if (content.animation.mimeType == "video/mp4") {
+                                if (!photo.local.isDownloadingCompleted) {
+                                    tgApi?.downloadPhoto(photo) { isSuccess, path ->
+                                        if (isSuccess) {
+                                            if (path != null) {
+                                                checkFileAndShowImage(path, showMp4(path))
+                                            } else {
+                                                checkFileAndShowImage(photo.local.path, showMp4(photo.local.path))
+                                            }
+                                        } else {
+                                            showError()
+                                        }
+                                    }
+                                } else {
+                                    //println(photo.local.path)
+                                    checkFileAndShowImage(photo.local.path, showMp4(photo.local.path))
+                                }
+                            }
+                        }
+
+                        else -> showError()
+                    }
                 }
             } catch (e: Exception) {
                 exceptionState = e

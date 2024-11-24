@@ -158,15 +158,6 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                             urlHandle(url, context)
                         }
                     )
-
-                    Text(
-                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
-                        color = Color.White,
-                        fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
                 }
             }
         }

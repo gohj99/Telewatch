@@ -1,3 +1,11 @@
+<!--
+  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
+  -->
+
 <resources>
     <string name="title_activity_login" translatable="false">LoginActivity</string>
     <string name="title_activity_main" translatable="false">MainActivity</string>
@@ -129,4 +137,14 @@
     <string name="Lately">Недавно</string>
     <string name="Last_week">На прошлой неделе</string>
     <string name="Last_month">В прошлом месяце</string>
+    <string name="Show_more">Показать больше</string>
+    <string name="Private_Chat">Приватный чат</string>
+    <string name="Group_Chat">Групповой чат</string>
+    <string name="Member">Член</string>
+    <string name="Supergroup_Chat">Супергрупповой чат</string>
+    <string name="Channel">Канал</string>
+    <string name="Subscribers">Подписчики</string>
+    <string name="username">Имя пользователя</string>
+    <string name="Information">Информация</string>
+    <string name="phoneNumber">номер телефона</string>
 </resources>

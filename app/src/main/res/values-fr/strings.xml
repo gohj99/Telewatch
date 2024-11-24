@@ -137,4 +137,14 @@
     <string name="Lately">Dernièrement</string>
     <string name="Last_week">La semaine dernière</string>
     <string name="Last_month">Mois dernier</string>
+    <string name="Show_more">Afficher plus</string>
+    <string name="Private_Chat">Chat privé</string>
+    <string name="Group_Chat">Discussion de groupe</string>
+    <string name="Member">Membre</string>
+    <string name="Supergroup_Chat">Discussion en supergroupe</string>
+    <string name="Channel">Canal</string>
+    <string name="Subscribers">Abonnés</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="Information">Information</string>
+    <string name="phoneNumber">Numéro de téléphone</string>
 </resources>

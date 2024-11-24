@@ -19,17 +19,7 @@ import android.widget.Toast
 import com.gohj99.telewatch.ChatActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
-import com.gohj99.telewatch.ui.main.Chat
-
-fun parseUsername(input: String): String? {
-    // Regex to match Telegram username formats
-    val regex = Regex(
-        pattern = """(?:https?://)?(?:www\.)?t\.me/(?:@)?([a-zA-Z0-9_]{5,32})(?:@.*)?""",
-        options = setOf(RegexOption.IGNORE_CASE)
-    )
-
-    return regex.find(input)?.groupValues?.get(1)
-}
+import com.gohj99.telewatch.model.Chat
 
 fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = null) {
     val username = parseUsername(url)

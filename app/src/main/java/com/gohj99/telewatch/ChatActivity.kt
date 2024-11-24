@@ -29,8 +29,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.chat.SplashChatScreen
-import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme

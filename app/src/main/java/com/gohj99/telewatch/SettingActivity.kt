@@ -19,37 +19,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.Color
+import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
 
-sealed class SettingItem(val name: String) {
-    data class Click(
-        val itemName: String,
-        val onClick: () -> Unit,
-        val color: Color = Color(0xFF404953)
-    ) : SettingItem(itemName)
-
-    data class Switch(
-        val itemName: String,
-        var isSelected: Boolean,
-        val onSelect: (Boolean) -> Unit,
-        val color: Color = Color(0xFF404953)
-    ) : SettingItem(itemName)
-
-    data class ProgressBar(
-        val itemName: String,
-        var progress: Float,
-        val maxValue: Float,
-        val minValue: Float,
-        val base: Float,
-        val onProgressChange: (Float) -> Unit,
-        val color: Color = Color(0xFF404953)
-    ) : SettingItem(itemName)
-}
 
 class SettingActivity : ComponentActivity() {
     private var settingsList = mutableStateOf(listOf<SettingItem>())

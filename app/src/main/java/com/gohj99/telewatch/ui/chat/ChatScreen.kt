@@ -74,8 +74,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.ChatInfoActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.CustomButton
-import com.gohj99.telewatch.ui.main.Chat
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme

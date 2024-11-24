@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -35,8 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gohj99.telewatch.Announcement
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.model.Announcement
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.utils.urlHandle
@@ -162,7 +161,8 @@ fun AnnouncementLazyColumn(itemsList: List<Announcement>, callback: (String) -> 
         item {
             Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
         }
-        items(itemsList, key = { it.id }) { item ->
+        items(itemsList.size, key = { it }) { index ->
+            val item = itemsList[index]
             MainCard(
                 column = {
                     Text(

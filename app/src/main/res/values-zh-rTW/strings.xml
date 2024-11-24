@@ -137,4 +137,14 @@
     <string name="Lately">最近</string>
     <string name="Last_week">上個星期</string>
     <string name="Last_month">上個月</string>
+    <string name="Show_more">顯示更多</string>
+    <string name="Private_Chat">私人聊天</string>
+    <string name="Group_Chat">群聊</string>
+    <string name="Member">成員</string>
+    <string name="Supergroup_Chat">超級群聊</string>
+    <string name="Channel">頻道</string>
+    <string name="Subscribers">訂閱者</string>
+    <string name="username">使用者名稱</string>
+    <string name="Information">資訊</string>
+    <string name="phoneNumber">電話號碼</string>
 </resources>

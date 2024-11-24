@@ -31,7 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.lifecycleScope
-import com.gohj99.telewatch.ui.main.Chat
+import com.gohj99.telewatch.model.Chat
+import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen

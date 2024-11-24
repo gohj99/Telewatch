@@ -8,8 +8,10 @@
 
 package com.gohj99.telewatch.ui
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -46,39 +49,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import com.gohj99.telewatch.ImgViewActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.formatJson
+import com.gohj99.telewatch.model.tgFile
 import com.gohj99.telewatch.ui.main.MainCard
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
+import java.io.IOException
 
 @Composable
-fun SplashChatInfoScreen(chatObject: TdApi.Chat) {
-    var subtitle by remember { mutableStateOf("") }
+fun SplashChatInfoScreen(
+chatObject: TdApi.Chat,
+subtitle: String,
+info: String
+) {
     val gson = Gson()
-    val messageJson = formatJson(gson.toJson(chatObject))
+    var messageJson = ""
     val context = LocalContext.current
-
-    val chatType = chatObject.type
-    if (chatType is TdApi.ChatTypePrivate) {
-        TgApiManager.tgApi!!.getUser(chatType.userId) { result ->
-            when (result!!.status) {
-                is TdApi.UserStatusOnline ->
-                    subtitle = context.getString(R.string.Online)
-                is TdApi.UserStatusEmpty ->
-                    subtitle = context.getString(R.string.Unknown)
-                is TdApi.UserStatusRecently ->
-                    subtitle = context.getString(R.string.Lately)
-                is TdApi.UserStatusLastWeek ->
-                    subtitle = context.getString(R.string.Last_week)
-                is TdApi.UserStatusLastMonth ->
-                    subtitle = context.getString(R.string.Last_month)
-                is TdApi.UserStatusOffline ->
-                    subtitle = context.getString(R.string.Offline)
-            }
-        }
-    }
+    var isExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -122,7 +113,17 @@ fun SplashChatInfoScreen(chatObject: TdApi.Chat) {
                                     .fillMaxWidth(),
                                 verticalAlignment = Alignment.Top //  或 Alignment.Bottom，或者移除此行使用默认的 Top 对齐
                             ) {
-                                ThumbnailChatPhoto(chatObject.photo!!.small)
+                                if (chatObject.photo != null) ThumbnailChatPhoto(chatObject.photo!!.small) {
+                                    context.startActivity(
+                                        Intent(
+                                            context,
+                                            ImgViewActivity::class.java
+                                        ).apply {
+                                            val bigPhotoFile = tgFile(chatObject.photo!!.big)
+                                            putExtra("file", bigPhotoFile)
+                                        }
+                                    )
+                                }
                                 Spacer(Modifier.width(12.dp))
                                 Column {
                                     Spacer(Modifier.height(1.5.dp))
@@ -149,7 +150,38 @@ fun SplashChatInfoScreen(chatObject: TdApi.Chat) {
                 }
             }
             item {
-                Spacer(modifier = Modifier.height(10.dp))
+                if (info != "") {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth() // 只填充宽度
+                    ) {
+                        MainCard(
+                            column = {
+                                Column {
+                                    Text(
+                                        text = stringResource(R.string.Information),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                    SelectionContainer {
+                                        Text(
+                                            text = info,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                    }
+                                }
+                            },
+                            item = "chat",
+                            callback = { }
+                        )
+                    }
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(35.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -158,23 +190,41 @@ fun SplashChatInfoScreen(chatObject: TdApi.Chat) {
                             Color.Black.copy(alpha = 0.8f),
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(7.dp),
+                        .padding(7.dp)
+                        .clickable { isExpanded = true }, // 添加点击事件
                     contentAlignment = Alignment.Center
                 ) {
-                    TextField(
-                        value = messageJson,
-                        onValueChange = { },
-                        readOnly = true,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Color(0xFF2C323A).copy(alpha = 0.3f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(8.dp),
-                        textStyle = TextStyle(color = Color.White, fontSize = 10.sp),
-                        singleLine = false
-                    )
+                    if (isExpanded) {
+                        TextField(
+                            value = messageJson,
+                            onValueChange = { },
+                            readOnly = true,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Color(0xFF2C323A).copy(alpha = 0.3f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .padding(8.dp),
+                            textStyle = TextStyle(color = Color.White, fontSize = 10.sp),
+                            singleLine = false
+                        )
+                    } else {
+                        /*
+                        Text(
+                            text = stringResource(R.string.Show_more),
+                            style = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                        */
+                        CustomButton(
+                            text = stringResource(R.string.Show_more),
+                            onClick = {
+                                messageJson = formatJson(gson.toJson(chatObject))
+                                isExpanded = true
+                            }
+                        )
+                    }
                 }
             }
             item {
@@ -185,40 +235,72 @@ fun SplashChatInfoScreen(chatObject: TdApi.Chat) {
 }
 
 @Composable
-fun ThumbnailChatPhoto(
-    thumbnail: TdApi.File
-) {
-    val isDownloaded = remember { mutableStateOf(thumbnail.local.isDownloadingCompleted) }
+fun ThumbnailChatPhoto(thumbnail: TdApi.File, callback: () -> Unit) {
+    var imagePath by remember { mutableStateOf<String?>(null) }
+    val painter = rememberAsyncImagePainter(model = imagePath) // 在Composable作用域
 
-    if (!isDownloaded.value) {
-        LaunchedEffect(thumbnail) {
-            println("本地没图片，正在下载图片")
-            TgApiManager.tgApi!!.downloadPhoto(thumbnail) { success, path ->
-                if (success) {
-                    isDownloaded.value = true
-                } else {
-                    // 处理下载失败
+    LaunchedEffect(thumbnail.id) {
+        while (true) {
+            if (thumbnail.local.isDownloadingCompleted) {
+                try {
+                    imagePath = thumbnail.local.path // 更新状态触发重组
+                    break
+                } catch (e: IOException) {
+                    println("Image load failed: ${e.message}")
+                    // 处理错误，例如显示占位符
+                    break
                 }
+            } else {
+                //println("本地没图片，正在下载图片")
+                try {
+                    TgApiManager.tgApi!!.downloadPhoto(thumbnail) { success, path ->
+                        if (success) {
+                            thumbnail.local.isDownloadingCompleted = true
+                            thumbnail.local.path = path
+                        } else {
+                            println("Download failed")
+
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("Download error: ${e.message}")
+
+                }
+                delay(1000)
             }
         }
-    } else {
-        Box(
-            modifier = Modifier
-                .size(45.dp)
-                .clip(CircleShape)
-        ) {
+    }
+
+    Box(
+        modifier = Modifier
+            .size(45.dp)
+            .clip(CircleShape)
+            .clickable {
+                // 在这里处理点击事件
+                println("Box clicked!")
+                callback()
+            }
+    ) {
+        if (imagePath != null) { // imagePath 非空才显示图片
             Image(
-                painter = rememberAsyncImagePainter(model = thumbnail.local.path),
+                painter = painter,
                 contentDescription = "Thumbnail",
-                modifier = Modifier
-                    .clip(CircleShape)
+                modifier = Modifier.clip(CircleShape)
             )
         }
+        /*else {
+            // 根据 painterResource 的状态显示占位符
+            when (painterResource) {
+                is AsyncImagePainter.State.Loading -> {/* 显示加载指示器 */}
+                is AsyncImagePainter.State.Error -> {/* 显示错误指示器 */}
+                else -> {/* 显示默认占位符 */}
+            }
+        }*/
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SplashChatInfoScreenPreview() {
-    SplashChatInfoScreen(chatObject = TdApi.Chat())
+    SplashChatInfoScreen(chatObject = TdApi.Chat(), "群组", "电话号码")
 }

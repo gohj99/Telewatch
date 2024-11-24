@@ -137,4 +137,14 @@
     <string name="Lately">Lastatempe</string>
     <string name="Last_week">Pasintsemajne</string>
     <string name="Last_month">Lastan monaton</string>
+    <string name="Show_more">Montri pli</string>
+    <string name="Private_Chat">Privata Babilejo</string>
+    <string name="Group_Chat">Grupa Babilejo</string>
+    <string name="Member">Membro</string>
+    <string name="Supergroup_Chat">Supergrupo Babilejo</string>
+    <string name="Channel">Kanalo</string>
+    <string name="Subscribers">Abonantoj</string>
+    <string name="username">Uzantnomo</string>
+    <string name="Information">Informoj</string>
+    <string name="phoneNumber">telefonnumero</string>
 </resources>

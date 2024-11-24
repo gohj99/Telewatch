@@ -13,7 +13,7 @@ import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.ui.main.Chat
+import com.gohj99.telewatch.model.Chat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -654,7 +654,7 @@ class TgApi(
             pInfo.versionName
         } catch (e: Exception) {
             "1.0.0"
-        }
+        }.toString()
     }
 
     // 下载文件
@@ -760,6 +760,28 @@ class TgApi(
             } else {
                 callback(null)
             }
+        }
+    }
+
+    // 获取群组信息
+    suspend fun getBasicGroup(id: Long): TdApi.BasicGroup? {
+        try {
+            val getResult = sendRequest(TdApi.GetBasicGroup(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getBasicGroup request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取超级群组信息
+    suspend fun getSupergroup(id: Long): TdApi.Supergroup? {
+        try {
+            val getResult = sendRequest(TdApi.GetSupergroup(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getSupergroup request failed: ${e.message}")
+            return null
         }
     }
 
@@ -877,15 +899,13 @@ class TgApi(
     }
 
     // 获取用户
-    fun getUser(userId: Long, onResult: ((TdApi.User)?) -> Unit) {
-        val getUserRequest = TdApi.GetUser(userId)
-
-        client.send(getUserRequest) { result ->
-            if (result is TdApi.User) {
-                onResult(result)
-            } else {
-                onResult(null)
-            }
+    suspend fun getUser(id: Long): TdApi.User? {
+        try {
+            val getResult = sendRequest(TdApi.GetUser(id))
+            return getResult
+        } catch (e: Exception) {
+            println("GetUser request failed: ${e.message}")
+            return null
         }
     }
 
