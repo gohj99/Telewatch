@@ -147,4 +147,7 @@
     <string name="username">ユーザー名</string>
     <string name="Information">情報</string>
     <string name="phoneNumber">電話番号</string>
+    <string name="Description">説明</string>
+    <string name="Invite_Link">招待リンク</string>
+    <string name="url">URL</string>
 </resources>

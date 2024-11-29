@@ -143,8 +143,11 @@
     <string name="Member">成员</string>
     <string name="Supergroup_Chat">超级群聊</string>
     <string name="Channel">渠道</string>
-    <string name="Subscribers">订阅者</string>
+    <string name="Subscribers">订阅</string>
     <string name="username">用户名</string>
     <string name="Information">信息</string>
-    <string name="phoneNumber">电话号码</string>
+    <string name="phoneNumber">电话</string>
+    <string name="Description">Description</string>
+    <string name="Invite_Link">Invite Link</string>
+    <string name="url">Url</string>
 </resources>

@@ -774,6 +774,17 @@ class TgApi(
         }
     }
 
+    // 获取群组详细信息
+    suspend fun getBasicGroupFullInfo(id: Long): TdApi.BasicGroupFullInfo? {
+        try {
+            val getResult = sendRequest(TdApi.GetBasicGroupFullInfo(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getBasicGroupFullInfo request failed: ${e.message}")
+            return null
+        }
+    }
+
     // 获取超级群组信息
     suspend fun getSupergroup(id: Long): TdApi.Supergroup? {
         try {
@@ -781,6 +792,17 @@ class TgApi(
             return getResult
         } catch (e: Exception) {
             println("getSupergroup request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取超级群组详细信息
+    suspend fun getSupergroupFullInfo(id: Long): TdApi.SupergroupFullInfo? {
+        try {
+            val getResult = sendRequest(TdApi.GetSupergroupFullInfo(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getSupergroupFullInfo request failed: ${e.message}")
             return null
         }
     }

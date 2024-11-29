@@ -56,6 +56,7 @@ import com.gohj99.telewatch.formatJson
 import com.gohj99.telewatch.model.tgFile
 import com.gohj99.telewatch.ui.main.MainCard
 import com.google.gson.Gson
+import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
 import java.io.IOException
@@ -102,6 +103,7 @@ info: String
                 Spacer(modifier = Modifier.height(24.dp))
             }
             item {
+                // 头像与标题
                 Box(
                     modifier = Modifier
                         .fillMaxWidth() // 只填充宽度
@@ -150,6 +152,7 @@ info: String
                 }
             }
             item {
+                // 详细信息
                 if (info != "") {
                     Box(
                         modifier = Modifier
@@ -166,9 +169,8 @@ info: String
                                     )
 
                                     SelectionContainer {
-                                        Text(
-                                            text = info,
-                                            color = Color.White,
+                                        MarkdownText(
+                                            markdown = info,
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                     }
@@ -181,6 +183,7 @@ info: String
                 }
             }
             item {
+                // 其他json信息
                 Spacer(modifier = Modifier.height(35.dp))
                 Box(
                     modifier = Modifier
@@ -190,8 +193,7 @@ info: String
                             Color.Black.copy(alpha = 0.8f),
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(7.dp)
-                        .clickable { isExpanded = true }, // 添加点击事件
+                        .padding(7.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isExpanded) {
@@ -221,6 +223,7 @@ info: String
                             text = stringResource(R.string.Show_more),
                             onClick = {
                                 messageJson = formatJson(gson.toJson(chatObject))
+                                println(messageJson)
                                 isExpanded = true
                             }
                         )

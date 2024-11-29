@@ -37,12 +37,15 @@ fun TelewatchTheme(
 
     val customTypography = Typography(
         titleMedium = TextStyle(
+            color = Color.White,
             fontSize = titleMediumFontSize.sp // 聊天标题字体大小
         ),
         bodyMedium = TextStyle(
+            color = Color.White,
             fontSize = bodyMediumFontSize.sp  // 聊天页面字体
         ),
         bodySmall = TextStyle(
+            color = Color.White,
             fontSize = bodySmallFontSize.sp  // 首页列表标题下文字大小
         )
     )

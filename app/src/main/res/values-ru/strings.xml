@@ -147,4 +147,7 @@
     <string name="username">Имя пользователя</string>
     <string name="Information">Информация</string>
     <string name="phoneNumber">номер телефона</string>
+    <string name="Description">Описание</string>
+    <string name="Invite_Link">Пригласить ссылку</string>
+    <string name="url">URL</string>
 </resources>

@@ -147,4 +147,7 @@
     <string name="username">Uzantnomo</string>
     <string name="Information">Informoj</string>
     <string name="phoneNumber">telefonnumero</string>
+    <string name="Description">Priskribo</string>
+    <string name="Invite_Link">Inviti Ligon</string>
+    <string name="url">Url</string>
 </resources>

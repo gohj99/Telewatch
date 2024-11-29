@@ -147,4 +147,7 @@
     <string name="username">Username</string>
     <string name="Information">Information</string>
     <string name="phoneNumber">phoneNumber</string>
+    <string name="Description">Description</string>
+    <string name="Invite_Link">Invite Link</string>
+    <string name="url">Url</string>
 </resources>

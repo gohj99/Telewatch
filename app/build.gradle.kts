@@ -118,6 +118,7 @@ dependencies {
     implementation(project(":libtd"))
     implementation(libs.lottie)
     implementation(libs.lottie.compose)
+    implementation(libs.compose.markdown)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
