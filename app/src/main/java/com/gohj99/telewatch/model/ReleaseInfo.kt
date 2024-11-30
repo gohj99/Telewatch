@@ -6,9 +6,13 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.jetbrains.kotlin.android) apply false
-    alias(libs.plugins.compose.compiler) apply false
-}
+package com.gohj99.telewatch.model
+
+import com.google.gson.annotations.SerializedName
+
+data class ReleaseInfo(
+    @SerializedName("tag_name") val tagName: String,
+    @SerializedName("prerelease") val prerelease: Boolean,
+    @SerializedName("published_at") val publishedAt: String,
+    @SerializedName("assets") val assets: List<Asset>
+)

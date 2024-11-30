@@ -1,14 +1,14 @@
 [versions]
-agp = "8.6.1"
-annotation = "1.8.2"
-kotlin = "1.9.10"
-coreKtx = "1.13.1"
+agp = "8.7.2"
+annotation = "1.9.1"
+kotlin = "2.0.21"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.6"
-activityCompose = "1.9.2"
-composeBom = "2024.09.02"
+lifecycleRuntimeKtx = "2.8.7"
+activityCompose = "1.9.3"
+composeBom = "2024.11.00"
 coil-compose = "2.7.0"
 lottie = "6.6.0"
 zxing-core = "3.5.3"
@@ -17,6 +17,7 @@ gson-versions = "2.10.1"
 acra = "5.11.4"
 media3Exoplayer = "1.4.1"
 media3Ui = "1.4.1"
+markwon = "4.6.2"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -44,7 +45,9 @@ acra-http = { group = "ch.acra", name = "acra-http", version.ref = "acra" }
 acra-toast = { group = "ch.acra", name = "acra-toast", version.ref = "acra" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3Ui" }
+markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

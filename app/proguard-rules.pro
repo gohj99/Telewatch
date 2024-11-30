@@ -6,11 +6,13 @@
 -keep class org.bouncycastle.** { *; }
 -keep class org.conscrypt.** { *; }
 -keep class org.openjsse.** { *; }
--keep class com.gohj99.telewatch.ReleaseInfo { *; }
--keep class com.gohj99.telewatch.Asset { *; }
+-keep class com.gohj99.telewatch.model.ReleaseInfo { *; }
+-keep class com.gohj99.telewatch.model.Asset { *; }
 -dontwarn okhttp3.internal.platform.**
 -dontwarn org.bouncycastle.jsse.**
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
 -keepattributes Signature
+-keepattributes EnclosingMethod
 -keep class com.google.gson.reflect.TypeToken { *; }
+-keep class com.gohj99.telewatch.model.Announcement { *; }

@@ -17,13 +17,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import com.gohj99.telewatch.model.Announcement
 import com.gohj99.telewatch.ui.SplashAnnouncementScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,10 +34,6 @@ import okhttp3.Request
 import okhttp3.Response
 import java.io.IOException
 
-data class Announcement(
-    @SerializedName("id") val id: String,
-    @SerializedName("title") val title: String
-)
 
 class AnnouncementActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

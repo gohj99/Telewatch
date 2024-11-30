@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.SearchBar
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 

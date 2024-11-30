@@ -14,6 +14,7 @@
     <string name="chat_activity_main" translatable="false">chat_activity_main</string>
     <string name="about_activity_setting" translatable="false">about_activity_setting</string>
     <string name="img_activity_view" translatable="false">img_activity_view</string>
+    <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">Начать обмен сообщениями</string>
     <string name="Welcome_to_app">Добро пожаловать в приложение TeleWatch</string>
@@ -121,7 +122,7 @@
     <string name="is_home_page_pin">Получать ли верхнее сообщение на главной странице (может быть ошибка)</string>
     <string name="show_unknown_message_type">Отображает неподдерживаемые типы сообщений</string>
     <string name="GoToCheckUpdateActivity_title">Проверьте предупреждение об обновлениях</string>
-    <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.</string>
+    <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.\nЕсли вы установили приложение, например, из IzzyOnDroid/F-Droid их дополнительные проверки выполняться не будут.</string>
     <string name="don_remind_me_again">Не напоминай мне больше</string>
     <string name="announcement_title">Объявление</string>
     <string name="No_app_to_handle_this_url">Нет приложения для обработки этого URL.</string>
@@ -130,4 +131,24 @@
     <string name="GoToAnnouncementActivity_description">Для этой функции требуется доступ к API-серверу автора.</string>
     <string name="join_in">присоединиться</string>
     <string name="Unable_get_username">Не удалось получить имя пользователя</string>
+    <string name="Chat_Info">Информация о чате</string>
+    <string name="Online">Онлайн</string>
+    <string name="Unknown">Неизвестный</string>
+    <string name="Lately">Недавно</string>
+    <string name="Last_week">На прошлой неделе</string>
+    <string name="Last_month">В прошлом месяце</string>
+    <string name="Show_more">Показать больше</string>
+    <string name="Private_Chat">Приватный чат</string>
+    <string name="Group_Chat">Групповой чат</string>
+    <string name="Member">Член</string>
+    <string name="Supergroup_Chat">Супергрупповой чат</string>
+    <string name="Channel">Канал</string>
+    <string name="Subscribers">Подписчики</string>
+    <string name="username">Имя пользователя</string>
+    <string name="Information">Информация</string>
+    <string name="phoneNumber">номер телефона</string>
+    <string name="Description">Описание</string>
+    <string name="Invite_Link">Пригласить ссылку</string>
+    <string name="url">URL</string>
+    <string name="Same_Chat">Тот же чат</string>
 </resources>

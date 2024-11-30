@@ -19,17 +19,7 @@ import android.widget.Toast
 import com.gohj99.telewatch.ChatActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
-import com.gohj99.telewatch.ui.main.Chat
-
-fun parseUsername(input: String): String? {
-    // Regex to match Telegram username formats
-    val regex = Regex(
-        pattern = """(?:https?://)?(?:www\.)?t\.me/(?:@)?([a-zA-Z0-9_]{5,32})(?:@.*)?""",
-        options = setOf(RegexOption.IGNORE_CASE)
-    )
-
-    return regex.find(input)?.groupValues?.get(1)
-}
+import com.gohj99.telewatch.model.Chat
 
 fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = null) {
     val username = parseUsername(url)
@@ -37,16 +27,24 @@ fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = nu
         TgApiManager.tgApi!!.searchPublicChat(username) { tdChat ->
             //println(tdChat)
             if (tdChat != null) {
-                callback?.invoke(true)
-                context.startActivity(
-                    Intent(context, ChatActivity::class.java).apply {
-                        putExtra("chat", Chat(
-                            id = tdChat.id,
-                            title = tdChat.title
-                            )
-                        )
+                if (tdChat.id == TgApiManager.tgApi!!.saveChatId) {
+                    callback?.invoke(false)
+                    println("Same chat: $username")
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context, context.getString(R.string.Same_Chat), Toast.LENGTH_SHORT).show()
                     }
-                )
+                } else {
+                    callback?.invoke(true)
+                    context.startActivity(
+                        Intent(context, ChatActivity::class.java).apply {
+                            putExtra("chat", Chat(
+                                id = tdChat.id,
+                                title = tdChat.title
+                            )
+                            )
+                        }
+                    )
+                }
             } else {
                 println("Unable to get username: $username")
                 Handler(Looper.getMainLooper()).post {

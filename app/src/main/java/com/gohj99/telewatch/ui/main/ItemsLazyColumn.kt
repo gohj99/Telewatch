@@ -8,10 +8,7 @@
 
 package com.gohj99.telewatch.ui.main
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Parcel
-import android.os.Parcelable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -38,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.SearchBar
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import org.drinkless.tdlib.TdApi
@@ -48,50 +46,6 @@ fun matchingString(target: String, original: String): Boolean {
         if (original != "") original.contains(target, ignoreCase = true)
         else false
     else true
-}
-
-// 定义一个数据类
-@SuppressLint("ParcelCreator")
-data class Chat(
-    val id: Long,
-    val title: String,
-    val message: String = "",
-    val isPinned: Boolean = false, // 是否在全部会话置顶
-    val isRead: Boolean = false, // 聊天是否已读
-    val isBot: Boolean = false, // 是否为机器人对话
-    val isChannel: Boolean = false, // 是否为频道
-    val isGroup: Boolean = false, // 是否为群组或者超级群组（supergroups??
-    val isPrivateChat: Boolean = false // 是否为私人会话
-) : Parcelable {
-    override fun describeContents(): Int {
-        return 0 // 通常返回0即可，除非有特殊情况需要返回其他值
-    }
-
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeLong(id)
-        dest.writeString(title)
-        dest.writeString(message)
-    }
-
-    companion object CREATOR : Parcelable.Creator<Chat> {
-        override fun createFromParcel(parcel: Parcel): Chat {
-            return Chat(
-                parcel.readLong(),
-                parcel.readString() ?: "",
-                parcel.readString() ?: ""
-            )
-        }
-
-        override fun newArray(size: Int): Array<Chat?> {
-            return arrayOfNulls(size)
-        }
-    }
-}
-
-fun <T> MutableState<List<T>>.add(item: T) {
-    val updatedList = this.value.toMutableList()
-    updatedList.add(item)
-    this.value = updatedList
 }
 
 @Composable

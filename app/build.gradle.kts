@@ -9,11 +9,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
     namespace = "com.gohj99.telewatch"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.gohj99.telewatch"
@@ -21,7 +22,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 20
-        versionName = "1.2.9"
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

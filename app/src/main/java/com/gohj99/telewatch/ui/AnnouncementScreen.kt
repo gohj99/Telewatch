@@ -8,11 +8,6 @@
 
 package com.gohj99.telewatch.ui
 
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -40,10 +34,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.gohj99.telewatch.Announcement
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.model.Announcement
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
+import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.JsonObject
 
 @Composable
@@ -125,16 +120,7 @@ fun SplashAnnouncementScreen(
                                     color = Color.White,
                                     style = MaterialTheme.typography.titleMedium,
                                     onLinkClick = { url ->
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                        val packageManager: PackageManager = context.packageManager
-                                        val activities: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
-
-                                        if (activities.isNotEmpty()) {
-                                            context.startActivity(intent)
-                                        } else {
-                                            // 处理没有可用浏览器的情况
-                                            Toast.makeText(context, context.getString(R.string.No_app_to_handle_this_url), Toast.LENGTH_SHORT).show()
-                                        }
+                                        urlHandle(url, context)
                                     }
                                 )
                             }
@@ -175,7 +161,8 @@ fun AnnouncementLazyColumn(itemsList: List<Announcement>, callback: (String) -> 
         item {
             Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
         }
-        items(itemsList, key = { it.id }) { item ->
+        items(itemsList.size, key = { it }) { index ->
+            val item = itemsList[index]
             MainCard(
                 column = {
                     Text(

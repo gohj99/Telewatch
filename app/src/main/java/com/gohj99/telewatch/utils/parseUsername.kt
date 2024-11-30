@@ -6,9 +6,14 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.jetbrains.kotlin.android) apply false
-    alias(libs.plugins.compose.compiler) apply false
+package com.gohj99.telewatch.utils
+
+fun parseUsername(input: String): String? {
+    // Regex to match Telegram username formats
+    val regex = Regex(
+        pattern = """(?:https?://)?(?:www\.)?t\.me/(?:@)?([a-zA-Z0-9_]{4,32})(?:@.*)?""",
+        options = setOf(RegexOption.IGNORE_CASE)
+    )
+
+    return regex.find(input)?.groupValues?.get(1)
 }

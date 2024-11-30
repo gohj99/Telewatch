@@ -13,7 +13,7 @@ import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.ui.main.Chat
+import com.gohj99.telewatch.model.Chat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,8 +38,9 @@ class TgApi(
     private val topTitle: MutableState<String>,
     private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
-    private var saveChatId = 1L
+    var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
+    private var chatLastId = -1L
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -654,7 +655,7 @@ class TgApi(
             pInfo.versionName
         } catch (e: Exception) {
             "1.0.0"
-        }
+        }.toString()
     }
 
     // 下载文件
@@ -763,6 +764,50 @@ class TgApi(
         }
     }
 
+    // 获取群组信息
+    suspend fun getBasicGroup(id: Long): TdApi.BasicGroup? {
+        try {
+            val getResult = sendRequest(TdApi.GetBasicGroup(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getBasicGroup request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取群组详细信息
+    suspend fun getBasicGroupFullInfo(id: Long): TdApi.BasicGroupFullInfo? {
+        try {
+            val getResult = sendRequest(TdApi.GetBasicGroupFullInfo(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getBasicGroupFullInfo request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取超级群组信息
+    suspend fun getSupergroup(id: Long): TdApi.Supergroup? {
+        try {
+            val getResult = sendRequest(TdApi.GetSupergroup(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getSupergroup request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取超级群组详细信息
+    suspend fun getSupergroupFullInfo(id: Long): TdApi.SupergroupFullInfo? {
+        try {
+            val getResult = sendRequest(TdApi.GetSupergroupFullInfo(id))
+            return getResult
+        } catch (e: Exception) {
+            println("getSupergroupFullInfo request failed: ${e.message}")
+            return null
+        }
+    }
+
     // 按用户名搜索公共聊天
     suspend fun searchPublicChats(
         query: String,
@@ -863,7 +908,7 @@ class TgApi(
     }
 
     // 获取用户名
-    fun getUser(userId: Long, onResult: (String) -> Unit) {
+    fun getUserName(userId: Long, onResult: (String) -> Unit) {
         val getUserRequest = TdApi.GetUser(userId)
 
         client.send(getUserRequest) { result ->
@@ -873,6 +918,17 @@ class TgApi(
             } else {
                 onResult("Unknown User")
             }
+        }
+    }
+
+    // 获取用户
+    suspend fun getUser(id: Long): TdApi.User? {
+        try {
+            val getResult = sendRequest(TdApi.GetUser(id))
+            return getResult
+        } catch (e: Exception) {
+            println("GetUser request failed: ${e.message}")
+            return null
         }
     }
 
@@ -1174,10 +1230,18 @@ class TgApi(
         saveChatId = chatId
         isExitChatPage = false
 
-        // 定义一个内部函数用于异步递归获取消息
-        fun fetchMessages(fromMessageId: Long) {
+        // 从最新的消息开始获取
+        fetchMessages(0)
+    }
+
+    // 获取旧消息
+    fun fetchMessages(fromMessageId: Long = chatLastId) {
+        //println("fetchMessages启动")
+        //println(saveChatId)
+        if (fromMessageId != -1L) {
+            var nowChatId = saveChatId
             val getChatMessages = TdApi.GetChatHistory().apply {
-                this.chatId = chatId
+                this.chatId = nowChatId
                 this.limit = 10 // 每次获取 10 条消息
                 this.fromMessageId = fromMessageId
             }
@@ -1194,18 +1258,23 @@ class TgApi(
                             val sortedMessages =
                                 messages.messages.toList().sortedByDescending { it.date }
                             saveChatList.value = saveChatList.value.toMutableList().apply {
-                                addAll(sortedMessages) // 将新消息添加到列表最后面
+                                if (nowChatId == saveChatId) {
+                                    addAll(sortedMessages) // 将新消息添加到列表最后面
+                                } else {
+                                    println("Discarded messages: $sortedMessages")
+                                }
                             }
                             // 继续加载更旧的消息
-                            fetchMessages(messages.messages.last().id)
+                            if (fromMessageId == 0L) {
+                                fetchMessages(messages.messages.last().id)
+                            }
+                            //println(messages.messages.last().id)
+                            chatLastId = messages.messages.last().id
                         }
                     }
                 }
             }
         }
-
-        // 从最新的消息开始获取
-        fetchMessages(0)
     }
 
     // 根据消息id获取消息
