@@ -150,4 +150,5 @@
     <string name="Description">Description</string>
     <string name="Invite_Link">Invite Link</string>
     <string name="url">Url</string>
+    <string name="Same_Chat">同样的聊天</string>
 </resources>

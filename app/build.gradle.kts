@@ -22,7 +22,7 @@ android {
         //noinspection OldTargetApi
         targetSdk = 34
         versionCode = 20
-        versionName = "1.2.9-beta2"
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -118,7 +118,6 @@ dependencies {
     implementation(project(":libtd"))
     implementation(libs.lottie)
     implementation(libs.lottie.compose)
-    implementation(libs.compose.markdown)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

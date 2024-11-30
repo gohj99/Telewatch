@@ -108,10 +108,10 @@ class ChatInfoActivity : ComponentActivity() {
                                 subtitle = getString(R.string.Offline)
                         }
                         if (userInfo.phoneNumber != "") {
-                            info += "\n#### ${getString(R.string.phoneNumber)}: +${userInfo.phoneNumber}"
+                            info += "\n**${getString(R.string.phoneNumber)}**\n+${userInfo.phoneNumber}"
                         }
                         if (userInfo.usernames != null) {
-                            info += "\n#### ${getString(R.string.username)}: @${userInfo.usernames!!.activeUsernames[0]}"
+                            info += "\n**${getString(R.string.username)}**\n@${userInfo.usernames!!.activeUsernames[0]}"
                         }
                     }
                 }
@@ -134,11 +134,11 @@ class ChatInfoActivity : ComponentActivity() {
                     if (groupFullInfo != null) {
                         if (groupFullInfo.inviteLink != null) {
                             if (groupFullInfo.inviteLink!!.inviteLink != "") {
-                                info += "\n#### ${getString(R.string.Invite_Link)}: ${groupFullInfo.inviteLink!!.inviteLink}"
+                                info += "\n**${getString(R.string.Invite_Link)}**\n${groupFullInfo.inviteLink!!.inviteLink}"
                             }
                         }
                         if (groupFullInfo.description != "") {
-                            info += "\n#### ${getString(R.string.Description)}: ${groupFullInfo.description}"
+                            info += "\n**${getString(R.string.Description)}**\n${groupFullInfo.description}"
                         }
                     }
                 }
@@ -167,7 +167,7 @@ class ChatInfoActivity : ComponentActivity() {
                     if (supergroupInfo != null) {
                         // 公开链接
                         if (supergroupInfo.usernames != null) {
-                            info += "\n#### ${getString(R.string.url)}\nhttps://t.me/${supergroupInfo.usernames!!.activeUsernames[0]}"
+                            info += "\n**${getString(R.string.url)}**\nhttps://t.me/${supergroupInfo.usernames!!.activeUsernames[0]}"
                         }
                         // 获取超级组详细信息
                         val supergroupFullInfo = runBlocking {
@@ -176,7 +176,7 @@ class ChatInfoActivity : ComponentActivity() {
                         if (supergroupFullInfo != null) {
                             // 超级组简介
                             if (supergroupFullInfo.description != "") {
-                                info += "\n#### ${getString(R.string.Description)}\n${supergroupFullInfo.description}"
+                                info += "\n**${getString(R.string.Description)}**\n${supergroupFullInfo.description}"
                             }
                         }
                     }

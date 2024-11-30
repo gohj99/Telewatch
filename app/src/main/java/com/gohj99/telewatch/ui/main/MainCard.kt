@@ -20,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -29,59 +31,83 @@ import androidx.compose.ui.unit.dp
 fun LinkText(
     text: String,
     modifier: Modifier = Modifier,
-    color: Color = Color(0xFFFEFEFE), // 默认白色
-    style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge, // 默认使用主题的bodyLarge样式
+    color: Color = Color(0xFFFEFEFE),
+    style: TextStyle = MaterialTheme.typography.bodyLarge,
     onLinkClick: ((String) -> Unit)? = null
 ) {
-    val annotatedString = buildAnnotatedString {
-        // 支持 http、https 和常见域名后缀的正则表达式
-        val regex = Regex(
-            "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" + // 支持协议或无协议
-                    "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" + // 常见域名后缀
-                    "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)" // 路径和查询参数
-        )
-        var lastIndex = 0
+    if (text.isNotEmpty()) {
+        val annotatedString = buildAnnotatedString {
+            val urlRegex = Regex(
+                "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" +
+                        "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" +
+                        "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)"
+            )
 
-        regex.findAll(text).forEach { result ->
-            val start = result.range.first
-            val end = result.range.last + 1
+            val usernameRegex = Regex("(?<!\\w)@(\\w{4,})(?!\\w)")
+            val boldRegex = Regex("\\*\\*(.*?)\\*\\*") // Regex for bold text
 
-            // Append text before the link
-            append(text.substring(lastIndex, start))
+            var lastIndex = 0
 
-            // Append the link with a different style
-            pushStringAnnotation(tag = "URL", annotation = result.value)
-            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
-                append(result.value)
-            }
-            pop()
+            (urlRegex.findAll(text) + usernameRegex.findAll(text) + boldRegex.findAll(text))
+                .sortedBy { it.range.first }
+                .forEach { result ->
+                    val start = result.range.first
+                    val end = result.range.last + 1
 
-            lastIndex = end
-        }
-
-        // Append remaining text
-        if (lastIndex < text.length) {
-            append(text.substring(lastIndex))
-        }
-    }
-
-    ClickableText(
-        text = annotatedString,
-        style = style.copy(color = color), // 应用传入的颜色和样式
-        modifier = modifier,
-        onClick = { offset ->
-            annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                .firstOrNull()?.let { annotation ->
-                    // 如果链接没有协议，补充 http://
-                    val url = if (!annotation.item.startsWith("http", ignoreCase = true)) {
-                        "http://${annotation.item}"
+                    if (start >= lastIndex) {
+                        append(text.substring(lastIndex, start))
                     } else {
-                        annotation.item
+                        println("Error: start ($start) is less than lastIndex ($lastIndex)")
                     }
-                    onLinkClick?.invoke(url)
+
+                    when {
+                        result.value.matches(urlRegex) -> {
+                            pushStringAnnotation(tag = "URL", annotation = result.value)
+                            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
+                                append(result.value)
+                            }
+                            pop()
+                        }
+                        result.value.matches(usernameRegex) -> {
+                            val nowUrl = "https://t.me/${result.value}"
+                            pushStringAnnotation(tag = "URL", annotation = nowUrl)
+                            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
+                                append(result.value)
+                            }
+                            pop()
+
+                        }
+                        result.value.matches(boldRegex) -> {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(result.groups[1]?.value ?: "") // Append the text inside the asterisks
+                            }
+                        }
+                        else -> {
+                            append(result.value)
+                        }
+                    }
+
+                    lastIndex = end
                 }
+
+            if (lastIndex < text.length) {
+                append(text.substring(lastIndex))
+            }
         }
-    )
+
+
+        ClickableText(
+            text = annotatedString,
+            style = style.copy(color = color),
+            modifier = modifier,
+            onClick = { offset ->
+                annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                    .firstOrNull()?.let { annotation ->
+                        onLinkClick?.invoke(annotation.item)
+                    }
+            }
+        )
+    }
 }
 
 

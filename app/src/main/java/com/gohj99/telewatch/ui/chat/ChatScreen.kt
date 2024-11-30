@@ -10,7 +10,6 @@ package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -71,7 +70,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.gohj99.telewatch.ChatInfoActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.model.Chat
@@ -138,6 +136,7 @@ fun SplashChatScreen(
     lastReadInboxMessageId: MutableState<Long>,
     listState: LazyListState = rememberLazyListState(),
     onLinkClick: (String) -> Unit,
+    chatTitleClick: () -> Unit,
     reInit: (String) -> Unit
 ) {
     var isFloatingVisible by remember { mutableStateOf(true) }
@@ -185,6 +184,15 @@ fun SplashChatScreen(
             }
     }
 
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                if (index >= chatList.value.size - 5) {
+                    TgApiManager.tgApi?.fetchMessages()
+                }
+            }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -200,17 +208,7 @@ fun SplashChatScreen(
             ClickableText(
                 text = AnnotatedString(if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle),
                 style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFFEFEFE), fontWeight = FontWeight.Bold),
-                onClick = {
-                    context.startActivity(
-                        Intent(context, ChatInfoActivity::class.java).apply {
-                            putExtra("chat", Chat(
-                                id = chatId,
-                                title = chatTitle
-                                )
-                            )
-                        }
-                    )
-                }
+                onClick = { chatTitleClick() }
             )
 
             LazyColumn(
@@ -897,6 +895,7 @@ fun SplashChatScreenPreview() {
             lastReadOutboxMessageId = mutableLongStateOf(0L),
             lastReadInboxMessageId = mutableLongStateOf(0L),
             onLinkClick = {},
+            chatTitleClick = {},
             reInit = {}
         )
     }

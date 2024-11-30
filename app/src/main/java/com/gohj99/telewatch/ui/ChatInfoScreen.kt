@@ -54,9 +54,10 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.formatJson
 import com.gohj99.telewatch.model.tgFile
+import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
+import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.Gson
-import dev.jeziellago.compose.markdowntext.MarkdownText
 import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
 import java.io.IOException
@@ -71,6 +72,14 @@ info: String
     var messageJson = ""
     val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
+
+//    val markwon = remember { Markwon.create(context) }
+//    val infoSpanned: Spanned = remember(info) { markwon.toMarkdown(info) }
+//    val infoAnnotatedString = remember(infoSpanned) {
+//        androidx.compose.ui.text.AnnotatedString(
+//            infoSpanned.toString()
+//        )
+//    }
 
     Column(
         modifier = Modifier
@@ -169,9 +178,13 @@ info: String
                                     )
 
                                     SelectionContainer {
-                                        MarkdownText(
-                                            markdown = info,
-                                            style = MaterialTheme.typography.titleMedium
+                                        LinkText(
+                                            text = info,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            onLinkClick = { url ->
+                                                urlHandle(url, context)
+                                            }
                                         )
                                     }
                                 }

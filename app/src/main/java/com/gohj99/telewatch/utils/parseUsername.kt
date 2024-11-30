@@ -11,7 +11,7 @@ package com.gohj99.telewatch.utils
 fun parseUsername(input: String): String? {
     // Regex to match Telegram username formats
     val regex = Regex(
-        pattern = """(?:https?://)?(?:www\.)?t\.me/(?:@)?([a-zA-Z0-9_]{5,32})(?:@.*)?""",
+        pattern = """(?:https?://)?(?:www\.)?t\.me/(?:@)?([a-zA-Z0-9_]{4,32})(?:@.*)?""",
         options = setOf(RegexOption.IGNORE_CASE)
     )
 

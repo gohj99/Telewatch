@@ -18,6 +18,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -110,26 +112,29 @@ class ChatActivity : ComponentActivity() {
             }
         }
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                init()
-            } catch (e: Exception) {
-                launch(Dispatchers.Main) {
-                    setContent {
-                        TelewatchTheme {
-                            ErrorScreen(
-                                onRetry = {
-                                    lifecycleScope.launch(Dispatchers.IO) {
-                                        init()
-                                    }
-                                },
-                                cause = e.message ?: ""
-                            )
+        Handler(Looper.getMainLooper()).postDelayed({
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+
+                    init()
+                } catch (e: Exception) {
+                    launch(Dispatchers.Main) {
+                        setContent {
+                            TelewatchTheme {
+                                ErrorScreen(
+                                    onRetry = {
+                                        lifecycleScope.launch(Dispatchers.IO) {
+                                            init()
+                                        }
+                                    },
+                                    cause = e.message ?: ""
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
+        }, 600) // 延迟
     }
 
     private suspend fun init(parameter: String? = null) {
@@ -154,7 +159,7 @@ class ChatActivity : ComponentActivity() {
         // 异步获取当前用户 ID 和聊天记录
         lifecycleScope.launch {
             currentUserId.value = tgApi!!.getCurrentUser()[0].toLong()
-            tgApi!!.getChatMessages(chat!!.id, chatList) // 异步加载全部聊天消息
+            tgApi!!.getChatMessages(chat!!.id, chatList) // 异步加载聊天消息
         }
 
         // 异步获取当前用户聊天对象
@@ -354,6 +359,18 @@ class ChatActivity : ComponentActivity() {
                                     urlHandle(url, this) {
                                         if (it) goToChat.value = true
                                     }
+                                },
+                                chatTitleClick = {
+                                    startActivity(
+                                        Intent(this, ChatInfoActivity::class.java).apply {
+                                            putExtra("chat", Chat(
+                                                id = chat!!.id,
+                                                title = chat!!.title
+                                            )
+                                            )
+                                        }
+                                    )
+                                    goToChat.value = true
                                 },
                                 reInit = {
                                     lifecycleScope.launch {

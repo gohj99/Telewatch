@@ -150,4 +150,5 @@
     <string name="Description">Beschreibung</string>
     <string name="Invite_Link">Einladungslink</string>
     <string name="url">URL</string>
+    <string name="Same_Chat">Gleicher Chat</string>
 </resources>

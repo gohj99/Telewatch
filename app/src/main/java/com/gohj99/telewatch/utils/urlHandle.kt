@@ -27,16 +27,24 @@ fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = nu
         TgApiManager.tgApi!!.searchPublicChat(username) { tdChat ->
             //println(tdChat)
             if (tdChat != null) {
-                callback?.invoke(true)
-                context.startActivity(
-                    Intent(context, ChatActivity::class.java).apply {
-                        putExtra("chat", Chat(
-                            id = tdChat.id,
-                            title = tdChat.title
-                            )
-                        )
+                if (tdChat.id == TgApiManager.tgApi!!.saveChatId) {
+                    callback?.invoke(false)
+                    println("Same chat: $username")
+                    Handler(Looper.getMainLooper()).post {
+                        Toast.makeText(context, context.getString(R.string.Same_Chat), Toast.LENGTH_SHORT).show()
                     }
-                )
+                } else {
+                    callback?.invoke(true)
+                    context.startActivity(
+                        Intent(context, ChatActivity::class.java).apply {
+                            putExtra("chat", Chat(
+                                id = tdChat.id,
+                                title = tdChat.title
+                            )
+                            )
+                        }
+                    )
+                }
             } else {
                 println("Unable to get username: $username")
                 Handler(Looper.getMainLooper()).post {

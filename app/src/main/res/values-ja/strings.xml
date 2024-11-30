@@ -150,4 +150,5 @@
     <string name="Description">説明</string>
     <string name="Invite_Link">招待リンク</string>
     <string name="url">URL</string>
+    <string name="Same_Chat">同じチャット</string>
 </resources>

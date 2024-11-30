@@ -38,8 +38,9 @@ class TgApi(
     private val topTitle: MutableState<String>,
     private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
-    private var saveChatId = 1L
+    var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
+    private var chatLastId = -1L
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -1229,10 +1230,18 @@ class TgApi(
         saveChatId = chatId
         isExitChatPage = false
 
-        // 定义一个内部函数用于异步递归获取消息
-        fun fetchMessages(fromMessageId: Long) {
+        // 从最新的消息开始获取
+        fetchMessages(0)
+    }
+
+    // 获取旧消息
+    fun fetchMessages(fromMessageId: Long = chatLastId) {
+        //println("fetchMessages启动")
+        //println(saveChatId)
+        if (fromMessageId != -1L) {
+            var nowChatId = saveChatId
             val getChatMessages = TdApi.GetChatHistory().apply {
-                this.chatId = chatId
+                this.chatId = nowChatId
                 this.limit = 10 // 每次获取 10 条消息
                 this.fromMessageId = fromMessageId
             }
@@ -1249,18 +1258,23 @@ class TgApi(
                             val sortedMessages =
                                 messages.messages.toList().sortedByDescending { it.date }
                             saveChatList.value = saveChatList.value.toMutableList().apply {
-                                addAll(sortedMessages) // 将新消息添加到列表最后面
+                                if (nowChatId == saveChatId) {
+                                    addAll(sortedMessages) // 将新消息添加到列表最后面
+                                } else {
+                                    println("Discarded messages: $sortedMessages")
+                                }
                             }
                             // 继续加载更旧的消息
-                            fetchMessages(messages.messages.last().id)
+                            if (fromMessageId == 0L) {
+                                fetchMessages(messages.messages.last().id)
+                            }
+                            //println(messages.messages.last().id)
+                            chatLastId = messages.messages.last().id
                         }
                     }
                 }
             }
         }
-
-        // 从最新的消息开始获取
-        fetchMessages(0)
     }
 
     // 根据消息id获取消息
