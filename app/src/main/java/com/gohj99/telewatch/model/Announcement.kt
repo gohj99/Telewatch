@@ -8,8 +8,10 @@
 
 package com.gohj99.telewatch.model
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
+@Keep
 data class Announcement(
     @SerializedName("id") val id: String,
     @SerializedName("title") val title: String
