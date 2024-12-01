@@ -1,14 +1,15 @@
-//
-// Copyright Aliaksei Levin (levlam@telegram.org), Arseny Smirnov (arseny30@gmail.com) 2014-2021
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
+/*
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+ * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+ * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+ * Vestibulum commodo. Ut rhoncus gravida arcu.
+ */
 apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 34
-    namespace "com.tdlib.td"
+    namespace "org.drinkless.tdlib"
 
     sourceSets.main {
         jniLibs.srcDir 'src/main/libs'
@@ -18,8 +19,6 @@ android {
     defaultConfig {
         minSdkVersion 22
         targetSdkVersion 34
-        versionCode 1
-        versionName "1.0"
     }
     buildTypes {
         release {

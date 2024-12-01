@@ -1,3 +1,4 @@
 api_id=YOU_API_ID
 api_hash=YOU_API_HASH
 BUILD_DATE=2024
+BETA=false

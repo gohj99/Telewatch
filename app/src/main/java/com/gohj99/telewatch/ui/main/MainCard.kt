@@ -12,15 +12,112 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun <T> MainCard(column: @Composable () -> Unit, item: T, callback: (T) -> Unit) {
+fun LinkText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color(0xFFFEFEFE),
+    style: TextStyle = MaterialTheme.typography.bodyLarge,
+    onLinkClick: ((String) -> Unit)? = null
+) {
+    if (text.isNotEmpty()) {
+        val annotatedString = buildAnnotatedString {
+            val urlRegex = Regex(
+                "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" +
+                        "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" +
+                        "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)"
+            )
+
+            val usernameRegex = Regex("(?<!\\w)@(\\w{4,})(?!\\w)")
+            val boldRegex = Regex("\\*\\*(.*?)\\*\\*") // Regex for bold text
+
+            var lastIndex = 0
+
+            (urlRegex.findAll(text) + usernameRegex.findAll(text) + boldRegex.findAll(text))
+                .sortedBy { it.range.first }
+                .forEach { result ->
+                    val start = result.range.first
+                    val end = result.range.last + 1
+
+                    if (start >= lastIndex) {
+                        append(text.substring(lastIndex, start))
+                    } else {
+                        println("Error: start ($start) is less than lastIndex ($lastIndex)")
+                    }
+
+                    when {
+                        result.value.matches(urlRegex) -> {
+                            pushStringAnnotation(tag = "URL", annotation = result.value)
+                            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
+                                append(result.value)
+                            }
+                            pop()
+                        }
+                        result.value.matches(usernameRegex) -> {
+                            val nowUrl = "https://t.me/${result.value}"
+                            pushStringAnnotation(tag = "URL", annotation = nowUrl)
+                            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
+                                append(result.value)
+                            }
+                            pop()
+
+                        }
+                        result.value.matches(boldRegex) -> {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append(result.groups[1]?.value ?: "") // Append the text inside the asterisks
+                            }
+                        }
+                        else -> {
+                            append(result.value)
+                        }
+                    }
+
+                    lastIndex = end
+                }
+
+            if (lastIndex < text.length) {
+                append(text.substring(lastIndex))
+            }
+        }
+
+
+        ClickableText(
+            text = annotatedString,
+            style = style.copy(color = color),
+            modifier = modifier,
+            onClick = { offset ->
+                annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
+                    .firstOrNull()?.let { annotation ->
+                        onLinkClick?.invoke(annotation.item)
+                    }
+            }
+        )
+    }
+}
+
+
+@Composable
+fun <T> MainCard(
+    column: @Composable () -> Unit,
+    item: T,
+    callback: (T) -> Unit = {},
+    color: Color = Color(0xFF404953)
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -28,7 +125,7 @@ fun <T> MainCard(column: @Composable () -> Unit, item: T, callback: (T) -> Unit)
             .clickable { callback(item) },
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2C323A) // 设置 Card 的背景颜色
+            containerColor = color // 设置 Card 的背景颜色
         )
     ) {
         Column(modifier = Modifier.padding(start = 12.dp, top = 9.dp, end = 14.dp, bottom = 9.dp)) {

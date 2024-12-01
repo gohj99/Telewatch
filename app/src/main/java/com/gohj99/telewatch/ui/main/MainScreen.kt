@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,28 +41,46 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.model.Chat
+import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.setting.SettingLazyColumn
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import org.drinkless.tdlib.TdApi
 
 @Composable
 fun MainScreen(
     chats: MutableState<List<Chat>>,
     chatPage: (Chat) -> Unit,
-    settingList: MutableState<List<String>>,
-    settingCallback: (String) -> Unit,
-    getContacts: (MutableState<List<Chat>>) -> Unit,
+    settingList: MutableState<List<SettingItem>>,
+    contacts: MutableState<List<Chat>>,
+    topTitle: MutableState<String>,
+    chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
+    val search = stringResource(id = R.string.Global_Search)
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
     val setting = stringResource(id = R.string.Settings)
-    val contacts = remember { mutableStateOf(listOf<Chat>()) }
     var showMenu by remember { mutableStateOf(false) }
-    val allPages = listOf(
-        home,
+    val lastPages = listOf(
+        search,
         contact,
         setting,
     )
-    var nowPage by remember { mutableStateOf(allPages[0]) }
+    var allPages by remember {
+        mutableStateOf(listOf(home) + lastPages)  // 直接合并两个列表
+    }
+    var nowPage by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(chatsFoldersList.value) {
+        allPages = mutableListOf<String>().apply {
+            add(home)
+            addAll(chatsFoldersList.value.map { it.title })
+            addAll(lastPages.toList())
+        }
+        if (nowPage > allPages.size) {
+            nowPage = 0
+        }
+    }
 
     // 使用 Column 包裹 Box 和 ChatLazyColumn
     Column(
@@ -91,7 +111,15 @@ fun MainScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
                 Text(
-                    text = nowPage,
+                    text =
+                    if (showMenu) if (nowPage <= allPages.size) allPages[nowPage] else "error$nowPage"
+                    else
+                        if (nowPage <= allPages.size)
+                            if (nowPage < allPages.size - lastPages.size)
+                                if (topTitle.value == "") allPages[nowPage]
+                                else topTitle.value
+                            else allPages[nowPage]
+                        else "error",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -111,27 +139,43 @@ fun MainScreen(
                 nowPage = { page ->
                     nowPage = page
                     showMenu = false
-                    if (page == contact) getContacts(contacts)
                 }
             )
         } else {
-            when (nowPage) {
-                home -> {
+            if (nowPage < (allPages.size - lastPages.size) && nowPage != 0) {
+                if (allPages[nowPage] in chatsFoldersList.value.map { it.title }) {
                     ChatLazyColumn(
                         itemsList = chats,
-                        callback = chatPage
+                        callback = chatPage,
+                        chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
+                        contactsList = contacts.value
                     )
                 }
+            } else {
+                when (if (nowPage <= allPages.size) allPages[nowPage] else "error") {
+                    home -> {
+                        ChatLazyColumn(
+                            itemsList = chats,
+                            callback = chatPage
+                        )
+                    }
 
-                contact -> {
-                    ContactsLazyColumn(
-                        itemsList = contacts.value,
-                        callback = chatPage
-                    )
-                }
+                    search -> {
+                        SearchLazyColumn(
+                            callback = chatPage
+                        )
+                    }
 
-                setting -> {
-                    SettingLazyColumn(settingList, settingCallback)
+                    contact -> {
+                        ContactsLazyColumn(
+                            itemsList = contacts.value,
+                            callback = chatPage
+                        )
+                    }
+
+                    setting -> {
+                        SettingLazyColumn(settingList)
+                    }
                 }
             }
         }
@@ -142,6 +186,13 @@ fun MainScreen(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
+    // 傻逼钱显康
+    // 户籍：湖北省随州市曾都区 西城办事处沿江大道22号(地图查验为宾馆)
+    // 住址: 湖北省随州市曾都区汉东名居(无精确门牌)
+    // 学校：湖北省随州市二中
+    // 申必代码：421302200801060033
+    // “个人”网站： https://www.rechrd.top/
+
     val sampleChats = mutableStateOf(
         listOf(
             Chat(id = 1, title = "钱显康", message = "我是傻逼"),
@@ -150,21 +201,38 @@ fun MainScreenPreview() {
         )
     )
 
+    val settings = remember {
+        mutableStateOf(
+            listOf<SettingItem>(
+                SettingItem.Click(
+                    itemName = "设置1",
+                    onClick = {}
+                ),
+                SettingItem.Click(
+                    itemName = "设置2",
+                    onClick = {}
+                ), SettingItem.Click(
+                    itemName = "设置3",
+                    onClick = {}
+                ), SettingItem.Click(
+                    itemName = "设置4",
+                    onClick = {}
+                ), SettingItem.Click(
+                    itemName = "设置5",
+                    onClick = {}
+                )
+            )
+        )
+    }
+
     TelewatchTheme {
         MainScreen(
             chats = sampleChats,
             chatPage = {},
-            settingList = mutableStateOf(listOf("钱显康", "钱明", "康庆莉")),
-            settingCallback = {},
-            getContacts = {
-                listOf(
-                    Chat(
-                        id = 1,
-                        title = "钱显康",
-                        message = "我是傻逼"
-                    )
-                )
-            } // 修正了这里的语法
+            settingList = settings,
+            contacts = remember { mutableStateOf(listOf()) },
+            topTitle = remember { mutableStateOf("Home") },
+            chatsFoldersList = remember { mutableStateOf(listOf()) }
         )
     }
 }

@@ -20,6 +20,16 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.gohj99.telewatch&style=flat-square"
+      />  
+    </a >
+	<a href="https://github.com/MShawon/github-clone-count-badge">
+      <img
+        src="https://img.shields.io/badge/dynamic/json?color=success&label=Views&query=count&url=https://gist.githubusercontent.com/gohj99/684cffa329b5078706dce53f396d67bb/raw/traffic.json&logo=github&style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
@@ -39,11 +49,14 @@ adb install Telewatch.apk
 
 ## 功能
 
+- 多帳號支持
+- 介面字體調節
+- 未讀/已讀指示器
+- 連線狀態指示器
 - 文字、圖片、影片檢視或下載
 - 儲存圖片或視頻
 - 文字發送
-- 編輯訊息處理
-- 刪除訊息處理
+- 刪除訊息
 - 支援錶冠旋轉
 
 ## 最低配置和建議配置

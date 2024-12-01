@@ -20,6 +20,16 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.gohj99.telewatch&style=flat-square"
+      />  
+    </a >
+	<a href="https://github.com/MShawon/github-clone-count-badge">
+      <img
+        src="https://img.shields.io/badge/dynamic/json?color=success&label=Views&query=count&url=https://gist.githubusercontent.com/gohj99/684cffa329b5078706dce53f396d67bb/raw/traffic.json&logo=github&style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
@@ -39,12 +49,15 @@ adb install Telewatch.apk
 
 ## 関数
 
-- テキスト、写真、ビデオの表示またはダウンロード
-- 写真やビデオを保存する
+- 複数アカウント対応
+- インターフェースのフォント調整
+- 未読/既読インジケーター
+- 接続状態インジケーター
+- テキスト、画像、ビデオの閲覧またはダウンロード
+- 画像やビデオの保存
 - テキスト送信
-- メッセージ処理の編集
-- 削除メッセージの処理
-- リューズの回転をサポート
+- メッセージ削除
+- クラウンローテーションのサポート
 
 ## 最小構成と推奨構成
 

@@ -20,6 +20,16 @@
         src="https://img.shields.io/github/downloads/gohj99/Telewatch/total?style=flat-square"
       />  
     </a >
+    <a href="https://apt.izzysoft.de/fdroid/index/apk/com.gohj99.telewatch">
+      <img
+        src="https://img.shields.io/endpoint?url=https://apt.izzysoft.de/fdroid/api/v1/shield/com.gohj99.telewatch&style=flat-square"
+      />  
+    </a >
+    <a href="https://github.com/MShawon/github-clone-count-badge">
+      <img
+        src="https://img.shields.io/badge/dynamic/json?color=success&label=Views&query=count&url=https://gist.githubusercontent.com/gohj99/684cffa329b5078706dce53f396d67bb/raw/traffic.json&logo=github&style=flat-square"
+      />  
+    </a >
   </div>
 </div>
 
@@ -39,12 +49,15 @@ adb install Telewatch.apk
 
 ## Functions
 
-- View or download text, pictures, and videos
-- Save pictures or videos
-- Send text
-- Edit message processing
-- Delete message processing
-- Support crown rotation
+- Multi-account support
+- Interface font adjustment
+- Unread/read indicator
+- Connection status indicator
+- Viewing or downloading text, images, and videos
+- Saving images or videos
+- Text messaging
+- Message deletion
+- Support for rotating the digital crown
 
 ## Minimum and recommended requirements
 

@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -26,12 +27,15 @@ import androidx.compose.runtime.setValue
 import com.gohj99.telewatch.ui.login.SplashLoginScreen
 import com.gohj99.telewatch.ui.login.SplashPasswordScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
-import org.drinkless.td.libcore.telegram.Client
-import org.drinkless.td.libcore.telegram.TdApi
+import kotlinx.coroutines.runBlocking
+import org.drinkless.tdlib.Client
+import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
 import java.util.Properties
@@ -48,12 +52,15 @@ class LoginActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // 在这里释放 TDLib 资源
-        client.close()
+        runBlocking {
+            client.send(TdApi.Close()) {}
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         languageCode = this.resources.configuration.locales[0].language
         appVersion = getAppVersion(this)
 
@@ -100,13 +107,16 @@ class LoginActivity : ComponentActivity() {
             pInfo.versionName
         } catch (e: Exception) {
             "1.0.0"
-        }
+        }.toString()
     }
 
     // 处理 TDLib 更新的函数
+    @SuppressLint("CommitPrefEdits")
     private fun handleUpdate(update: TdApi.Object) {
         when (update.constructor) {
             TdApi.UpdateAuthorizationState.CONSTRUCTOR -> {
+                val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
+                val encryptionKeyString = sharedPref.getString("encryption_key", null)
                 val authorizationState = (update as TdApi.UpdateAuthorizationState).authorizationState
                 when (authorizationState.constructor) {
                     TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR -> {
@@ -118,7 +128,7 @@ class LoginActivity : ComponentActivity() {
                         val tdapiId = config.getProperty("api_id").toInt()
                         val tdapiHash = config.getProperty("api_hash")
                         // 设置 TDLib 参数
-                        val parameters = TdApi.TdlibParameters().apply {
+                        client.send(TdApi.SetTdlibParameters().apply {
                             databaseDirectory = externalDir.absolutePath + "/tdlib"
                             useMessageDatabase = true
                             useSecretChats = true
@@ -128,30 +138,26 @@ class LoginActivity : ComponentActivity() {
                             deviceModel = Build.MODEL
                             systemVersion = Build.VERSION.RELEASE
                             applicationVersion = appVersion
-                            enableStorageOptimizer = true
-                        }
-                        client.send(TdApi.SetTdlibParameters(parameters)) { }
-                    }
-                    TdApi.AuthorizationStateWaitEncryptionKey.CONSTRUCTOR -> {
-                        // 检查本地是否有加密密钥
-                        val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
-                        val encryptionKeyString = sharedPref.getString("encryption_key", null)
-                        val encryptionKey: TdApi.CheckDatabaseEncryptionKey = if (encryptionKeyString != null) {
-                            val keyBytes = encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-                            TdApi.CheckDatabaseEncryptionKey(keyBytes)
-                        } else {
-                            // 生成一个新的加密密钥并保存
-                            val newKeyBytes = ByteArray(32).apply { (0..31).forEach { this[it] = (it * 7).toByte() } }
-                            val newKeyString = newKeyBytes.joinToString("") { "%02x".format(it) }
-                            with(sharedPref.edit()) {
-                                putString("encryption_key", newKeyString)
-                                apply()
+                            useSecretChats = false
+                            useMessageDatabase = true
+                            databaseEncryptionKey = if (encryptionKeyString != null) {
+                                // 检查本地是否有加密密钥
+                                encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+                            } else {
+                                // 生成一个新的加密密钥并保存
+                                val newKeyBytes = ByteArray(32).apply { (0..31).forEach { this[it] = (it * 7).toByte() } }
+                                val newKeyString = newKeyBytes.joinToString("") { "%02x".format(it) }
+                                with(sharedPref.edit()) {
+                                    putString("encryption_key", newKeyString)
+                                    apply()
+                                }
+                                newKeyBytes
                             }
-                            TdApi.CheckDatabaseEncryptionKey(newKeyBytes)
+                        }) { result ->
+                            println("SetTdlibParameters result: $result")
                         }
-
-                        client.send(encryptionKey) { }
                     }
+
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
                         // 请求二维码认证
                         client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
@@ -178,9 +184,76 @@ class LoginActivity : ComponentActivity() {
                         )*/
                         // 存储登录成功信息
                         val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
-                        with(sharedPref.edit()) {
-                            putBoolean("isLoggedIn", true)
-                            apply()
+                        TdApi.User().let {
+                            client.send(TdApi.GetMe()) {
+                                if (it is TdApi.User) {
+                                    // 移动文件夹
+                                    // 获取私有外部存储的根目录
+                                    val externalDir: File = getExternalFilesDir(null)
+                                        ?: throw IllegalStateException("Failed to get external directory.")
+                                    // 删除可能存在的文件夹
+                                    val dir =
+                                        File(externalDir.absolutePath + "/" + it.id.toString())
+                                    dir.listFiles()?.find { it.name == "tdlib" && it.isDirectory }
+                                        ?.deleteRecursively()
+                                    cacheDir.deleteRecursively()
+                                    // 定义源文件夹路径 (tdlib)
+                                    val sourceDir = File(externalDir, "tdlib")
+                                    if (!sourceDir.exists()) {
+                                        throw IOException("Source folder does not exist: ${sourceDir.absolutePath}")
+                                    }
+                                    // 定义目标文件夹路径 (/id/tdlib)
+                                    val targetParentDir = File(externalDir, it.id.toString())
+                                    if (!targetParentDir.exists()) {
+                                        // 如果目标父目录不存在，则创建
+                                        if (!targetParentDir.mkdirs()) {
+                                            throw IOException("Failed to create target folder: ${targetParentDir.absolutePath}")
+                                        }
+                                    }
+                                    // 定义目标路径
+                                    val targetDir = File(targetParentDir, "tdlib")
+                                    // 移动文件夹
+                                    val success = sourceDir.renameTo(targetDir)
+                                    if (success) {
+                                        println("Folder moved successfully: ${targetDir.absolutePath}")
+                                    } else {
+                                        throw IOException("Failed to move folder to: ${targetDir.absolutePath}")
+                                    }
+
+                                    // 存储账号数据
+                                    val gson = Gson()
+                                    var userList: String
+                                    if (sharedPref.getBoolean("isLoggedIn", false)) {
+                                        // 非首次登录
+                                        userList = sharedPref.getString("userList", "").toString()
+                                        val jsonObject: JsonObject =
+                                            gson.fromJson(userList, JsonObject::class.java)
+                                        // 如果登录重复账号
+                                        if (jsonObject.has(it.id.toString())) {
+                                            jsonObject.remove(it.id.toString())
+                                        } else {
+                                            jsonObject.firstAdd(
+                                                it.id.toString(),
+                                                "${it.firstName} ${it.lastName}"
+                                            )
+                                            userList = jsonObject.toString()
+                                        }
+                                    } else {
+                                        // 首次登录
+                                        val jsonObject = JsonObject()
+                                        jsonObject.addProperty(
+                                            it.id.toString(),
+                                            "${it.firstName} ${it.lastName}"
+                                        )
+                                        userList = jsonObject.toString()
+                                    }
+                                    with(sharedPref.edit()) {
+                                        putBoolean("isLoggedIn", true)
+                                        putString("userList", userList)
+                                        apply()
+                                    }
+                                }
+                            }
                         }
                         runOnUiThread {
                             // 重启软件
@@ -238,10 +311,13 @@ class LoginActivity : ComponentActivity() {
 
                     else -> runOnUiThread {
                         doneStr.value = getString(R.string.Done)
-                        AlertDialog.Builder(this)
-                            .setMessage("${getString(R.string.Request_error)}\ncode:${error.code}\n${error.message}")
-                            .setPositiveButton(getString(R.string.OK)) { dialog, which -> }
-                            .show()
+                        if (!this.isFinishing && !this.isDestroyed) {
+                            AlertDialog.Builder(this)
+                                .setMessage("${getString(R.string.Request_error)}\ncode:${error.code}\n${error.message}")
+                                .setPositiveButton(getString(R.string.OK)) { dialog, which -> }
+                                .show()
+                        }
+
                     }
                 }
             }

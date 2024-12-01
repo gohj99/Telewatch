@@ -1,0 +1,11 @@
+Functions :
+
+- Multi-account support
+- Interface font adjustment
+- Unread/read indicator
+- Connection status indicator
+- Viewing or downloading text, images, and videos
+- Saving images or videos
+- Text messaging
+- Message deletion
+- Support for rotating the digital crown

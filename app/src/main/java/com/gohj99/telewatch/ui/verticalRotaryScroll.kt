@@ -12,6 +12,7 @@ import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
@@ -33,8 +34,8 @@ import kotlinx.coroutines.launch
  */
 @OptIn(ExperimentalWearFoundationApi::class)
 @Composable
-fun Modifier.verticalRotaryScroll(
-    state: LazyListState,
+fun <T> Modifier.verticalRotaryScroll(
+    state: T,
     reverse: Boolean = false
 ): Modifier {
     val coroutineScope = rememberCoroutineScope()
@@ -50,7 +51,6 @@ fun Modifier.verticalRotaryScroll(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK))
                         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            // API 26~28 使用 VibrationEffect
                             vibrator.vibrate(
                                 VibrationEffect.createOneShot(
                                     17, // 振动时长，单位为毫秒
@@ -58,24 +58,26 @@ fun Modifier.verticalRotaryScroll(
                                 )
                             )
                         } else {
-                            // API 26 以下使用旧版的 vibrate 方法
                             vibrator.vibrate(40) // 振动时长为 50 毫秒
                         }
                     }
 
                     // 转动页面
                     val totalScroll = if (reverse) {
-                        event.verticalScrollPixels * -0.75f
+                        event.verticalScrollPixels * -1f
                     } else {
-                        event.verticalScrollPixels * 0.75f
+                        event.verticalScrollPixels * 1f
                     }
                     val stepCount = 30 // 分30步执行，更加丝滑
                     val stepSize = totalScroll / stepCount
 
                     // 分步滚动
                     for (i in 1..stepCount) {
-                        // 表冠顺时针往下滚动，逆时针往上滚动
-                        state.scrollBy(stepSize)
+                        when (state) {
+                            is LazyListState -> state.scrollBy(stepSize)
+                            is ScrollState -> state.scrollBy(stepSize)
+                            else -> throw IllegalArgumentException("Unsupported state type")
+                        }
                         delay(1L) // 延迟1ms
                     }
                 }
@@ -85,3 +87,4 @@ fun Modifier.verticalRotaryScroll(
             .focusable() // 聚焦
     )
 }
+
