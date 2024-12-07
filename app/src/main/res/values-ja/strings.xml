@@ -151,4 +151,6 @@
     <string name="Invite_Link">招待リンク</string>
     <string name="url">URL</string>
     <string name="Same_Chat">同じチャット</string>
+    <string name="empty_message">空のメッセージ</string>
+    <string name="notice_about_3">このソフトウェアを適用法に違反する目的で使用しないでください。その結果についてはお客様が単独で責任を負うものとします。</string>
 </resources>

@@ -326,9 +326,10 @@ fun SplashChatScreen(
 
                         // 回复
                         if (message.replyTo != null) {
+                            var senderName by rememberSaveable { mutableStateOf("") }
                             val replyTo = message.replyTo
                             if (replyTo is TdApi.MessageReplyToMessage) {
-                                var content: TdApi.MessageContent = (
+                                var content by remember { mutableStateOf<TdApi.MessageContent>(
                                     TdApi.MessageText(
                                         TdApi.FormattedText(
                                             context.getString(R.string.loading),
@@ -337,15 +338,83 @@ fun SplashChatScreen(
                                         null,
                                         null
                                     )
-                                )
-                                if (replyTo.content != null) {
-                                    content = replyTo.content!!
-                                } else {
-                                    LaunchedEffect(replyTo.chatId) {
-                                        val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId)
-                                        replyMessage?.let { content = it.content }
+                                )}
+                                LaunchedEffect(replyTo.chatId) {
+                                    if (replyTo.origin != null) {
+                                        println(replyTo.origin)
+                                        when (val origin = replyTo.origin) {
+                                            is TdApi.MessageOriginChannel -> {
+                                                senderName = origin.authorSignature
+                                            }
+                                            is TdApi.MessageOriginChat -> {
+                                                senderName = origin.authorSignature
+                                            }
+                                            is TdApi.MessageOriginHiddenUser -> {
+                                                senderName = origin.senderName
+                                            }
+                                            is TdApi.MessageOriginUser -> {
+                                                val chat = TgApiManager.tgApi?.createPrivateChat(origin.senderUserId)
+                                                //println(chat)
+                                                chat?.let {
+                                                    senderName = it.title
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+                                //println(replyTo.content)
+                                LaunchedEffect(replyTo.chatId) {
+                                    if (replyTo.content != null) {
+                                        //println("replyTo.content: ${replyTo.content}")
+                                        content = replyTo.content!!
+                                    } else {
+                                        if (replyTo.chatId == 0L) {
+                                            if (replyTo.quote != null) {
+                                                if (replyTo.quote!!.text != null) {
+                                                    if (replyTo.quote!!.text.text != "") {
+                                                        content = TdApi.MessageText(
+                                                            TdApi.FormattedText(
+                                                                replyTo.quote!!.text.text,
+                                                                emptyArray()
+                                                            ),
+                                                            null,
+                                                            null
+                                                        )
+                                                    }
+                                                }
+                                            } else {
+                                                content = TdApi.MessageText(
+                                                    TdApi.FormattedText(
+                                                        context.getString(R.string.empty_message),
+                                                        emptyArray()
+                                                    ),
+                                                    null,
+                                                    null
+                                                )
+                                            }
+                                        } else if (replyTo.chatId == chatId) {
+                                            val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId)
+                                            replyMessage?.let { content = it.content }
+                                        } else {
+                                            val chat = TgApiManager.tgApi?.getChat(replyTo.chatId)
+                                            if (chat != null) {
+                                                val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId, replyTo.chatId)
+                                                replyMessage?.let { content = it.content }
+                                            } else {
+                                                content = TdApi.MessageText(
+                                                    TdApi.FormattedText(
+                                                        context.getString(R.string.empty_message),
+                                                        emptyArray()
+                                                    ),
+                                                    null,
+                                                    null
+                                                )
+                                            }
+                                        }
+
+                                    }
+                                }
+
                                 var parentHeight by remember { mutableIntStateOf(0) }
                                 Row(
                                     modifier = Modifier
@@ -372,23 +441,40 @@ fun SplashChatScreen(
                                                     parentHeight = size.height // 获取父容器的高度
                                                 }
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .padding(5.dp)
-                                            ) {
-//                                                Text(
-//                                                    text = "你好",
-//                                                    color = Color(0xFFFEFEFE),
-//                                                    style = MaterialTheme.typography.bodyMedium
-//                                                )
-                                                messageDrawer(
-                                                    content = content,
-                                                    onLinkClick = onLinkClick,
-                                                    textColor = textColor,
-                                                    videoDownload = videoDownload,
-                                                    videoDownloadDone = videoDownloadDone,
-                                                    showUnknownMessageType = showUnknownMessageType
-                                                )
+                                            if (senderName != "") {
+                                                Column(
+                                                    modifier = Modifier
+                                                        .padding(bottom = 5.dp, start = 5.dp, end = 5.dp)
+                                                ) {
+                                                    Text(
+                                                        text = senderName,
+                                                        color = Color(0xFF66D3FE),
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                    )
+                                                    messageDrawer(
+                                                        content = content,
+                                                        onLinkClick = onLinkClick,
+                                                        textColor = textColor,
+                                                        videoDownload = videoDownload,
+                                                        videoDownloadDone = videoDownloadDone,
+                                                        showUnknownMessageType = showUnknownMessageType
+                                                    )
+                                                }
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .padding(5.dp)
+                                                ) {
+                                                    messageDrawer(
+                                                        content = content,
+                                                        onLinkClick = onLinkClick,
+                                                        textColor = textColor,
+                                                        videoDownload = videoDownload,
+                                                        videoDownloadDone = videoDownloadDone,
+                                                        showUnknownMessageType = showUnknownMessageType
+                                                    )
+                                                }
                                             }
                                         }
                                     }

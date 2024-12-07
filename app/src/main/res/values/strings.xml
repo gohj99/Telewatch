@@ -151,4 +151,6 @@
     <string name="Invite_Link">Invite Link</string>
     <string name="url">Url</string>
     <string name="Same_Chat">Same chat</string>
+    <string name="empty_message">Empty message</string>
+    <string name="notice_about_3">Please do not use this software to violate any applicable laws, as you will be solely responsible for any consequences.</string>
 </resources>

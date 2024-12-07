@@ -1057,11 +1057,12 @@ class TgApi(
         return null
     }
 
-    suspend fun createPrivateChat(userId: Long) {
+    suspend fun createPrivateChat(userId: Long) : TdApi.Chat? {
         try {
-            sendRequest(TdApi.CreatePrivateChat(userId, false))
+            return sendRequest(TdApi.CreatePrivateChat(userId, false))
         } catch (e: Exception) {
             println("Error create private chat: ${e.message}")
+            return null
         }
     }
 

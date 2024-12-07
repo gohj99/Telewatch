@@ -151,7 +151,10 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
 
 
                     LinkText(
-                        text = stringResource(R.string.notice_about_1) + "\n" + stringResource(R.string.notice_about_2) + "\ntelegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
+                        text = stringResource(R.string.notice_about_1) + "\n" +
+                                stringResource(R.string.notice_about_2)+ "\n" +
+                                stringResource(R.string.notice_about_3)+ "\n" +
+                                "telegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         onLinkClick = { url ->
