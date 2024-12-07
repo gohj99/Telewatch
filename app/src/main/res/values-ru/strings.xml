@@ -151,4 +151,6 @@
     <string name="Invite_Link">Пригласительная ссылка</string>
     <string name="url">URL</string>
     <string name="Same_Chat">Тот же чат</string>
+    <string name="empty_message">Пустое сообщение</string>
+    <string name="notice_about_3">Пожалуйста, не используйте это программное обеспечение для нарушения каких-либо применимых законов, поскольку вы будете нести полную ответственность за любые последствия.</string>
 </resources>

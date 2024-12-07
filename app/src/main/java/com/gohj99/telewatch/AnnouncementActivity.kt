@@ -15,11 +15,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.Keep
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
-import com.gohj99.telewatch.model.Announcement
 import com.gohj99.telewatch.ui.SplashAnnouncementScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
@@ -117,7 +115,6 @@ class AnnouncementActivity : ComponentActivity() {
         }
     }
 
-    @Keep
     private fun initPage() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -140,9 +137,8 @@ class AnnouncementActivity : ComponentActivity() {
 
                             val responseData = response.body?.string()
                             if (responseData != null) {
-                                // 使用 Gson 将 JSON 字符串转换为 List<Announcement>
-                                val listType = object : TypeToken<List<Announcement>>() {}.type
-                                val announcementList: List<Announcement> = Gson().fromJson(responseData, listType)
+                                val gson = Gson()
+                                val announcementList: List<Map<String, Any>> = gson.fromJson(responseData, object : TypeToken<List<Map<String, Any>>>() {}.type)
 
                                 // 在主线程上更新 UI
                                 runOnUiThread {
