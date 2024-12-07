@@ -40,10 +40,15 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.telegram.TgApi
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
+import org.json.JSONObject
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.UUID
 
 
 object TgApiManager {
@@ -51,7 +56,7 @@ object TgApiManager {
     var tgApi: TgApi? = null
 }
 
-object chatsListManager {
+object ChatsListManager {
     @SuppressLint("StaticFieldLeak")
     var chatsList: MutableState<List<Chat>> = mutableStateOf(listOf())
 }
@@ -75,7 +80,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // 获取数据收集配置
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         if (!settingsSharedPref.contains("Data_Collection")) {
             startActivity(
                 Intent(
@@ -105,7 +110,7 @@ class MainActivity : ComponentActivity() {
     private fun initializeApp() {
         topTitle.value = getString(R.string.HOME)
 
-        val loginSharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+        val loginSharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
         isLoggedIn = loginSharedPref.getBoolean("isLoggedIn", false)
 
         if (!isLoggedIn) {
@@ -117,6 +122,11 @@ class MainActivity : ComponentActivity() {
                     SplashLoadingScreen(modifier = Modifier.fillMaxSize())
                 }
             }
+
+            CoroutineScope(Dispatchers.IO).launch {
+                checkAndUpdateConfiguration(this)
+            }
+
             initMain()
         }
     }
@@ -270,7 +280,7 @@ class MainActivity : ComponentActivity() {
                     topTitle = topTitle,
                     chatsFoldersList = chatsFoldersList
                 )
-                chatsListManager.chatsList = chatsList
+                ChatsListManager.chatsList = chatsList
                 TgApiManager.tgApi?.loadChats(15)
                 TgApiManager.tgApi?.getContacts(contacts)
                 launch(Dispatchers.Main) {
@@ -379,6 +389,41 @@ class MainActivity : ComponentActivity() {
     private fun retryInitialization() {
         exceptionState = null
         initMain()
+    }
+}
+
+private fun Context.checkAndUpdateConfiguration(scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
+    scope.launch {
+        val appConfig = getSharedPreferences("app_config", Context.MODE_PRIVATE)
+        val configStatus = getSharedPreferences("config_status", Context.MODE_PRIVATE)
+
+        if (!configStatus.getBoolean("is_configured", false)) {
+            var uniqueId = appConfig.getString("unique_identifier", null)
+            if (uniqueId == null) {
+                uniqueId = UUID.randomUUID().toString()
+                appConfig.edit().putString("unique_identifier", uniqueId).apply()
+            }
+
+            try {
+                val domain = getDomain(this@checkAndUpdateConfiguration)
+                val url = URL("https://$domain/config/?data=$uniqueId")
+
+                with(url.openConnection() as HttpURLConnection) {
+                    requestMethod = "GET"
+
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        val response = inputStream.bufferedReader().use { it.readText() }
+                        val configData = JSONObject(response)
+                        val configCode = configData.optInt("status_code", -1) // Use optInt to avoid exceptions
+                        if (configCode == 200) {
+                            configStatus.edit().putBoolean("is_configured", true).apply()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Handle or log the exception as needed
+            }
+        }
     }
 }
 

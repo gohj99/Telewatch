@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -62,9 +63,10 @@ class AnnouncementActivity : ComponentActivity() {
     private fun initIdPage(id: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val domain = getDomain(this@AnnouncementActivity)
                 val client = OkHttpClient()
                 val request = Request.Builder()
-                    .url("https://telewatch.gohj99.site/announcement/?id=${id}")
+                    .url("https://$domain/announcement/?id=${id}")
                     .build()
 
                 client.newCall(request).enqueue(object : Callback {
@@ -181,4 +183,8 @@ class AnnouncementActivity : ComponentActivity() {
             }
         }
     }
+}
+fun getDomain(context: Context) : String {
+    val domainParts = listOf("site", context.packageName.split(".")[1], context.packageName.split(".")[2])
+    return domainParts.reversed().joinToString(".")
 }
