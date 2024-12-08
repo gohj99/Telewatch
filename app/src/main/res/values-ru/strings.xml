@@ -49,7 +49,7 @@
     <string name="Voice">Голос</string>
     <string name="Animation">GIF</string>
     <string name="Error_ImgView">Это не изображение, или вы не можете загрузить изображение.</string>
-    <string name="edit">Редактировать</string>
+    <string name="edit">изменено</string>
     <string name="ReloadMessage">Обновить сообщение</string>
     <string name="GetMessage">Получить информацию о сообщении</string>
     <string name="Same_name_image_exists">Это имя изображения уже существует</string>
@@ -73,7 +73,7 @@
     <string name="data_collection_description">Мы используем инструмент сбора данных ACRA с открытым исходным кодом для анонимного сбора отчетов о сбоях, отслеживания наиболее часто используемых функций и сбора данных о шаблонах использования, чтобы сделать Telewatch более удобным для пользователя. Вы можете отключить эту функцию в любой момент в настройках.</string>
     <string name="data_collection_title">Анонимная статистика\nОтчеты о сбоях</string>
     <string name="disagree">Нет</string>
-    <string name="agree">Да</string>
+    <string name="agree">Ок</string>
     <string name="data_Collection">Сбор данных</string>
     <string name="UI_Edit">Редактировать интерфейс</string>
     <string name="App_setting">Настройки приложения</string>
@@ -121,9 +121,9 @@
     <string name="Beta_description">Смените версию на тестовую\nМогут быть различные ошибки</string>
     <string name="is_home_page_pin">Получать ли верхнее сообщение на главной странице (может быть ошибка)</string>
     <string name="show_unknown_message_type">Отображать неподдерживаемые типы сообщений</string>
-    <string name="GoToCheckUpdateActivity_title">Проверьте предупреждение об обновлениях</string>
-    <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.\nЕсли вы установили приложение, например, из IzzyOnDroid/F-Droid их дополнительные проверки выполняться не будут.</string>
-    <string name="don_remind_me_again">Больше не напоминать</string>
+    <string name="GoToCheckUpdateActivity_title">Информация об обновлениях</string>
+    <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.\nЕсли вы установили приложение, например, из IzzyOnDroid/F-Droid, то их дополнительные проверки выполняться не будут.</string>
+    <string name="don_remind_me_again">Не напоминать</string>
     <string name="announcement_title">Объявление</string>
     <string name="No_app_to_handle_this_url">Нет приложения для обработки этого URL.</string>
     <string name="Global_Search">Глобальный поиск</string>
