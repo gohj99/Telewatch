@@ -16,7 +16,7 @@
     <string name="img_activity_view" translatable="false">img_activity_view</string>
     <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
     <string name="app_name" translatable="false">Telewatch</string>
-    <string name="Start_messaging">Начать обмен сообщениями</string>
+    <string name="Start_messaging">Войти</string>
     <string name="Welcome_to_app">Добро пожаловать</string>
     <string name="Network">Сеть</string>
     <string name="Settings">Настройки</string>
@@ -31,14 +31,14 @@
     <string name="loading">Загрузка…</string>
     <string name="Request_error">Ошибка запроса</string>
     <string name="HOME">Все чаты</string>
-    <string name="Login_Successful">Вход осуществлён</string>
+    <string name="Login_Successful">Вы вошли</string>
     <string name="Retry">Повторить попытку</string>
     <string name="Error">Произошла ошибка\nПожалуйста, повторите попытку.</string>
     <string name="Unknown_Message">Неподдерживаемое сообщение</string>
     <string name="Contacts">Контакты</string>
     <string name="setting_all">Все настройки</string>
     <string name="About">О приложении</string>
-    <string name="little_jelly">немного желе</string>
+    <string name="little_jelly">Милое желе</string>
     <string name="Version">Версия</string>
     <string name="Build_Date">Дата сборки:</string>
     <string name="Photo">Фото</string>
@@ -47,7 +47,7 @@
     <string name="No_thumbnail_available">Миниатюра недоступна</string>
     <string name="Video">Видео</string>
     <string name="Voice">Голос</string>
-    <string name="Animation">гифка</string>
+    <string name="Animation">GIF</string>
     <string name="Error_ImgView">Это не изображение, или вы не можете загрузить изображение.</string>
     <string name="edit">Редактировать</string>
     <string name="ReloadMessage">Обновить сообщение</string>
@@ -120,7 +120,7 @@
     <string name="Beta_title">Тестовая версия</string>
     <string name="Beta_description">Смените версию на тестовую\nМогут быть различные ошибки</string>
     <string name="is_home_page_pin">Получать ли верхнее сообщение на главной странице (может быть ошибка)</string>
-    <string name="show_unknown_message_type">Отображает неподдерживаемые типы сообщений</string>
+    <string name="show_unknown_message_type">Отображать неподдерживаемые типы сообщений</string>
     <string name="GoToCheckUpdateActivity_title">Проверьте предупреждение об обновлениях</string>
     <string name="GoToCheckUpdateActivity_description">Мы проверим наличие обновлений в официальном репозитории GitHub.\nЕсли вы установили приложение, например, из IzzyOnDroid/F-Droid их дополнительные проверки выполняться не будут.</string>
     <string name="don_remind_me_again">Больше не напоминать</string>
