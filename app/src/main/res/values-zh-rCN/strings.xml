@@ -151,4 +151,6 @@
     <string name="Invite_Link">Invite Link</string>
     <string name="url">Url</string>
     <string name="Same_Chat">同样的聊天</string>
+    <string name="empty_message">空消息</string>
+    <string name="notice_about_3">请不要使用本软件从事违反任何法律的行为，否则您将承担由此造成的一切后果</string>
 </resources>

@@ -293,7 +293,7 @@ fun ThumbnailChatPhoto(thumbnail: TdApi.File, callback: () -> Unit) {
             .clip(CircleShape)
             .clickable {
                 // 在这里处理点击事件
-                println("Box clicked!")
+                //println("Box clicked!")
                 callback()
             }
     ) {

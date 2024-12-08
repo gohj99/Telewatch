@@ -31,11 +31,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.model.Announcement
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.utils.urlHandle
@@ -43,7 +41,7 @@ import com.google.gson.JsonObject
 
 @Composable
 fun SplashAnnouncementScreen(
-    announcementList: List<Announcement> = listOf(),
+    announcementList: List<Map<String, Any>> = listOf(),
     jsonObject: JsonObject? = null,
     callback: (String) -> Unit
 ) {
@@ -148,7 +146,7 @@ fun SplashAnnouncementScreen(
 }
 
 @Composable
-fun AnnouncementLazyColumn(itemsList: List<Announcement>, callback: (String) -> Unit) {
+fun AnnouncementLazyColumn(itemsList: List<Map<String, Any>>, callback: (String) -> Unit) {
     val listState = rememberLazyListState()
 
     LazyColumn(
@@ -166,14 +164,14 @@ fun AnnouncementLazyColumn(itemsList: List<Announcement>, callback: (String) -> 
             MainCard(
                 column = {
                     Text(
-                        text = item.title,
+                        text = item["title"] as? String ?: "",
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium
                     )
                 },
                 item = item,
                 callback = {
-                    callback(it.id)
+                    callback(it["id"] as? String ?: "")
                 }
             )
         }
@@ -181,17 +179,4 @@ fun AnnouncementLazyColumn(itemsList: List<Announcement>, callback: (String) -> 
             Spacer(modifier = Modifier.height(50.dp))
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SplashAnnouncementScreenPreview() {
-    SplashAnnouncementScreen(
-        announcementList = listOf(
-            Announcement(id = "1", title = "公告1"),
-            Announcement(id = "2", title = "公告2"),
-            Announcement(id = "3", title = "公告3")
-        ),
-        callback = {}
-    )
 }

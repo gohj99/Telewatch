@@ -151,4 +151,6 @@
     <string name="Invite_Link">Inviti Ligon</string>
     <string name="url">Url</string>
     <string name="Same_Chat">Sama babilejo</string>
+    <string name="empty_message">Malplena mesaĝo</string>
+    <string name="notice_about_3">Bonvolu ne uzi ĉi tiun programaron por malobservi ajnajn aplikeblajn leĝojn, ĉar vi estos la sola respondeca pri iuj konsekvencoj.</string>
 </resources>

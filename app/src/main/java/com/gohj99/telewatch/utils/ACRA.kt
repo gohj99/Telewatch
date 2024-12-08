@@ -9,7 +9,6 @@
 package com.gohj99.telewatch.utils
 
 import android.app.Application
-import android.content.Context
 import com.gohj99.telewatch.R
 import org.acra.BuildConfig
 import org.acra.config.httpSender
@@ -24,7 +23,7 @@ class ACRA : Application() {
         super.onCreate()
 
         // 获取是否同意获取数据
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
 
         if (dataCollection) {

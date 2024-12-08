@@ -1,11 +1,12 @@
-Functions :
-
-- Multi-account support
-- Interface font adjustment
-- Unread/read indicator
-- Connection status indicator
-- Viewing or downloading text, images, and videos
-- Saving images or videos
-- Text messaging
-- Message deletion
-- Support for rotating the digital crown
+<b>Functions:</b><br>
+<ul>
+<li>Multi-account support</li>
+<li>Interface font adjustment</li>
+<li>Unread/read indicator</li>
+<li>Connection status indicator</li>
+<li>Viewing or downloading text, images, and videos</li>
+<li>Saving images or videos</li>
+<li>Text messaging</li>
+<li>Message deletion</li>
+<li>Support for rotating the digital crown</li>
+</ul>
