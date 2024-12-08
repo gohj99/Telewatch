@@ -1,5 +1,5 @@
 <a href="https://github.com/gohj99/Telewatch">
-<img src="https://socialify.git.ci/gohj99/Telewatch/image?description=1&descriptionEditable=A%20Telegram%20clients%20for%20Android%20watche&font=KoHo&forks=1&issues=1&logo=https://github.com/gohj99/Telewatch/blob/master/telewatch.png?raw=true?raw=true&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Auto" alt="Telewatch" />
+<img src="https://socialify.git.ci/gohj99/Telewatch/image?description=1&descriptionEditable=A%20Telegram%20clients%20for%20Android%20watch&font=KoHo&forks=1&issues=1&logo=https://github.com/gohj99/Telewatch/blob/master/telewatch.png?raw=true?raw=true&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Auto" alt="Telewatch" />
 </a>
 
 <div align="center">

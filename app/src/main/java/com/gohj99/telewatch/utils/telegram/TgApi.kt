@@ -625,10 +625,10 @@ class TgApi(
         if (message == null) return context.getString(R.string.Unknown_Message)
         return when (val content = message.content) {
             is TdApi.MessageText -> if (content.text.text.length > 20) content.text.text.take(20) + "..." else content.text.text
-            is TdApi.MessagePhoto -> context.getString(R.string.Photo)
-            is TdApi.MessageVideo -> context.getString(R.string.Video)
-            is TdApi.MessageVoiceNote -> context.getString(R.string.Voice)
-            is TdApi.MessageAnimation -> context.getString(R.string.Animation)
+            is TdApi.MessagePhoto -> context.getString(R.string.Photo) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
+            is TdApi.MessageVideo -> context.getString(R.string.Video) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
+            is TdApi.MessageVoiceNote -> context.getString(R.string.Voice) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
+            is TdApi.MessageAnimation -> context.getString(R.string.Animation) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
             is TdApi.MessageAnimatedEmoji -> if (content.emoji == "") context.getString(R.string.Unknown_Message) else content.emoji
             is TdApi.MessageSticker -> if (content.sticker.emoji == "") context.getString(R.string.Unknown_Message) else content.sticker.emoji
             else -> context.getString(R.string.Unknown_Message)
@@ -1057,11 +1057,12 @@ class TgApi(
         return null
     }
 
-    suspend fun createPrivateChat(userId: Long) {
+    suspend fun createPrivateChat(userId: Long) : TdApi.Chat? {
         try {
-            sendRequest(TdApi.CreatePrivateChat(userId, false))
+            return sendRequest(TdApi.CreatePrivateChat(userId, false))
         } catch (e: Exception) {
             println("Error create private chat: ${e.message}")
+            return null
         }
     }
 
