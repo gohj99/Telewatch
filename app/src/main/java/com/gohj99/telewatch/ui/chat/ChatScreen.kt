@@ -287,9 +287,7 @@ fun SplashChatScreen(
                                                 )
                                             }
                                             .padding(start = 10.dp, end = 5.dp),
-                                        color = Color.White,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                                     )
                                     LaunchedEffect(message.senderId) {
                                         if (it in senderNameMap) {
@@ -309,15 +307,25 @@ fun SplashChatScreen(
                                     Text(
                                         text = senderName,
                                         modifier = Modifier
-                                            .padding(start = 10.dp, end = 5.dp),
-                                        color = Color.White,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold,
+                                            .padding(start = 10.dp, end = 5.dp)
+                                            .pointerInput(Unit) {
+                                                detectTapGestures(
+                                                    onLongPress = {
+                                                        selectMessage = message
+                                                        isLongPressed = true
+                                                    }
+                                                )
+                                            },
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                                     )
                                     LaunchedEffect(message.senderId) {
-                                        val itChat = TgApiManager.tgApi?.getChat(itChatId)
-                                        itChat.let {
-                                            senderName = it!!.title
+                                        if (senderId.chatId == chatId) {
+                                            senderName = chatTitle
+                                        } else {
+                                            val itChat = TgApiManager.tgApi?.getChat(itChatId)
+                                            itChat.let {
+                                                senderName = it!!.title
+                                            }
                                         }
                                     }
                                 }
@@ -341,7 +349,7 @@ fun SplashChatScreen(
                                 )}
                                 LaunchedEffect(replyTo.chatId) {
                                     if (replyTo.origin != null) {
-                                        println(replyTo.origin)
+                                        //println(replyTo.origin)
                                         when (val origin = replyTo.origin) {
                                             is TdApi.MessageOriginChannel -> {
                                                 senderName = origin.authorSignature
@@ -394,7 +402,36 @@ fun SplashChatScreen(
                                             }
                                         } else if (replyTo.chatId == chatId) {
                                             val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId)
-                                            replyMessage?.let { content = it.content }
+                                            replyMessage?.let {
+                                                content = it.content
+
+                                                // 用户名称
+                                                //println(replyMessage.senderId)
+                                                if (replyMessage.senderId != null) {
+                                                    val senderId = replyMessage.senderId
+                                                    if (senderId is TdApi.MessageSenderUser){
+                                                        senderId.userId.let { senderUserId ->
+                                                            if (senderUserId in senderNameMap) {
+                                                                senderName = senderNameMap[senderUserId]!!
+                                                            } else {
+                                                                TgApiManager.tgApi?.getUserName(senderUserId) { user ->
+                                                                    senderName = user
+                                                                    senderNameMap[senderUserId] = user
+                                                                }
+                                                            }
+                                                        }
+                                                    } else if (senderId is TdApi.MessageSenderChat) {
+                                                        if (senderId.chatId == chatId) {
+                                                            senderName = chatTitle
+                                                        } else {
+                                                            val chat = TgApiManager.tgApi?.getChat(senderId.chatId)
+                                                            chat?.let {
+                                                                senderName = it.title
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         } else {
                                             val chat = TgApiManager.tgApi?.getChat(replyTo.chatId)
                                             if (chat != null) {
@@ -416,69 +453,140 @@ fun SplashChatScreen(
                                 }
 
                                 var parentHeight by remember { mutableIntStateOf(0) }
-                                Row(
-                                    modifier = Modifier
-                                        .padding(start = 5.dp, end = 5.dp, top = 5.dp)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = alignment
-                                ) {
+
+                                if (isCurrentUser) {
                                     Row(
                                         modifier = Modifier
-                                            .background(Color(0xFF3A4048), shape = RoundedCornerShape(8.dp))
-                                            .clip(RoundedCornerShape(8.dp))
+                                            .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                                            .fillMaxWidth(),
+                                        horizontalArrangement = alignment
                                     ) {
-                                        Box(
+                                        Row(
                                             modifier = Modifier
-                                                .background(Color(0xFF397DBC))
-                                                .width(8.dp) // 指定左边颜色宽度为 10.dp
+                                                .background(Color(0xFF3A4048), shape = RoundedCornerShape(8.dp))
+                                                .clip(RoundedCornerShape(8.dp))
                                         ) {
-                                            Spacer(Modifier.height((parentHeight/2).dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .onSizeChanged { size ->
+                                                        parentHeight = size.height // 获取父容器的高度
+                                                    },
+                                            ) {
+                                                if (senderName != "") {
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .padding(bottom = 5.dp, start = 5.dp, end = 5.dp),
+                                                        horizontalAlignment = Alignment.End // 文字右对齐
+                                                    ) {
+                                                        Text(
+                                                            text = senderName,
+                                                            color = Color(0xFF66D3FE),
+                                                            fontSize = 10.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                        )
+                                                        messageDrawer(
+                                                            content = content,
+                                                            onLinkClick = onLinkClick,
+                                                            textColor = textColor,
+                                                            videoDownload = videoDownload,
+                                                            videoDownloadDone = videoDownloadDone,
+                                                            showUnknownMessageType = showUnknownMessageType
+                                                        )
+                                                    }
+                                                } else {
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .padding(5.dp),
+                                                        horizontalAlignment = Alignment.End // 文字右对齐
+                                                    ) {
+                                                        messageDrawer(
+                                                            content = content,
+                                                            onLinkClick = onLinkClick,
+                                                            textColor = textColor,
+                                                            videoDownload = videoDownload,
+                                                            videoDownloadDone = videoDownloadDone,
+                                                            showUnknownMessageType = showUnknownMessageType
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            Box(
+                                                modifier = Modifier
+                                                    .background(Color(0xFF397DBC))
+                                                    .width(8.dp)
+                                                    .fillMaxHeight()
+                                            ) {
+                                                Spacer(Modifier.height((parentHeight/2).dp)) // 保持Spacer，虽然在这里作用不大
+                                            }
                                         }
-                                        Box(
+                                    }
+                                } else {
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(start = 5.dp, end = 5.dp, top = 5.dp)
+                                            .fillMaxWidth(),
+                                        horizontalArrangement = alignment
+                                    ) {
+                                        Row(
                                             modifier = Modifier
-                                                .fillMaxHeight()
-                                                .onSizeChanged { size ->
-                                                    parentHeight = size.height // 获取父容器的高度
-                                                }
+                                                .background(Color(0xFF3A4048), shape = RoundedCornerShape(8.dp))
+                                                .clip(RoundedCornerShape(8.dp))
                                         ) {
-                                            if (senderName != "") {
-                                                Column(
-                                                    modifier = Modifier
-                                                        .padding(bottom = 5.dp, start = 5.dp, end = 5.dp)
-                                                ) {
-                                                    Text(
-                                                        text = senderName,
-                                                        color = Color(0xFF66D3FE),
-                                                        fontSize = 10.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                    )
-                                                    messageDrawer(
-                                                        content = content,
-                                                        onLinkClick = onLinkClick,
-                                                        textColor = textColor,
-                                                        videoDownload = videoDownload,
-                                                        videoDownloadDone = videoDownloadDone,
-                                                        showUnknownMessageType = showUnknownMessageType
-                                                    )
-                                                }
-                                            } else {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .padding(5.dp)
-                                                ) {
-                                                    messageDrawer(
-                                                        content = content,
-                                                        onLinkClick = onLinkClick,
-                                                        textColor = textColor,
-                                                        videoDownload = videoDownload,
-                                                        videoDownloadDone = videoDownloadDone,
-                                                        showUnknownMessageType = showUnknownMessageType
-                                                    )
+                                            Box(
+                                                modifier = Modifier
+                                                    .background(Color(0xFF397DBC))
+                                                    .width(8.dp) // 指定左边颜色宽度为 10.dp
+                                            ) {
+                                                Spacer(Modifier.height((parentHeight/2).dp))
+                                            }
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .onSizeChanged { size ->
+                                                        parentHeight = size.height // 获取父容器的高度
+                                                    }
+                                            ) {
+                                                if (senderName != "") {
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .padding(bottom = 5.dp, start = 5.dp, end = 5.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = senderName,
+                                                            color = Color(0xFF66D3FE),
+                                                            fontSize = 10.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                        )
+                                                        messageDrawer(
+                                                            content = content,
+                                                            onLinkClick = onLinkClick,
+                                                            textColor = textColor,
+                                                            videoDownload = videoDownload,
+                                                            videoDownloadDone = videoDownloadDone,
+                                                            showUnknownMessageType = showUnknownMessageType
+                                                        )
+                                                    }
+                                                } else {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .padding(5.dp)
+                                                    ) {
+                                                        messageDrawer(
+                                                            content = content,
+                                                            onLinkClick = onLinkClick,
+                                                            textColor = textColor,
+                                                            videoDownload = videoDownload,
+                                                            videoDownloadDone = videoDownloadDone,
+                                                            showUnknownMessageType = showUnknownMessageType
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
+
                             }
                         }
 
@@ -761,6 +869,7 @@ fun messageDrawer(
     videoDownloadDone: MutableState<Boolean>,
     textColor: Color,
     showUnknownMessageType: Boolean,
+    modifier: Modifier = Modifier
 ) {
     when (content) {
         is TdApi.MessageText -> {
@@ -769,7 +878,8 @@ fun messageDrawer(
                     text = content.text.text,
                     color = Color(0xFFFEFEFE),
                     style = MaterialTheme.typography.bodyMedium,
-                    onLinkClick = onLinkClick
+                    onLinkClick = onLinkClick,
+                    modifier = modifier
                 )
             }
         }
@@ -780,14 +890,16 @@ fun messageDrawer(
                     thumbnail = thumbnail.photo,
                     imageWidth = thumbnail.width,
                     imageHeight = thumbnail.height,
-                    textColor = Color(0xFFFEFEFE)
+                    textColor = Color(0xFFFEFEFE),
+                    modifier = modifier
                 )
             } else {
                 // 处理没有缩略图的情况
                 Text(
                     text = stringResource(id = R.string.No_thumbnail_available),
                     color = Color(0xFFFEFEFE),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = modifier
                 )
             }
             // 图片文字
@@ -796,7 +908,7 @@ fun messageDrawer(
                     LinkText(
                         text = it,
                         color = Color(0xFFFEFEFE),
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = modifier.padding(top = 4.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         onLinkClick = onLinkClick
                     )
@@ -813,7 +925,8 @@ fun messageDrawer(
                         thumbnail = thumbnail.file,
                         imageWidth = thumbnail.width,
                         imageHeight = thumbnail.height,
-                        textColor = Color(0xFFFEFEFE)
+                        textColor = Color(0xFFFEFEFE),
+                        modifier = modifier
                     )
                     Box(
                         modifier = Modifier
@@ -825,7 +938,8 @@ fun messageDrawer(
                     Text(
                         text = stringResource(id = R.string.No_thumbnail_available),
                         color = Color(0xFFFEFEFE),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = modifier
                     )
                 }
 
@@ -838,7 +952,7 @@ fun messageDrawer(
                     Image(
                         painter = painterResource(id = R.drawable.play),
                         contentDescription = null,
-                        modifier = Modifier
+                        modifier = modifier
                             .align(Alignment.Center)
                             .size(36.dp) // 设置图标大小为 24dp
                     )
@@ -847,7 +961,7 @@ fun messageDrawer(
                         Image(
                             painter = painterResource(id = R.drawable.download),
                             contentDescription = null,
-                            modifier = Modifier
+                            modifier = modifier
                                 .align(Alignment.Center)
                                 .size(36.dp) // 设置图标大小为 24dp
                         )
@@ -861,7 +975,7 @@ fun messageDrawer(
                     LinkText(
                         text = it,
                         color = Color(0xFFFEFEFE),
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = modifier.padding(top = 4.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         onLinkClick = onLinkClick
                     )
@@ -876,7 +990,8 @@ fun messageDrawer(
                     thumbnail = thumbnail.file,
                     imageWidth = thumbnail.width,
                     imageHeight = thumbnail.height,
-                    textColor = textColor
+                    textColor = textColor,
+                    modifier = modifier
                 )
             }
         }
@@ -890,14 +1005,16 @@ fun messageDrawer(
                     imageWidth = thumbnail.width,
                     imageHeight = thumbnail.height,
                     textColor = textColor,
-                    loadingText = emoji
+                    loadingText = emoji,
+                    modifier = modifier
                 )
             } else {
                 SelectionContainer {
                     Text(
                         text = emoji,
                         color = textColor,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = modifier
                     )
                 }
             }
@@ -912,14 +1029,16 @@ fun messageDrawer(
                     imageWidth = thumbnail.width,
                     imageHeight = thumbnail.height,
                     textColor = textColor,
-                    loadingText = emoji
+                    loadingText = emoji,
+                    modifier = modifier
                 )
             } else {
                 SelectionContainer {
                     Text(
                         text = emoji,
                         color = textColor,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = modifier
                     )
                 }
             }
@@ -929,7 +1048,8 @@ fun messageDrawer(
                 Text(
                     text = stringResource(id = R.string.Unknown_Message) + if (showUnknownMessageType) "\nType: TdApi." + getMessageContentTypeName(content) else "",
                     color = textColor,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = modifier
                 )
             }
         }
