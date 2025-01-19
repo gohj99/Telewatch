@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -1169,7 +1169,19 @@ class TgApi(
                 }
             } catch (e: Exception) {
                 println("GetMe request failed: ${e.message}")
-                throw IllegalStateException("Failed to get current user ID")
+                try {
+                    val result = sendRequest(TdApi.GetMe())
+                    if (result.constructor == TdApi.User.CONSTRUCTOR) {
+                        val user = result as TdApi.User
+                        currentUser = listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
+                        return currentUser
+                    } else {
+                        throw IllegalStateException("Failed to get current user ID")
+                    }
+                } catch (e: Exception) {
+                    println("GetMe request failed: ${e.message}")
+                    throw IllegalStateException("Failed to get current user ID")
+                }
             }
         } else {
             return currentUser

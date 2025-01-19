@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -166,7 +166,9 @@ fun AnnouncementLazyColumn(itemsList: List<Map<String, Any>>, callback: (String)
                     Text(
                         text = item["title"] as? String ?: "",
                         color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1, // 限制为一行
+                        overflow = TextOverflow.Ellipsis // 超出部分省略
                     )
                 },
                 item = item,
@@ -176,7 +178,7 @@ fun AnnouncementLazyColumn(itemsList: List<Map<String, Any>>, callback: (String)
             )
         }
         item {
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer 作为底部间距
         }
     }
 }

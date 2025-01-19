@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -10,8 +10,13 @@ package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.media.MediaPlayer
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +35,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
@@ -40,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -54,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -103,6 +111,12 @@ fun formatTimestampToTime(unixTimestamp: Int): String {
     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
     // 返回格式化的时间字符串
     return format.format(date)
+}
+
+fun formatDuration(duration: Int): String {
+    val minutes = duration / 60
+    val seconds = duration % 60
+    return String.format("%02d:%02d", minutes, seconds)
 }
 
 fun formatTimestampToDate(unixTimestamp: Int): String {
@@ -463,7 +477,10 @@ fun SplashChatScreen(
                                     ) {
                                         Row(
                                             modifier = Modifier
-                                                .background(Color(0xFF3A4048), shape = RoundedCornerShape(8.dp))
+                                                .background(
+                                                    Color(0xFF3A4048),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
                                                 .clip(RoundedCornerShape(8.dp))
                                         ) {
                                             Box(
@@ -530,7 +547,10 @@ fun SplashChatScreen(
                                     ) {
                                         Row(
                                             modifier = Modifier
-                                                .background(Color(0xFF3A4048), shape = RoundedCornerShape(8.dp))
+                                                .background(
+                                                    Color(0xFF3A4048),
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
                                                 .clip(RoundedCornerShape(8.dp))
                                         ) {
                                             Box(
@@ -1043,6 +1063,13 @@ fun messageDrawer(
                 }
             }
         }
+        // 语音消息
+        is TdApi.MessageVoiceNote -> {
+            MessageVideoNote(
+                messageVideoNote = content,
+                modifier = modifier
+            )
+        }
         else -> {
             SelectionContainer {
                 Text(
@@ -1052,6 +1079,151 @@ fun messageDrawer(
                     modifier = modifier
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun MessageVideoNote(
+    messageVideoNote: TdApi.MessageVoiceNote,
+    modifier: Modifier = Modifier
+) {
+    val videoNote = messageVideoNote.voiceNote
+    var playTime by remember { mutableStateOf(0) }
+    var playingShow by remember { mutableStateOf(false) }
+    val voiceNoteTime = videoNote.duration
+    val voiceFile = videoNote.voice
+    var isDownload by remember { mutableStateOf(voiceFile.local.isDownloadingCompleted) }
+    var downloading by remember { mutableStateOf(false) }
+    val mediaPlayer = remember { MediaPlayer() }
+    val context = LocalContext.current
+
+    // Handler 和 Runnable
+    val handler = remember { Handler(Looper.getMainLooper()) }
+    val runnable = remember {
+        object : Runnable {
+            override fun run() {
+                if (mediaPlayer.isPlaying) {
+                    playTime = mediaPlayer.currentPosition / 1000
+                }
+                handler.postDelayed(this, 1000)
+            }
+        }
+    }
+
+    LaunchedEffect(isDownload) {
+        if (isDownload) {
+            try {
+                mediaPlayer.apply {
+                    reset()
+                    setDataSource(context, Uri.parse(voiceFile.local.path))
+                    setOnCompletionListener {
+                        playingShow = false
+                        playTime = 0
+                        handler.removeCallbacks(runnable)
+                    }
+                    prepareAsync()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // 退出作用域释放资源
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer.release()
+            handler.removeCallbacks(runnable)
+        }
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isDownload) {
+            if (playingShow) {
+                Image(
+                    painter = painterResource(id = R.drawable.playing_audio),
+                    contentDescription = "playing_audio",
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 32.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            // 暂停播放，但不重置进度
+                            mediaPlayer.pause()
+                            playingShow = false
+                            handler.removeCallbacks(runnable)
+                        }
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.play_audio),
+                    contentDescription = "play_audio",
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 32.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            // 如果暂停，继续播放从暂停位置开始
+                            mediaPlayer.start()
+                            playingShow = true
+                            handler.post(runnable)
+                        }
+                )
+            }
+        } else {
+            if (videoNote.mimeType == "audio/ogg") {
+                if (downloading) {
+                    SplashLoadingScreen()
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.download_audio),
+                        contentDescription = "download_audio",
+                        modifier = Modifier
+                            .size(width = 32.dp, height = 32.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                downloading = true
+                                TgApiManager.tgApi!!.downloadFile(
+                                    file = voiceFile,
+                                    schedule = { schedule -> },
+                                    completion = { success, path ->
+                                        if (success) {
+                                            isDownload = true
+                                            downloading = false
+                                        }
+                                    }
+                                )
+                            }
+                    )
+                }
+            } else {
+                Text(
+                    text = stringResource(id = R.string.Audio_Error),
+                    color = Color(0xFF6985A2),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = modifier
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.width(42.dp))
+            Image(
+                painter = painterResource(id = R.drawable.video_ripple),
+                contentDescription = "video_ripple",
+                modifier = Modifier
+                    .size(32.dp)
+                    .scale(1.65f)
+            )
+            Text(
+                text = formatDuration(playTime) + " | " + formatDuration(voiceNoteTime),
+                color = Color(0xFF6985A2),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = modifier
+            )
         }
     }
 }
