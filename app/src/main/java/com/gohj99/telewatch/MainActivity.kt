@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -12,6 +12,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -70,6 +71,9 @@ class MainActivity : ComponentActivity() {
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
     private val contacts = mutableStateOf(listOf<Chat>())
+    private val settingsSharedPref: SharedPreferences by lazy {
+        getSharedPreferences("app_settings", MODE_PRIVATE)
+    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -81,7 +85,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // 获取数据收集配置
-        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         if (!settingsSharedPref.contains("Data_Collection")) {
             startActivity(
                 Intent(
@@ -126,6 +129,15 @@ class MainActivity : ComponentActivity() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 checkAndUpdateConfiguration(this)
+            }
+
+            if (!settingsSharedPref.getBoolean("Remind1_read", false)) {
+                startActivity(
+                    Intent(
+                        this,
+                        RemindActivity::class.java
+                    )
+                )
             }
 
             initMain()
@@ -233,6 +245,18 @@ class MainActivity : ComponentActivity() {
                                 Intent(
                                     this@MainActivity,
                                     ConfirmLogoutActivity::class.java
+                                )
+                            )
+                        }
+                    ),
+                    // 捐赠
+                    SettingItem.Click(
+                        itemName = getString(R.string.Donate),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    DonateActivity::class.java
                                 )
                             )
                         }

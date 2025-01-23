@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -25,51 +25,47 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import com.gohj99.telewatch.utils.urlHandle
 
-class GoToCheckUpdateActivity : ComponentActivity() {
+class RemindActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
-        if (settingsSharedPref.getBoolean("Skip_GoToCheckUpdateActivity", false)) {
-            startActivity(
-                Intent(
-                    this@GoToCheckUpdateActivity,
-                    CheckUpdateActivity::class.java
-                )
-            )
-            finish()
-        } else {
-            setContent {
-                TelewatchTheme {
-                    SplashGoToCheckUpdateScreen { isSkip ->
-                        with(settingsSharedPref.edit()) {
-                            putBoolean("Skip_GoToCheckUpdateActivity", isSkip)
-                            commit()
-                            startActivity(
-                                Intent(
-                                    this@GoToCheckUpdateActivity,
-                                    CheckUpdateActivity::class.java
-                                )
-                            )
-                            finish()
-                        }
+        setContent {
+            TelewatchTheme {
+                SplashRemindScreen { donate ->
+                    with(settingsSharedPref.edit()) {
+                        putBoolean("Remind1_read", true)
+                        commit()
+                        finish()
                     }
+                    if (donate) {
+                        startActivity(
+                            Intent(
+                                this@RemindActivity,
+                                DonateActivity::class.java
+                            )
+                        )
+                    }
+                    finish()
                 }
             }
         }
@@ -77,7 +73,8 @@ class GoToCheckUpdateActivity : ComponentActivity() {
 }
 
 @Composable
-fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
+fun SplashRemindScreen(done: (Boolean) -> Unit) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
     LaunchedEffect(Unit) {
         scrollState.scrollTo(80)
@@ -93,7 +90,7 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
     ) {
         // 标题
         Text(
-            text = stringResource(id = R.string.GoToCheckUpdateActivity_title),
+            text = stringResource(id = R.string.Remind),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,
@@ -101,18 +98,26 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
             modifier = Modifier.padding(top = 86.dp)
         )
 
-        // 主要说明部分
-        Text(
-            text = stringResource(id = R.string.GoToCheckUpdateActivity_description),
-            fontSize = 16.sp,
-            color = Color.White,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(16.dp)
-        )
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 3.dp)
+        ) {
+            // 主要说明部分
+            LinkText(
+                text = stringResource(id = R.string.Remind1),
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                modifier = Modifier.padding(16.dp),
+                onLinkClick = { url ->
+                    urlHandle(url, context)
+                }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 不提醒继续和继续按钮
+        // 捐赠按钮
         Box(
             modifier = Modifier
                 .padding(bottom = 4.dp, start = 16.dp, end = 16.dp)
@@ -120,31 +125,33 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Button(
-                onClick = { set(true) },
+                onClick = { done(true) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF3A7FBE),  // 按钮背景颜色
                     contentColor = Color.White   // 按钮文字颜色
                 )
             ) {
-                Text(text = stringResource(id = R.string.don_remind_me_again))
+                Text(text = stringResource(id = R.string.Donate))
             }
         }
+
+        // 继续按钮
         Box(
             modifier = Modifier
-                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                .padding(bottom = 4.dp, start = 16.dp, end = 16.dp)
                 .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             Button(
-                onClick = { set(false) },
+                onClick = { done(false) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF3E4D58),  // 按钮背景颜色
                     contentColor = Color.White   // 按钮文字颜色
                 )
             ) {
-                Text(text = stringResource(id = R.string.agree))
+                Text(text = stringResource(id = R.string.OK))
             }
         }
 
@@ -154,8 +161,8 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
 
 @Preview(showBackground = true)
 @Composable
-fun SplashGoToCheckUpdateScreenPreview() {
+fun SplashRemindScreenPreview() {
     TelewatchTheme {
-        SplashAllowDataCollectionScreen { /*TODO*/ }
+        SplashRemindScreen {}
     }
 }

@@ -10,10 +10,7 @@ package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -81,6 +78,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
@@ -1089,58 +1089,63 @@ fun MessageVideoNote(
     modifier: Modifier = Modifier
 ) {
     val videoNote = messageVideoNote.voiceNote
+    val voiceFile = videoNote.voice
+    val context = LocalContext.current
     var playTime by remember { mutableStateOf(0) }
     var playingShow by remember { mutableStateOf(false) }
-    val voiceNoteTime = videoNote.duration
-    val voiceFile = videoNote.voice
     var isDownload by remember { mutableStateOf(voiceFile.local.isDownloadingCompleted) }
     var downloading by remember { mutableStateOf(false) }
-    val mediaPlayer = remember { MediaPlayer() }
-    val context = LocalContext.current
 
-    // Handler 和 Runnable
-    val handler = remember { Handler(Looper.getMainLooper()) }
-    val runnable = remember {
-        object : Runnable {
-            override fun run() {
-                if (mediaPlayer.isPlaying) {
-                    playTime = mediaPlayer.currentPosition / 1000
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    if (state == Player.STATE_READY && !isPlaying) {
+                        // 播放器已准备好但未播放
+                        playTime = (currentPosition / 1000).toInt()
+                    } else if (state == Player.STATE_ENDED) {
+                        playingShow = false
+                        playTime = 0
+                        seekTo(0) // 将播放位置重置到起点
+                        pause()
+                    }
                 }
-                handler.postDelayed(this, 1000)
+            })
+        }
+    }
+
+    // 播放时间更新任务
+    LaunchedEffect(playingShow) {
+        if (playingShow) {
+            while (playingShow) {
+                playTime = (exoPlayer.currentPosition / 1000).toInt()
+                delay(500) // 每 500ms 更新一次
+                //println(exoPlayer.currentPosition)
+                //println(playTime)
             }
         }
     }
 
+    // 播放器初始化
     LaunchedEffect(isDownload) {
         if (isDownload) {
             try {
-                mediaPlayer.apply {
-                    reset()
-                    setDataSource(context, Uri.parse(voiceFile.local.path))
-                    setOnCompletionListener {
-                        playingShow = false
-                        playTime = 0
-                        handler.removeCallbacks(runnable)
-                    }
-                    prepareAsync()
-                }
+                exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(voiceFile.local.path)))
+                exoPlayer.prepare()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    // 退出作用域释放资源
+    // 资源释放
     DisposableEffect(Unit) {
         onDispose {
-            mediaPlayer.release()
-            handler.removeCallbacks(runnable)
+            exoPlayer.release()
         }
     }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         if (isDownload) {
             if (playingShow) {
                 Image(
@@ -1150,10 +1155,8 @@ fun MessageVideoNote(
                         .size(width = 32.dp, height = 32.dp)
                         .clip(CircleShape)
                         .clickable {
-                            // 暂停播放，但不重置进度
-                            mediaPlayer.pause()
+                            exoPlayer.pause()
                             playingShow = false
-                            handler.removeCallbacks(runnable)
                         }
                 )
             } else {
@@ -1164,10 +1167,8 @@ fun MessageVideoNote(
                         .size(width = 32.dp, height = 32.dp)
                         .clip(CircleShape)
                         .clickable {
-                            // 如果暂停，继续播放从暂停位置开始
-                            mediaPlayer.start()
+                            exoPlayer.play()
                             playingShow = true
-                            handler.post(runnable)
                         }
                 )
             }
@@ -1187,7 +1188,7 @@ fun MessageVideoNote(
                                 TgApiManager.tgApi!!.downloadFile(
                                     file = voiceFile,
                                     schedule = { schedule -> },
-                                    completion = { success, path ->
+                                    completion = { success, _ ->
                                         if (success) {
                                             isDownload = true
                                             downloading = false
@@ -1207,9 +1208,7 @@ fun MessageVideoNote(
             }
         }
         Spacer(modifier = Modifier.width(14.dp))
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Spacer(modifier = Modifier.width(42.dp))
             Image(
                 painter = painterResource(id = R.drawable.video_ripple),
@@ -1219,7 +1218,7 @@ fun MessageVideoNote(
                     .scale(1.65f)
             )
             Text(
-                text = formatDuration(playTime) + " | " + formatDuration(voiceNoteTime),
+                text = "${formatDuration(playTime)} | ${formatDuration(videoNote.duration)}",
                 color = Color(0xFF6985A2),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = modifier

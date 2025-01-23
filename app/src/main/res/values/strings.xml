@@ -17,7 +17,7 @@
     <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
     <string name="app_name" translatable="false">Telewatch</string>
     <string name="Start_messaging">Start messaging</string>
-    <string name="Welcome_to_app">Welcome to telewatch app</string>
+    <string name="Welcome_to_app">Welcome to Telewatch app</string>
     <string name="Network">Network</string>
     <string name="Settings">Settings</string>
     <string name="Clearing_cache">Clearing cache</string>
@@ -154,4 +154,14 @@
     <string name="empty_message">Empty message</string>
     <string name="notice_about_3">Please do not use this software to violate any applicable laws, as you will be solely responsible for any consequences.</string>
     <string name="Audio_Error">Audio\nError</string>
+    <string name="remind_activity">Remind Activity</string>
+    <string name="Remind">Remind</string>
+    <string name="Remind1">Hello!\nWelcome to the Telewatch app!\nTo get started, we recommend joining our official Telegram group for support. You can join by clicking the link below:\nhttps://t.me/teleAndroidwatch\n\nHere\'s a quick guide to help you use the app:\n\nURLs like @ and https are clickable.\nOn the chat page, tap the title to enter chat info for more details.\nLong press and drag text to select and copy.\nIn the image viewer, long press an image to save it to your gallery.\n\nTelewatch is open-source and free. If you\'d like to support our development, please consider donating by clicking the button below.\n\nWe hope you enjoy using Telewatch!</string>
+    <string name="donate_activity">Donate Activity</string>
+    <string name="Donate">Donate</string>
+    <string name="Telegram_not_connected">No connected (maybe you are not logged in)</string>
+    <string name="DonateL">The continued development of Telewatch requires your donation (click me to expand)</string>
+    <string name="Donate1">To support the ongoing development of Telewatch, we kindly ask for your generous donation. Your contribution will help us enhance features and improve the overall experience for everyone. Thank you for your support!</string>
+    <string name="Donate2">azz: https://azz.ee/gohj99</string>
+    <string name="Unable_open_url">Failed to open URL</string>
 </resources>
