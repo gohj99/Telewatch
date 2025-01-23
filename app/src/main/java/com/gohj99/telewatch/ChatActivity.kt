@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -63,6 +63,7 @@ class ChatActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        TgApiManager.tgApi!!.saveChatId = 0L
         TgApiManager.tgApi?.exitChatPage()
     }
 
@@ -177,6 +178,7 @@ class ChatActivity : ComponentActivity() {
                 lastReadOutboxMessageId.value = itChatObject.lastReadOutboxMessageId
                 lastReadInboxMessageId.value = itChatObject.lastReadInboxMessageId
 
+                TgApiManager.tgApi!!.saveChatId = itChatObject.id
                 runOnUiThread {
                     setContent {
                         TelewatchTheme {

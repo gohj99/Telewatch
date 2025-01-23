@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -38,9 +38,7 @@ fun LinkText(
     if (text.isNotEmpty()) {
         val annotatedString = buildAnnotatedString {
             val urlRegex = Regex(
-                "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" +
-                        "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" +
-                        "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)"
+                "(?i)\\b((https?|ftp)://[-a-zA-Z0-9@:%._+~#=]{2,256}\\.[a-z]{2,63}\\b([-a-zA-Z0-9@:%_+.~#?&/=]*)?)"
             )
 
             val usernameRegex = Regex("(?<!\\w)@(\\w{4,})(?!\\w)")
@@ -56,8 +54,6 @@ fun LinkText(
 
                     if (start >= lastIndex) {
                         append(text.substring(lastIndex, start))
-                    } else {
-                        println("Error: start ($start) is less than lastIndex ($lastIndex)")
                     }
 
                     when {
@@ -69,13 +65,12 @@ fun LinkText(
                             pop()
                         }
                         result.value.matches(usernameRegex) -> {
-                            val nowUrl = "https://t.me/${result.value}"
+                            val nowUrl = "https://t.me/${result.value.trimStart('@')}"
                             pushStringAnnotation(tag = "URL", annotation = nowUrl)
                             withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
                                 append(result.value)
                             }
                             pop()
-
                         }
                         result.value.matches(boldRegex) -> {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -95,7 +90,6 @@ fun LinkText(
             }
         }
 
-
         ClickableText(
             text = annotatedString,
             style = style.copy(color = color),
@@ -109,7 +103,6 @@ fun LinkText(
         )
     }
 }
-
 
 @Composable
 fun <T> MainCard(

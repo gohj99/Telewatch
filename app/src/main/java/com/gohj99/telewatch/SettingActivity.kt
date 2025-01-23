@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -59,6 +59,18 @@ class SettingActivity : ComponentActivity() {
         when (page) {
             0 -> {
                 settingsList.value = listOf(
+                    // 捐赠
+                    SettingItem.Click(
+                        itemName = getString(R.string.Donate),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    DonateActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 网络设置
                     /*
                     SettingItem.Click(
@@ -109,6 +121,7 @@ class SettingActivity : ComponentActivity() {
                         }
                     ),
                     // 公告
+                    /*
                     SettingItem.Click(
                         itemName = getString(R.string.announcement_title),
                         onClick = {
@@ -120,6 +133,7 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                     */
                     // 关于
                     SettingItem.Click(
                         itemName = getString(R.string.About),
