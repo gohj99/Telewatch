@@ -30,11 +30,6 @@
         src="https://img.shields.io/badge/dynamic/json?color=success&label=Views&query=count&url=https://gist.githubusercontent.com/gohj99/684cffa329b5078706dce53f396d67bb/raw/traffic.json&logo=github&style=flat-square"
       />  
     </a >
-    <a href="https://gitee.com/gohj99/Telewatch/">
-      <img
-        src="https://gitee.com/gohj99/Telewatch/badge/star.svg?theme=gray"
-      />  
-    </a >
   </div>
 </div>
 
@@ -59,6 +54,7 @@ adb install Telewatch.apk
 - 未读/已读指示器
 - 连接状态指示器
 - 文字、图片、视频查看或下载
+- 播放语音消息
 - 保存图片或视频
 - 文字发送
 - 删除消息
