@@ -164,4 +164,5 @@
     <string name="Donate1">To support the ongoing development of Telewatch, we kindly ask for your generous donation. Your contribution will help us enhance features and improve the overall experience for everyone. Thank you for your support!</string>
     <string name="Donate2">azz: https://azz.ee/gohj99</string>
     <string name="Unable_open_url">Failed to open URL</string>
+    <string name="Clear_voice">Clear voice</string>
 </resources>

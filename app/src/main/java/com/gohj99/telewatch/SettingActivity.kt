@@ -279,6 +279,20 @@ class SettingActivity : ComponentActivity() {
                         }
                     ),
                     SettingItem.Click(
+                        itemName = getString(R.string.Clear_voice),
+                        onClick = {
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
+                            dir.listFiles()?.find { it.name == "voice" && it.isDirectory }
+                                ?.deleteRecursively()
+                            cacheDir.deleteRecursively()
+                            Toast.makeText(
+                                this,
+                                getString(R.string.Successful),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
                         itemName = getString(R.string.Clear_videos),
                         onClick = {
                             val dir = File(externalDir.absolutePath + chatId + "/tdlib")

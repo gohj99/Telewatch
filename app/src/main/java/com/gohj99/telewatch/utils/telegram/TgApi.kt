@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -662,7 +663,8 @@ class TgApi(
     fun downloadFile(
         file: TdApi.File,
         schedule: (String) -> Unit,
-        completion: (Boolean, String?) -> Unit
+        completion: (Boolean, String?) -> Unit,
+        priority: Int = 1
     ) {
         // 判断文件是否已经下载完成
         if (file.local.isDownloadingCompleted) {
@@ -670,7 +672,13 @@ class TgApi(
             completion(true, file.local.path)
         } else {
             // 开始下载文件
-            client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true)) { response ->
+            client.send(TdApi.DownloadFile(
+                file.id, // fileId: 文件 ID，类型 int
+                priority, // priority: 下载优先级，1-32，类型 int
+                0, // offset: 下载起始位置，类型 long
+                0, // limit: 下载的字节数限制，0 表示无限制，类型 long
+                true // synchronous: 是否同步，类型 boolean
+            )) { response ->
                 when (response) {
                     is TdApi.Error -> {
                         // 下载失败，回调completion
@@ -684,7 +692,7 @@ class TgApi(
                             if (response.local.downloadedSize > 0 && response.expectedSize > 0) {
                                 (response.local.downloadedSize * 100 / response.expectedSize).toString() + "%"
                             } else {
-                                "未知进度"
+                                "error"
                             }
 
                         // 回调schedule以更新进度
@@ -692,11 +700,19 @@ class TgApi(
 
                         // 检查是否下载完成
                         if (response.local.isDownloadingCompleted) {
-                            // 下载完成，回调completion并传递文件路径
-                            println("文件下载完成: ${response.local.path}")
-                            completion(true, response.local.path)
+                            //println("测试代码执行")
+                            var file = File(response.local.path)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                while (!file.exists() || file.length() == 0L) {
+                                    delay(500) // 启动一个协程来调用 delay
+                                    file = File(response.local.path)
+                                }
+                                withContext(Dispatchers.Main) {
+                                    println("文件下载完成: ${response.local.path}")
+                                    completion(true, response.local.path)
+                                }
+                            }
                         } else {
-                            // 下载未完成，继续回调schedule直到下载完成
                             println("下载进行中: $downloadProgress")
                         }
                     }
