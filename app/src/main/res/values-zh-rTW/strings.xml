@@ -162,6 +162,6 @@
     <string name="Telegram_not_connected">未連線（可能您還沒有登入）</string>
     <string name="DonateL">Telewatch 的持續發展需要您的捐款（點擊我展開）</string>
     <string name="Donate1">為了支持 Telewatch 的持續發展，我們懇請您慷慨捐贈。您的貢獻將幫助我們增強功能並改善每個人的整體體驗。感謝您的支持！</string>
-    <string name="Donate2">藝術本身: https://azz.ee/gohj99</string>
+    <string name="Donate2">azz: https://azz.ee/gohj99</string>
     <string name="Unable_open_url">無法開啟 URL</string>
 </resources>

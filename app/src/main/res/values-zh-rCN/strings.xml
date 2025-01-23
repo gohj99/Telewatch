@@ -161,7 +161,7 @@
     <string name="Donate">捐赠</string>  
     <string name="Telegram_not_connected">没有连接（也许您没有登录）</string>
     <string name="DonateL">Telewatch 的持续发展需要您的捐赠（点击我展开）</string>
-    <string name="Donate1">为了支持 Telewatch 的持续发展，我们恳请您慷慨解囊。您的捐款将帮助我们增强功能并改善所有人的整体体验。感谢您的支持！</string>
-    <string name="Donate2">藝術本身: https://azz.ee/gohj99</string>
+    <string name="Donate1">为了支持 Telewatch 的持续发展，我们恳请您慷慨解囊。您的捐款将帮助我们添加更多功能并改善所有人的整体体验。感谢您的支持！</string>
+    <string name="Donate2">azz: https://azz.ee/gohj99</string>
     <string name="Unable_open_url">无法打开 URL</string>
 </resources>
