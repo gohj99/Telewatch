@@ -59,6 +59,7 @@ adb install Telewatch.apk
 - Unread/read indicator
 - Connection status indicator
 - Viewing or downloading text, images, and videos
+- Play Voice Message
 - Saving images or videos
 - Text messaging
 - Message deletion
