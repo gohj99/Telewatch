@@ -165,7 +165,7 @@ class TgApi(
 
             TdApi.ConnectionStateConnectingToProxy.CONSTRUCTOR -> {
                 // 正在尝试通过代理连接到 Telegram 服务器
-                topTitle.value = context.getString(R.string.Connecting)
+                topTitle.value = context.getString(R.string.Connecting_Proxy)
                 println("TgApi: Connecting To Proxy")
             }
 
@@ -945,6 +945,75 @@ class TgApi(
         } catch (e: Exception) {
             println("GetUser request failed: ${e.message}")
             return null
+        }
+    }
+
+    // 删除代理
+    suspend fun removeProxy(proxyId: Int) : TdApi.Ok? {
+        try {
+            return sendRequest(TdApi.RemoveProxy(proxyId))
+        } catch (e: Exception) {
+            println("RemoveProxy request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 停用代理
+    suspend fun disableProxy() : TdApi.Ok? {
+        try {
+            return sendRequest(TdApi.DisableProxy())
+        } catch (e: Exception) {
+            println("DisableProxy request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 启用代理
+    suspend fun enableProxy(proxyId: Int) : TdApi.Ok? {
+        try {
+            return sendRequest(TdApi.EnableProxy(proxyId))
+        } catch (e: Exception) {
+            println("DisableProxy request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取代理信息
+    suspend fun getProxy() : TdApi.Proxies? {
+        try {
+            val getResult = sendRequest(TdApi.GetProxies())
+            println(getResult)
+            return getResult
+        } catch (e: Exception) {
+            println("GetUser request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 添加代理
+    fun addProxy(server: String, port: Int, type: TdApi.ProxyType, enable: Boolean = true) {
+        try {
+            val addProxyRequest = TdApi.AddProxy(
+                server,
+                port,
+                enable,
+                type
+            )
+            client.send(addProxyRequest) { result ->
+                when (result) {
+                    is TdApi.Ok -> {
+                        println("Proxy added successfully")
+                    }
+                    is TdApi.Error -> {
+                        println("Failed to add proxy: ${result.message}")
+                    }
+                    else -> {
+                        println("Unexpected response type")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("SetProxy request failed: ${e.message}")
         }
     }
 

@@ -156,7 +156,7 @@
     <string name="Audio_Error">Audio\nError</string>
     <string name="remind_activity">Remind Activity</string>
     <string name="Remind">Remind</string>
-    <string name="Remind1">Hello!\nWelcome to the Telewatch app!\nTo get started, we recommend joining our official Telegram group for support. You can join by clicking the link below:\nhttps://t.me/teleAndroidwatch\n\nHere\'s a quick guide to help you use the app:\n\nURLs like @ and https are clickable.\nOn the chat page, tap the title to enter chat info for more details.\nLong press and drag text to select and copy.\nIn the image viewer, long press an image to save it to your gallery.\n\nTelewatch is open-source and free. If you\'d like to support our development, please consider donating by clicking the button below.\n\nWe hope you enjoy using Telewatch!</string>
+    <string name="Remind1">Hello!\nWelcome to the Telewatch app!\nTo get started, we recommend joining our official Telegram group for support. You can join by clicking the link below:\nhttps://t.me/teleAndroidwatch\n\nHere\'s a quick guide to help you use the app:\n\nURLs like @ and https are clickable.\nOn the chat page, tap the title to enter chat info for more details.\nLong press and drag text to select and copy.\nIn the image viewer, long press an image to save it to your gallery.\nDelete a proxy by long-pressing the item on the proxy page\n\nTelewatch is open-source and free. If you\'d like to support our development, please consider donating by clicking the button below.\n\nWe hope you enjoy using Telewatch!</string>
     <string name="donate_activity">Donate Activity</string>
     <string name="Donate">Donate</string>
     <string name="Telegram_not_connected">No connected (maybe you are not logged in)</string>
@@ -165,4 +165,16 @@
     <string name="Donate2">azz: https://azz.ee/gohj99</string>
     <string name="Unable_open_url">Failed to open URL</string>
     <string name="Clear_voice">Clear voice</string>
+    <string name="set_proxy_activity">set proxy activity</string>
+    <string name="Proxy">Proxy</string>
+    <string name="AddProxy">Add Proxy</string>
+    <string name="add_proxy_activity">Add proxy activity</string>
+    <string name="Server">Server host</string>
+    <string name="Port">Port</string>
+    <string name="Add">Add</string>
+    <string name="Key">Key</string>
+    <string name="password">Password</string>
+    <string name="Optional">Optional</string>
+    <string name="Connecting_Proxy">ConnProxy</string>
+    <string name="View_Tips">View Tips</string>
 </resources>

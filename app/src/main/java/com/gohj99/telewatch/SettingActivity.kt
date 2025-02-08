@@ -108,6 +108,18 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    // 查看提示
+                    SettingItem.Click(
+                        itemName = getString(R.string.View_Tips),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    RemindActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 检查更新
                     SettingItem.Click(
                         itemName = getString(R.string.Check_Update),

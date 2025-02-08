@@ -8,7 +8,8 @@
 
 package com.gohj99.telewatch.ui.main
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -104,18 +105,23 @@ fun LinkText(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <T> MainCard(
     column: @Composable () -> Unit,
     item: T,
     callback: (T) -> Unit = {},
+    onLongClick: (T) -> Unit = {},
     color: Color = Color(0xFF404953)
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .clickable { callback(item) },
+            .combinedClickable(
+                onClick = { callback(item) }, // 处理点击
+                onLongClick = { onLongClick(item) } // 处理长按
+            ),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(
             containerColor = color // 设置 Card 的背景颜色

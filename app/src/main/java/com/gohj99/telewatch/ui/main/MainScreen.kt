@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -12,6 +12,7 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -90,15 +94,15 @@ fun MainScreen(
         // 包含 Row 的 Box
         Box(
             modifier = Modifier
-                .fillMaxWidth() // 只填充宽度
-                .padding(top = 14.dp) // 添加顶部填充
-                .clickable { showMenu = !showMenu } // 点击时切换显示状态
+                .fillMaxWidth()
+                .padding(top = 14.dp)
+                .clickable { showMenu = !showMenu }
         ) {
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopCenter) // 将 Row 对齐到顶部中央
+                    .align(Alignment.TopCenter)
                     .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically // 垂直方向居中对齐
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
                     painter = if (showMenu) {
@@ -110,20 +114,30 @@ fun MainScreen(
                     modifier = Modifier.size(19.9114514.dp) // 设置图片大小
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
-                Text(
-                    text =
-                    if (showMenu) if (nowPage <= allPages.size) allPages[nowPage] else "error$nowPage"
-                    else
-                        if (nowPage <= allPages.size)
-                            if (nowPage < allPages.size - lastPages.size)
-                                if (topTitle.value == "") allPages[nowPage]
-                                else topTitle.value
-                            else allPages[nowPage]
-                        else "error",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+
+                // 关键修改点：用 Row 替代 Box 作为滚动容器
+                Row(
+                    modifier = Modifier
+                        .widthIn(max = 100.dp)
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text =
+                            if (showMenu) if (nowPage <= allPages.size) allPages[nowPage] else "error$nowPage"
+                            else
+                                if (nowPage <= allPages.size)
+                                    if (nowPage < allPages.size - lastPages.size)
+                                        if (topTitle.value == "") allPages[nowPage]
+                                        else topTitle.value
+                                    else allPages[nowPage]
+                                else "error",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .wrapContentWidth(unbounded = true) // 允许内容无限扩展
+                    )
+                }
             }
         }
 
