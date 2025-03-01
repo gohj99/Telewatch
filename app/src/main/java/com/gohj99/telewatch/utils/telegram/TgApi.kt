@@ -41,7 +41,6 @@ class TgApi(
 ) {
     var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
-    private var chatLastId = -1L
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -1314,30 +1313,32 @@ class TgApi(
         return@withContext result.await()
     }
 
-    // 退出聊天页面
-    fun exitChatPage(){
-        isExitChatPage = true
-    }
-
-    // 获取聊天记录
-    fun getChatMessages(
-        chatId: Long,
-        chatList: MutableState<List<TdApi.Message>>
-    ) {
+    // 进入聊天页面
+    fun openChatPage(openChatId: Long, chatList: MutableState<List<TdApi.Message>>) {
+        saveChatId = openChatId
         saveChatList = chatList
-        saveChatId = chatId
         isExitChatPage = false
-
-        // 从最新的消息开始获取
-        fetchMessages(0)
+        client.send(TdApi.OpenChat(openChatId)) { result ->
+            if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
+                println("Opened chat page successfully")
+            } else {
+                println("Failed to open chat page: $result")
+            }
+        }
     }
 
-    // 获取旧消息
-    fun fetchMessages(fromMessageId: Long = chatLastId) {
+    // 退出聊天页面
+    suspend fun exitChatPage(){
+        isExitChatPage = true
+        saveChatId = 0L
+        sendRequest(TdApi.CloseChat())
+    }
+
+    // 获取消息
+    fun fetchMessages(fromMessageId: Long = saveChatList.value.lastOrNull()?.id ?: -1L, nowChatId: Long = saveChatId) {
         //println("fetchMessages启动")
         //println(saveChatId)
         if (fromMessageId != -1L) {
-            var nowChatId = saveChatId
             val getChatMessages = TdApi.GetChatHistory().apply {
                 this.chatId = nowChatId
                 this.limit = 10 // 每次获取 10 条消息
@@ -1367,7 +1368,6 @@ class TgApi(
                                 fetchMessages(messages.messages.last().id)
                             }
                             //println(messages.messages.last().id)
-                            chatLastId = messages.messages.last().id
                         }
                     }
                 }

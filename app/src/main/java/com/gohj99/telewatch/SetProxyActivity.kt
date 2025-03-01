@@ -129,8 +129,10 @@ fun ProxyLazyColumn(tgProxies: MutableState<TdApi.Proxies>, updateProxies: suspe
         item {
             Spacer(modifier = Modifier.height(8.dp))
         }
-        items(tgProxies.value.proxies) { item ->
-            ProxyItem(item, updateProxies)
+        if (tgProxies.value.proxies != null) {
+            items(tgProxies.value.proxies) { item ->
+                ProxyItem(item, updateProxies)
+            }
         }
         item {
             AddProxy()

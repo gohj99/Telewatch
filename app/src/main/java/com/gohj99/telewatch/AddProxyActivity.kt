@@ -46,8 +46,23 @@ import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.gohj99.telewatch.utils.telegram.TgApi
 import org.drinkless.tdlib.TdApi
 
+fun parseProxyUrl(url: String): Map<String, String> {
+    val result = mutableMapOf<String, String>()
+    val queryParams = url.split("?")[1].split("&")
+
+    for (param in queryParams) {
+        val keyValue = param.split("=")
+        if (keyValue.size == 2) {
+            result[keyValue[0]] = keyValue[1]
+        }
+    }
+
+    return result
+}
+
 class AddProxyActivity : ComponentActivity() {
     private var tgApi: TgApi? = null
+    private var proxyUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,29 +74,54 @@ class AddProxyActivity : ComponentActivity() {
             return
         }
 
+
+        // 获取传参
+        var parseServer = ""
+        var parsePort: Int? = null
+        var parsePassword = ""
+        var useProxy = ""
+        proxyUrl = intent.getStringExtra("proxyUrl").toString()
+        try {
+            proxyUrl?.let { url ->
+                val parsedParams = parseProxyUrl(url)
+                parseServer = parsedParams["server"].toString()
+                parsePort = parsedParams["port"]?.toInt()
+                parsePassword = parsedParams["secret"].toString()
+                useProxy = "MTPROTO"
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         setContent {
             TelewatchTheme {
-                SplashAddProxyScreen { server, port, type ->
-                    tgApi?.addProxy(server, port, type)
-                }
+                SplashAddProxyScreen(
+                    add = { server, port, type ->
+                        tgApi?.addProxy(server, port, type)
+                    },
+                    parseServer = parseServer,
+                    parsePort = parsePort,
+                    parsePassword = parsePassword,
+                    useProxy = useProxy
+                )
             }
         }
     }
 }
 
 @Composable
-fun SplashAddProxyScreen(add: (String, Int, TdApi.ProxyType) -> Unit) {
+fun SplashAddProxyScreen(add: (String, Int, TdApi.ProxyType) -> Unit, parseServer: String = "", parsePort: Int? = null, parsePassword:String, useProxy: String = "") {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val listState = rememberLazyListState()
-        var server by remember { mutableStateOf("") }
-        var port by remember { mutableStateOf<Int?>(null) }
-        var useProxy by remember { mutableStateOf("") }
+        var server by remember { mutableStateOf(parseServer) }
+        var port by remember { mutableStateOf<Int?>(parsePort) }
+        var useProxy by remember { mutableStateOf(useProxy) }
         var username by remember { mutableStateOf("") }
-        var password by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf(parsePassword) }
 
         Column(
             modifier = Modifier

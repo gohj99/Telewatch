@@ -176,5 +176,5 @@
     <string name="Optional">Facultatif</string>  
     <string name="Connecting_Proxy">Connexion proxy</string>  
     <string name="Remind1">Bonjour! \ Nwelcome à l\'application Telewatch! \ Nto démarrer, nous vous recommandons de rejoindre notre groupe de télégrammes officiel pour obtenir un soutien. Vous pouvez rejoindre en cliquant sur le lien ci-dessous: \nhttps: //t.me/teleandroidwatch \n \nhere \ est un guide rapide pour vous aider à utiliser l\'application: \n \nurls like @ et https sont cliquables. \ Non le chat Page, appuyez sur le titre pour entrer les informations de chat pour plus de détails. \ NLONG Appuyez et faites glisser le texte pour sélectionner et copier. \ Nin la visionneuse d\'image, appuyez sur une image longue pour l\'enregistrer dans votre galerie. \ndelete un proxy en appuyant longtemps L\'article sur la page proxy \n \ntelewatch est open-source et gratuit. Si vous aimeriez soutenir notre développement, veuillez envisager de faire un don en cliquant sur le bouton ci-dessous. \ N \nwe j\'espère que vous apprécierez l\'utilisation de Telewatch!</string>  
-    <string name="View_Tips">Afficher les conseils</string>
+    <string name="View_Tips">Afficher les conseils</string>  
 </resources>

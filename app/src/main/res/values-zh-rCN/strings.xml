@@ -176,5 +176,5 @@
     <string name="password">密码</string>  
     <string name="Optional">可选的</string>  
     <string name="Connecting_Proxy">连接代理中</string>  
-    <string name="View_Tips">查看提示</string>
+    <string name="View_Tips">查看提示</string>  
 </resources>

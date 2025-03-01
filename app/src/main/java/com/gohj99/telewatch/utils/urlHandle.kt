@@ -16,12 +16,23 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import com.gohj99.telewatch.AddProxyActivity
 import com.gohj99.telewatch.ChatActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.model.Chat
 
 fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = null) {
+    if (url.isEmpty()) return
+    if (url.startsWith(("https://t.me/proxy?"))) {
+        callback?.invoke(false)
+        context.startActivity(
+            Intent(context, AddProxyActivity::class.java).apply {
+                putExtra("proxyUrl", url)
+            }
+        )
+        return
+    }
     val username = parseUsername(url)
     if (username != null) {
         if (TgApiManager.tgApi == null) {

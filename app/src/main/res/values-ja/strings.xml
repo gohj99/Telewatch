@@ -176,5 +176,5 @@
     <string name="Optional">オプション</string>  
     <string name="Connecting_Proxy">プロキシの接続</string>  
     <string name="Remind1">こんにちは！\nwelcome to telewatchアプリ！以下のリンクをクリックして参加できます。ページ、タイトルをタップしてチャット情報を入力して詳細を参照してください。\nlongを押してテキストをドラッグしてコピーします。画像ビューアーを使用して、画像をギャラリーに保存するために画像を長く押します。プロキシページのアイテム\n \ntelwatchはオープンソースで無料です。開発をサポートしたい場合は、下のボタンをクリックして寄付を検討してください。</string>  
-    <string name="View_Tips">ヒントを表示します</string>
+    <string name="View_Tips">ヒントを表示します</string>  
 </resources>
