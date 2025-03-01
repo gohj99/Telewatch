@@ -63,40 +63,20 @@ class ChatActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        TgApiManager.tgApi!!.saveChatId = 0L
-        TgApiManager.tgApi?.exitChatPage()
+        runBlocking {
+            lifecycleScope.launch {
+                TgApiManager.tgApi?.exitChatPage()
+            }.join() // 等待协程执行完毕
+        }
     }
 
     override fun onResume() {
         super.onResume()
 
         if (goToChat.value) {
-            setContent {
-                TelewatchTheme {
-                    SplashLoadingScreen(modifier = Modifier.fillMaxSize())
-                }
-            }
+            // 标记打开聊天
+            tgApi!!.openChatPage(chat!!.id, chatList)
 
-            lifecycleScope.launch(Dispatchers.IO) {
-                try {
-                    init()
-                } catch (e: Exception) {
-                    launch(Dispatchers.Main) {
-                        setContent {
-                            TelewatchTheme {
-                                ErrorScreen(
-                                    onRetry = {
-                                        lifecycleScope.launch(Dispatchers.IO) {
-                                            init()
-                                        }
-                                    },
-                                    cause = e.message ?: ""
-                                )
-                            }
-                        }
-                    }
-                }
-            }
             goToChat.value = false
         }
 
@@ -116,7 +96,6 @@ class ChatActivity : ComponentActivity() {
         Handler(Looper.getMainLooper()).postDelayed({
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
-
                     init()
                 } catch (e: Exception) {
                     launch(Dispatchers.Main) {
@@ -150,6 +129,9 @@ class ChatActivity : ComponentActivity() {
             return
         }
 
+        // 标记打开聊天
+        tgApi!!.openChatPage(chat!!.id, chatList)
+
         // 已读未读消息id传参
         lastReadOutboxMessageId = tgApi!!.getLastReadOutboxMessageId()
         lastReadInboxMessageId = tgApi!!.getLastReadInboxMessageId()
@@ -160,7 +142,7 @@ class ChatActivity : ComponentActivity() {
         // 异步获取当前用户 ID 和聊天记录
         lifecycleScope.launch {
             currentUserId.value = tgApi!!.getCurrentUser()[0].toLong()
-            tgApi!!.getChatMessages(chat!!.id, chatList) // 异步加载聊天消息
+            tgApi!!.fetchMessages(0, chat!!.id)
         }
 
         // 异步获取当前用户聊天对象
@@ -194,7 +176,11 @@ class ChatActivity : ComponentActivity() {
                                 },
                                 goToChat = { chat ->
                                     goToChat.value = true
-                                    TgApiManager.tgApi?.exitChatPage()
+                                    runBlocking {
+                                        lifecycleScope.launch {
+                                            TgApiManager.tgApi?.exitChatPage()
+                                        }.join() // 等待协程执行完毕
+                                    }
                                     startActivity(
                                         Intent(this@ChatActivity, ChatActivity::class.java).apply {
                                             putExtra("chat", chat)
@@ -373,11 +359,6 @@ class ChatActivity : ComponentActivity() {
                                         }
                                     )
                                     goToChat.value = true
-                                },
-                                reInit = {
-                                    lifecycleScope.launch {
-                                        init()
-                                    }
                                 }
                             )
                         }

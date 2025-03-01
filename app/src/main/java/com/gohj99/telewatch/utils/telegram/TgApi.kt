@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -40,7 +41,6 @@ class TgApi(
 ) {
     var saveChatId = 1L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
-    private var chatLastId = -1L
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -164,7 +164,7 @@ class TgApi(
 
             TdApi.ConnectionStateConnectingToProxy.CONSTRUCTOR -> {
                 // 正在尝试通过代理连接到 Telegram 服务器
-                topTitle.value = context.getString(R.string.Connecting)
+                topTitle.value = context.getString(R.string.Connecting_Proxy)
                 println("TgApi: Connecting To Proxy")
             }
 
@@ -662,7 +662,8 @@ class TgApi(
     fun downloadFile(
         file: TdApi.File,
         schedule: (String) -> Unit,
-        completion: (Boolean, String?) -> Unit
+        completion: (Boolean, String?) -> Unit,
+        priority: Int = 1
     ) {
         // 判断文件是否已经下载完成
         if (file.local.isDownloadingCompleted) {
@@ -670,7 +671,13 @@ class TgApi(
             completion(true, file.local.path)
         } else {
             // 开始下载文件
-            client.send(TdApi.DownloadFile(file.id, 1, 0, 0, true)) { response ->
+            client.send(TdApi.DownloadFile(
+                file.id, // fileId: 文件 ID，类型 int
+                priority, // priority: 下载优先级，1-32，类型 int
+                0, // offset: 下载起始位置，类型 long
+                0, // limit: 下载的字节数限制，0 表示无限制，类型 long
+                true // synchronous: 是否同步，类型 boolean
+            )) { response ->
                 when (response) {
                     is TdApi.Error -> {
                         // 下载失败，回调completion
@@ -684,7 +691,7 @@ class TgApi(
                             if (response.local.downloadedSize > 0 && response.expectedSize > 0) {
                                 (response.local.downloadedSize * 100 / response.expectedSize).toString() + "%"
                             } else {
-                                "未知进度"
+                                "error"
                             }
 
                         // 回调schedule以更新进度
@@ -692,11 +699,19 @@ class TgApi(
 
                         // 检查是否下载完成
                         if (response.local.isDownloadingCompleted) {
-                            // 下载完成，回调completion并传递文件路径
-                            println("文件下载完成: ${response.local.path}")
-                            completion(true, response.local.path)
+                            //println("测试代码执行")
+                            var file = File(response.local.path)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                while (!file.exists() || file.length() == 0L) {
+                                    delay(500) // 启动一个协程来调用 delay
+                                    file = File(response.local.path)
+                                }
+                                withContext(Dispatchers.Main) {
+                                    println("文件下载完成: ${response.local.path}")
+                                    completion(true, response.local.path)
+                                }
+                            }
                         } else {
-                            // 下载未完成，继续回调schedule直到下载完成
                             println("下载进行中: $downloadProgress")
                         }
                     }
@@ -929,6 +944,75 @@ class TgApi(
         } catch (e: Exception) {
             println("GetUser request failed: ${e.message}")
             return null
+        }
+    }
+
+    // 删除代理
+    suspend fun removeProxy(proxyId: Int) : TdApi.Ok? {
+        try {
+            return sendRequest(TdApi.RemoveProxy(proxyId))
+        } catch (e: Exception) {
+            println("RemoveProxy request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 停用代理
+    suspend fun disableProxy() : TdApi.Ok? {
+        try {
+            return sendRequest(TdApi.DisableProxy())
+        } catch (e: Exception) {
+            println("DisableProxy request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 启用代理
+    suspend fun enableProxy(proxyId: Int) : TdApi.Ok? {
+        try {
+            return sendRequest(TdApi.EnableProxy(proxyId))
+        } catch (e: Exception) {
+            println("DisableProxy request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取代理信息
+    suspend fun getProxy() : TdApi.Proxies? {
+        try {
+            val getResult = sendRequest(TdApi.GetProxies())
+            println(getResult)
+            return getResult
+        } catch (e: Exception) {
+            println("GetUser request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 添加代理
+    fun addProxy(server: String, port: Int, type: TdApi.ProxyType, enable: Boolean = true) {
+        try {
+            val addProxyRequest = TdApi.AddProxy(
+                server,
+                port,
+                enable,
+                type
+            )
+            client.send(addProxyRequest) { result ->
+                when (result) {
+                    is TdApi.Ok -> {
+                        println("Proxy added successfully")
+                    }
+                    is TdApi.Error -> {
+                        println("Failed to add proxy: ${result.message}")
+                    }
+                    else -> {
+                        println("Unexpected response type")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("SetProxy request failed: ${e.message}")
         }
     }
 
@@ -1229,30 +1313,32 @@ class TgApi(
         return@withContext result.await()
     }
 
-    // 退出聊天页面
-    fun exitChatPage(){
-        isExitChatPage = true
-    }
-
-    // 获取聊天记录
-    fun getChatMessages(
-        chatId: Long,
-        chatList: MutableState<List<TdApi.Message>>
-    ) {
+    // 进入聊天页面
+    fun openChatPage(openChatId: Long, chatList: MutableState<List<TdApi.Message>>) {
+        saveChatId = openChatId
         saveChatList = chatList
-        saveChatId = chatId
         isExitChatPage = false
-
-        // 从最新的消息开始获取
-        fetchMessages(0)
+        client.send(TdApi.OpenChat(openChatId)) { result ->
+            if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
+                println("Opened chat page successfully")
+            } else {
+                println("Failed to open chat page: $result")
+            }
+        }
     }
 
-    // 获取旧消息
-    fun fetchMessages(fromMessageId: Long = chatLastId) {
+    // 退出聊天页面
+    suspend fun exitChatPage(){
+        isExitChatPage = true
+        saveChatId = 0L
+        sendRequest(TdApi.CloseChat())
+    }
+
+    // 获取消息
+    fun fetchMessages(fromMessageId: Long = saveChatList.value.lastOrNull()?.id ?: -1L, nowChatId: Long = saveChatId) {
         //println("fetchMessages启动")
         //println(saveChatId)
         if (fromMessageId != -1L) {
-            var nowChatId = saveChatId
             val getChatMessages = TdApi.GetChatHistory().apply {
                 this.chatId = nowChatId
                 this.limit = 10 // 每次获取 10 条消息
@@ -1282,7 +1368,6 @@ class TgApi(
                                 fetchMessages(messages.messages.last().id)
                             }
                             //println(messages.messages.last().id)
-                            chatLastId = messages.messages.last().id
                         }
                     }
                 }

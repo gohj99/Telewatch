@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,12 +33,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
@@ -81,6 +87,151 @@ fun CustomButton(
             color = Color.White
         )
     }
+}
+
+@Composable
+fun InputIntBar(
+    query: Int?,
+    onQueryChange: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+        .padding(horizontal = 16.dp)
+        .height(40.dp),
+    placeholder: String = "",
+    maxQuery: Int? = null,
+    minQuery: Int? = null
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .drawBehind {
+                val strokeWidth = 4.dp.toPx()
+                val cornerRadius = strokeWidth / 2 // 圆角半径，使用线宽的一半
+                drawRoundRect(
+                    color = Color(0xFF2C323A),
+                    topLeft = Offset(0f, size.height - strokeWidth),
+                    size = Size(size.width, strokeWidth),
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                )
+            }
+            .clip(RoundedCornerShape(28.dp))
+    ) {
+        BasicTextField(
+            value = query?.toString() ?: "",  // 显示数字，但转换为字符串显示，允许为空
+            onValueChange = { newText ->
+                // 只允许数字输入，使用正则检查
+                if (newText.isEmpty() || newText.all { it.isDigit() }) {
+                    var int = newText.toIntOrNull()
+                    if (maxQuery != null && int != null && int >= maxQuery) {
+                        int = maxQuery
+                    }
+                    if (minQuery != null && int != null && int <= minQuery) {
+                        int = minQuery
+                    }
+                    onQueryChange(int)  // 处理空字符串或非数字
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp) // 调整内边距，使文本框和图标之间有空间
+                .align(Alignment.CenterStart), // 文本垂直居中
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                color = Color(0xFF4E5C67),
+                fontSize = MaterialTheme.typography.titleMedium.fontSize
+            ),
+            cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number
+            ),  // 设置输入法只允许数字
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (query == null || query == 0) {  // 如果为空或为0，显示占位符
+                            Text(
+                                text = placeholder,
+                                color = Color(0xFF4E5C67),
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize
+                            )
+                        }
+                        innerTextField() // 输入框内容
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun InputBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = ""
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(40.dp)
+            .drawBehind {
+                val strokeWidth = 4.dp.toPx()
+                val cornerRadius = strokeWidth / 2 // 圆角半径，使用线宽的一半
+                drawRoundRect(
+                    color = Color(0xFF2C323A),
+                    topLeft = Offset(0f, size.height - strokeWidth),
+                    size = Size(size.width, strokeWidth),
+                    cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                )
+            }
+            .clip(RoundedCornerShape(28.dp))
+    ) {
+        BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp) // 调整内边距，使文本框和图标之间有空间
+                .align(Alignment.CenterStart), // 文本垂直居中
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                color = Color(0xFF4E5C67),
+                fontSize = MaterialTheme.typography.titleMedium.fontSize
+            ),
+            cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (query.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                color = Color(0xFF4E5C67),
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize
+                            )
+                        }
+                        innerTextField() // 输入框内容
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InputBarPreview() {
+    InputBar(query = "", onQueryChange = {})
 }
 
 @Composable

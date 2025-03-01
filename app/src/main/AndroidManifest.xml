@@ -32,6 +32,16 @@
         tools:ignore="WearStandaloneAppFlag"
         tools:targetApi="31">
         <activity
+            android:name=".AddProxyActivity"
+            android:exported="true"
+            android:label="@string/add_proxy_activity"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
+            android:name=".SetProxyActivity"
+            android:exported="true"
+            android:label="@string/set_proxy_activity"
+            android:theme="@style/Theme.Telewatch" />
+        <activity
             android:name=".DonateActivity"
             android:exported="true"
             android:label="@string/donate_activity"

@@ -10,7 +10,6 @@ package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -78,6 +77,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -92,6 +92,7 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
+import java.io.File
 import java.io.IOException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -156,7 +157,6 @@ fun SplashChatScreen(
     listState: LazyListState = rememberLazyListState(),
     onLinkClick: (String) -> Unit,
     chatTitleClick: () -> Unit,
-    reInit: (String) -> Unit
 ) {
     var isFloatingVisible by remember { mutableStateOf(true) }
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
@@ -485,6 +485,7 @@ fun SplashChatScreen(
                                         ) {
                                             Box(
                                                 modifier = Modifier
+                                                    .weight(1f)
                                                     .fillMaxHeight()
                                                     .onSizeChanged { size ->
                                                         parentHeight = size.height // 获取父容器的高度
@@ -493,6 +494,7 @@ fun SplashChatScreen(
                                                 if (senderName != "") {
                                                     Column(
                                                         modifier = Modifier
+                                                            .wrapContentWidth()
                                                             .padding(bottom = 5.dp, start = 5.dp, end = 5.dp),
                                                         horizontalAlignment = Alignment.End // 文字右对齐
                                                     ) {
@@ -514,6 +516,7 @@ fun SplashChatScreen(
                                                 } else {
                                                     Column(
                                                         modifier = Modifier
+                                                            .wrapContentWidth()
                                                             .padding(5.dp),
                                                         horizontalAlignment = Alignment.End // 文字右对齐
                                                     ) {
@@ -1095,6 +1098,8 @@ fun MessageVideoNote(
     var playingShow by remember { mutableStateOf(false) }
     var isDownload by remember { mutableStateOf(voiceFile.local.isDownloadingCompleted) }
     var downloading by remember { mutableStateOf(false) }
+    var fileUrl = remember { mutableStateOf("") }
+    if (voiceFile.local.isDownloadingCompleted) fileUrl.value = voiceFile.local.path
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
@@ -1128,10 +1133,23 @@ fun MessageVideoNote(
 
     // 播放器初始化
     LaunchedEffect(isDownload) {
+        //println("值改变isDownload: $isDownload")
         if (isDownload) {
+            //println("初始化")
             try {
-                exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(voiceFile.local.path)))
+                var file = File(fileUrl.value)
+                while (!file.exists() || file.length() == 0L) {
+                    //("文件不存在或长度为0，正在等待...")
+                    //println("完整途径：" + photoPath + "结尾")
+                    delay(1000)  // 每 1000 毫秒检查一次
+                    file = File(fileUrl.value)  // 重新获取文件状态
+                    //println(fileUrl.value)
+                    //println("文件大小：" + file.length())
+                }
+                //println("文件存在")
+                exoPlayer.setMediaItem(MediaItem.fromUri(file.toUri()))
                 exoPlayer.prepare()
+                //println("初始化完成")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -1188,8 +1206,11 @@ fun MessageVideoNote(
                                 TgApiManager.tgApi!!.downloadFile(
                                     file = voiceFile,
                                     schedule = { schedule -> },
-                                    completion = { success, _ ->
+                                    completion = { success, tdFleUrl ->
                                         if (success) {
+                                            //println(tdFleUrl)
+                                            if (tdFleUrl != null) fileUrl.value = tdFleUrl
+                                            //println(fileUrl)
                                             isDownload = true
                                             downloading = false
                                         }
@@ -1384,7 +1405,6 @@ fun SplashChatScreenPreview() {
             lastReadInboxMessageId = mutableLongStateOf(0L),
             onLinkClick = {},
             chatTitleClick = {},
-            reInit = {}
         )
     }
 }

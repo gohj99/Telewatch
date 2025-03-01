@@ -108,6 +108,18 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    // 查看提示
+                    SettingItem.Click(
+                        itemName = getString(R.string.View_Tips),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    RemindActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 检查更新
                     SettingItem.Click(
                         itemName = getString(R.string.Check_Update),
@@ -269,6 +281,20 @@ class SettingActivity : ComponentActivity() {
                         onClick = {
                             val dir = File(externalDir.absolutePath + chatId + "/tdlib")
                             dir.listFiles()?.find { it.name == "photos" && it.isDirectory }
+                                ?.deleteRecursively()
+                            cacheDir.deleteRecursively()
+                            Toast.makeText(
+                                this,
+                                getString(R.string.Successful),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.Clear_voice),
+                        onClick = {
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
+                            dir.listFiles()?.find { it.name == "voice" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
                             Toast.makeText(

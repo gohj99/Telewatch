@@ -21,8 +21,8 @@ android {
         minSdk = 26
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 23
-        versionName = "1.3.2"
+        versionCode = 24
+        versionName = "1.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -83,6 +83,8 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+        // 全局打开实验性功能
+        //freeCompilerArgs += "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi"
     }
     buildFeatures {
         compose = true

@@ -261,6 +261,18 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    // 设置代理
+                    SettingItem.Click(
+                        itemName = getString(R.string.Proxy),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    SetProxyActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     SettingItem.Click(
                         itemName = getString(R.string.Check_Update),
                         onClick = {

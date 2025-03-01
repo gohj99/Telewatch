@@ -106,36 +106,46 @@ jobs:
         run: mv app/build/outputs/apk/universal/release/app-universal-release-unsigned-signed.apk ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-universal.apk
 
       - name: Upload APKs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-build-apk-arm
           path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm.apk
           retention-days: 90
+          compression-level: 0
+          overwrite: true
 
       - name: Upload APKs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-build-apk-arm64
           path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-arm64.apk
           retention-days: 90
+          compression-level: 0
+          overwrite: true
 
       - name: Upload APKs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-build-apk-x86
           path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86.apk
           retention-days: 90
+          compression-level: 0
+          overwrite: true
 
       - name: Upload APKs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-build-apk-x86_64
           path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-x86_64.apk
           retention-days: 90
+          compression-level: 0
+          overwrite: true
 
       - name: Upload APKs as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-build-apk-universal
           path: ${{ env.REPO_NAME }}-v${{ env.VERSION_NAME }}-universal.apk
           retention-days: 90
+          compression-level: 0
+          overwrite: true
