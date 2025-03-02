@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -8,7 +8,6 @@
 
 package com.gohj99.telewatch.ui.main
 
-import android.content.Context
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -30,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
@@ -68,10 +66,12 @@ fun ChatLazyColumn(
             }
     }
 
+    /*
     // 获取context
     val context = LocalContext.current
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val isHomePagePin = settingsSharedPref.getBoolean("is_home_page_pin", false)
+    */
 
     // 转换 contactsList 为 Set<Long>，确保类型统一
     val contactsSet by remember(contactsList) {
@@ -92,26 +92,34 @@ fun ChatLazyColumn(
 
     // 每次itemsList更新时，增量更新 pinnedChats 和 regularChats
     LaunchedEffect(itemsList.value) {
+        // 处理可能存在的 order 字段缺失问题（使用安全调用和默认值）
+        val sortedList = itemsList.value.sortedWith(
+            compareByDescending<Chat> { it.order ?: Long.MIN_VALUE } // 处理 null 情况
+                .thenByDescending { it.id } // 保证 id 必存在
+        )
+
         if (chatsFolder == null) {
-            if (isHomePagePin) {
-                val newPinnedChats = itemsList.value.filter { it.isPinned }
-                val newRegularChats = itemsList.value.filter { it !in newPinnedChats }
+            // 分离置顶消息时需要保持原有置顶顺序
+            val newPinnedChats = sortedList
+                .filter { it.isPinned }
+                .sortedWith(compareByDescending { it.order ?: Long.MIN_VALUE }) // 置顶组内单独排序
 
-                if (newPinnedChats != pinnedChats.value) {
-                    pinnedChats.value = newPinnedChats
-                }
+            val newRegularChats = sortedList
+                .filter { it !in newPinnedChats }
+                .sortedWith(compareByDescending { it.order ?: Long.MIN_VALUE }) // 非置顶组内单独排序
 
-                if (newRegularChats != regularChats.value) {
-                    regularChats.value = newRegularChats
-                }
-            } else {
-                // 如果 chatsFolder 为 null 且 isHomePagePin 为 false，不需要进行置顶消息分割
-                pinnedChats.value = emptyList()
-                regularChats.value = emptyList()
+
+            if (newPinnedChats != pinnedChats.value) {
+                pinnedChats.value = newPinnedChats
+            }
+
+            if (newRegularChats != regularChats.value) {
+                regularChats.value = newRegularChats
             }
         } else {
-            val newPinnedChats = itemsList.value.filter { it.id in chatsFolder.pinnedChatIds } // 通过 pinnedChatIds 判断
-            val newRegularChats = itemsList.value.filter { it !in newPinnedChats }
+            // 使用 sortedList 替代原始 itemsList.value
+            val newPinnedChats = sortedList.filter { it.id in chatsFolder.pinnedChatIds }
+            val newRegularChats = sortedList.filter { it !in newPinnedChats }
 
             if (newPinnedChats != pinnedChats.value) {
                 pinnedChats.value = newPinnedChats
@@ -146,20 +154,13 @@ fun ChatLazyColumn(
 
         // 渲染聊天列表，首先渲染置顶消息
         if (chatsFolder == null) {
-            if (isHomePagePin) {
-                // 渲染置顶消息
-                items(pinnedChats.value, key = { "${it.id}_${it.isPinned}" }) { item ->
-                    ChatView(item, callback, searchText, pinnedView = true)
-                }
-                // 渲染普通消息
-                items(regularChats.value, key = { it.id }) { item ->
-                    ChatView(item, callback, searchText, pinnedView = false)
-                }
-            } else {
-                // 渲染所有消息（置顶和非置顶）
-                items(itemsList.value, key = { it.id }) { item ->
-                    ChatView(item, callback, searchText)
-                }
+            // 渲染置顶消息
+            items(pinnedChats.value, key = { "${it.id}_${it.isPinned}" }) { item ->
+                ChatView(item, callback, searchText, pinnedView = true)
+            }
+            // 渲染普通消息
+            items(regularChats.value, key = { it.id }) { item ->
+                ChatView(item, callback, searchText, pinnedView = false)
             }
         } else {
             // 渲染置顶消息
@@ -274,6 +275,7 @@ fun ChatView(
             if ((chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
 
                 // 基于过滤条件设置显示会话
+                println(chat.isBot)
                 val isShow by remember(chat.id, includedChatIdsSet, excludedChatIdsSet, contactsSet) {
                     derivedStateOf {
                         when {

@@ -177,4 +177,6 @@
     <string name="Connecting_Proxy">Stellvertreter anschließen</string>  
     <string name="Remind1">Hallo! \ Nwelcome In die Telewatch -App! Sie können anschließen, indem Sie auf den Link unten klicken: \nhttps: //t.me/teleandroidwatch \n \nhere \ s eine schnelle Anleitung, mit Seite, tippen Sie auf den Titel, um Chat-Informationen einzugeben, um weitere Informationen zu erhalten. \nlong Drücken und ziehen Sie Text, um zu wählen und zu kopieren. \nin Der Bildbetreiber, drücken Sie ein Bild, um ihn in Ihrer Galerie zu speichern. Element auf der Proxy-Seite \n \nTelewatch ist Open-Source und kostenlos. Wenn Sie unsere Entwicklung unterstützen möchten, überlegen Sie bitte die Schaltfläche unten.</string>  
     <string name="View_Tips">Tipps anzeigen</string>  
+    <string name="Delete_Chat">Chat löschen</string>
+    <string name="Deleted_User">Benutzer gelöscht</string>
 </resources>

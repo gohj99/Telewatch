@@ -219,6 +219,7 @@ class SettingActivity : ComponentActivity() {
                             }
                         }
                     ),
+                    /*
                     SettingItem.Switch(
                         itemName = getString(R.string.is_home_page_pin),
                         isSelected = settingsSharedPref.getBoolean("is_home_page_pin", false),
@@ -229,6 +230,7 @@ class SettingActivity : ComponentActivity() {
                             }
                         }
                     ),
+                    */
                     SettingItem.Switch(
                         itemName = getString(R.string.data_Collection),
                         isSelected = settingsSharedPref.getBoolean("Data_Collection", false),

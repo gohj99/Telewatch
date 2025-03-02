@@ -177,4 +177,6 @@
     <string name="Optional">Optional</string>
     <string name="Connecting_Proxy">ConnProxy</string>
     <string name="View_Tips">View Tips</string>
+    <string name="Delete_Chat">Delete chat</string>
+    <string name="Deleted_User">Deleted user</string>
 </resources>
