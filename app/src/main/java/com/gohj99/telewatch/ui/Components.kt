@@ -54,7 +54,8 @@ fun CustomButton(
     onClick: () -> Unit,
     text: String,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(10.dp)
+    shape: Shape = RoundedCornerShape(10.dp),
+    color: Color = Color(0xFF2397D3),
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (isPressed) 0.9f else 1f)
@@ -64,7 +65,7 @@ fun CustomButton(
             .scale(scale)  // 应用缩放到整个Box
             .size(width = 148.dp, height = 33.dp)
             .clip(shape)
-            .background(Color(0xFF2397D3))
+            .background(color)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {

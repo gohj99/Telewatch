@@ -166,7 +166,7 @@
     <string name="Unable_open_url">無法開啟 URL</string>  
     <string name="Clear_voice">清除語音</string>  
     <string name="set_proxy_activity">設置代理活動</string>  
-    <string name="Proxy">代理人</string>  
+    <string name="Proxy">代理設定</string>  
     <string name="AddProxy">添加代理</string>  
     <string name="add_proxy_activity">添加代理活動</string>  
     <string name="Server">服務器主機</string>  
@@ -174,7 +174,9 @@
     <string name="Add">添加</string>  
     <string name="Key">鑰匙</string>  
     <string name="password">密碼</string>  
-    <string name="Optional">可選的</string>  
+    <string name="Optional">可選</string>
     <string name="Connecting_Proxy">連接代理中</string>  
     <string name="View_Tips">查看提示</string>  
+    <string name="Delete_Chat">刪除聊天</string>
+    <string name="Deleted_User">刪除用戶</string>
 </resources>

@@ -72,6 +72,11 @@ class ChatActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        tgApi?.let {
+            if (it.saveChatId == -1L) {
+                finish()
+            }
+        }
 
         if (goToChat.value) {
             // 标记打开聊天

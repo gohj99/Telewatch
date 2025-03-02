@@ -485,7 +485,7 @@ fun SplashChatScreen(
                                         ) {
                                             Box(
                                                 modifier = Modifier
-                                                    .weight(1f)
+                                                    .weight(1f, fill = false)
                                                     .fillMaxHeight()
                                                     .onSizeChanged { size ->
                                                         parentHeight = size.height // 获取父容器的高度
@@ -494,7 +494,6 @@ fun SplashChatScreen(
                                                 if (senderName != "") {
                                                     Column(
                                                         modifier = Modifier
-                                                            .wrapContentWidth()
                                                             .padding(bottom = 5.dp, start = 5.dp, end = 5.dp),
                                                         horizontalAlignment = Alignment.End // 文字右对齐
                                                     ) {
@@ -516,7 +515,6 @@ fun SplashChatScreen(
                                                 } else {
                                                     Column(
                                                         modifier = Modifier
-                                                            .wrapContentWidth()
                                                             .padding(5.dp),
                                                         horizontalAlignment = Alignment.End // 文字右对齐
                                                     ) {

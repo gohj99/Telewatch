@@ -110,6 +110,10 @@ class TgApi(
             TdApi.UpdateChatReadInbox.CONSTRUCTOR -> handleChatReadInboxUpdate(update as TdApi.UpdateChatReadInbox)
             TdApi.UpdateChatReadOutbox.CONSTRUCTOR -> handleChatReadOutboxUpdate(update as TdApi.UpdateChatReadOutbox)
             TdApi.UpdateChatFolders.CONSTRUCTOR -> handleChatFoldersUpdate(update as TdApi.UpdateChatFolders)
+            TdApi.UpdateChatTitle.CONSTRUCTOR -> handleChatTitleUpdate(update as TdApi.UpdateChatTitle)
+            TdApi.UpdateUser.CONSTRUCTOR -> handleUpdateUser(update as TdApi.UpdateUser)
+            TdApi.UpdateChatLastMessage.CONSTRUCTOR -> handleChatLastMessageUpdate(update as TdApi.UpdateChatLastMessage)
+            TdApi.UpdateChatPosition.CONSTRUCTOR -> handleChatPositionUpdate(update as TdApi.UpdateChatPosition)
             // 其他更新
             else -> {
                 //println("Received update: $update")
@@ -128,6 +132,54 @@ class TgApi(
         val chatId = update.chatId
         if (chatId == saveChatId) {
             lastReadOutboxMessageId.value = update.lastReadOutboxMessageId
+        }
+    }
+
+    // 更新用户信息
+    private fun handleUpdateUser(update: TdApi.UpdateUser) {
+        val user = update.user
+        val chatId = update.user.id
+
+        var isBot = false
+        var chatTitle = user.firstName + " " + user.lastName
+        when (user.type) {
+            is TdApi.UserTypeDeleted -> chatTitle = context.getString(R.string.Deleted_User)
+            is TdApi.UserTypeUnknown -> chatTitle = context.getString(R.string.Unknown_chat)
+            is TdApi.UserTypeBot -> isBot = true
+        }
+
+        // 更新聊天列表
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(
+                    title = chatTitle,
+                    isBot = isBot
+                )
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
+            }
+        }
+    }
+
+    // 更新聊天标题
+    private fun handleChatTitleUpdate(update: TdApi.UpdateChatTitle) {
+        val chatId = update.chatId
+        val title = update.title
+        println("Chat title updated in chat ID $chatId: $title")
+
+        // 更新聊天列表
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(
+                    title = title
+                )
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
+            }
         }
     }
 
@@ -267,104 +319,75 @@ class TgApi(
     // 处理获取到的新消息
     private fun handleNewMessage(update: TdApi.UpdateNewMessage) {
         val message = update.message
-        println("New message received in chat ID ${message.chatId}\nmessageId ${message.id}")
-        //println(message)
-        updateChatList(message)
-    }
-
-    // 处理消息内容更新
-    private fun updateChatList(message: TdApi.Message) {
+        //println("New message received in chat ID ${message.chatId}\nmessageId ${message.id}")
         val chatId = message.chatId
         val newMessageText = handleAllMessages(message)
 
-        // 异步获取聊天标题
-        CoroutineScope(Dispatchers.IO).launch {
-            var chatTitle = context.getString(R.string.Unknown_chat)
-            var isPinned = false
-            var isRead = false
-            var isBot = false
-            var isChannel = false
-            var isGroup = false
-            var isPrivateChat = false
-            try {
-                val chatResult = sendRequest(TdApi.GetChat(chatId))
-                chatTitle = if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) (chatResult as TdApi.Chat).title else chatTitle
-                isPinned = chatResult.positions.firstOrNull()?.isPinned ?: false
-                isRead = chatResult.isMarkedAsUnread
-                when (val messageType = chatResult.type) {
-                    is TdApi.ChatTypeSupergroup -> {
-                        if (messageType.isChannel) {
-                            isChannel = true
-                        } else {
-                            isGroup = true
-                        }
-                    }
-                    is TdApi.ChatTypeBasicGroup -> {
-                        isGroup = true
-                    }
-                    is TdApi.ChatTypePrivate -> {
-                        isPrivateChat = true
-                        val userResult = sendRequest(TdApi.GetUser(chatResult.id))
-                        if (userResult.type is TdApi.UserTypeBot) {
-                            isBot = true
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                println("GetChat request failed (updateChatList): ${e.message}")
+        if (chatId == saveChatId) {
+            // 将新消息添加到保存的聊天列表的前面
+            saveChatList.value = saveChatList.value.toMutableList().apply {
+                add(0, message) // 新消息存储在最前面
             }
+        }
 
-            withContext(Dispatchers.Main) {
-                if (chatId == saveChatId) {
-                    // 将新消息添加到保存的聊天列表的前面
-                    saveChatList.value = saveChatList.value.toMutableList().apply {
-                        add(0, message) // 新消息存储在最前面
-                    }
-                }
-
-                chatsList.value = chatsList.value.toMutableList().apply {
-                    // 查找现有的聊天并更新
-                    val existingChatIndex = indexOfFirst { it.id == chatId }
-                    if (existingChatIndex >= 0) {
-                        val updatedChat = get(existingChatIndex).copy(
-                            message = newMessageText,
-                            isPinned = isPinned,
-                            isRead = isRead,
-                            isBot = isBot,
-                            isChannel = isChannel,
-                            isGroup = isGroup,
-                            isPrivateChat = isPrivateChat
-                        )
-                        removeAt(existingChatIndex)
-                        add(0, updatedChat)
-                    } else {
-                        // 新增聊天到列表顶部
-                        add(
-                            0,
-                            Chat(
-                                id = chatId,
-                                title = chatTitle, // 使用从TdApi获取的标题
-                                message = newMessageText,
-                                isPinned = isPinned,
-                                isRead = isRead,
-                                isBot = isBot,
-                                isChannel = isChannel,
-                                isGroup = isGroup,
-                                isPrivateChat = isPrivateChat
-                            )
-                        )
-                    }
-                }
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(
+                    message = newMessageText
+                )
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
             }
+            /*else {
+                // 新增聊天到列表顶部
+                add(
+                    0,
+                    Chat(
+                        id = chatId,
+                        title = context.getString(R.string.loading),
+                        message = newMessageText
+                    )
+                )
+            }*/
         }
     }
 
     // 处理消息内容更新
     private fun handleMessageContentUpdate(update: TdApi.UpdateMessageContent) {
         val chatId = update.chatId
+        val message = update.newContent
         val messageId = update.messageId
+
+        // 更新聊天列表
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(
+                    message = handleAllMessages(messageContext = message)
+                )
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
+            }
+        }
+
+        if (chatId == saveChatId) {
+            saveChatList.value = saveChatList.value.toMutableList().apply {
+                val messageIndex = indexOfFirst { it.id == messageId }
+                if (messageIndex >= 0) {
+                    // 合并旧消息的元数据和新内容
+                    val updatedMessage = get(messageIndex).apply {
+                        content = message
+                    }
+                    set(messageIndex, updatedMessage)
+                }
+            }
+        }
+
         //val newContent = update.newContent
-        println("Message content updated in chat ID $chatId for message ID $messageId")
+        //println("Message content updated in chat ID $chatId for message ID $messageId")
 
         /*CoroutineScope(Dispatchers.Main).launch {
             chatsList.value = chatsList.value.toMutableList().apply {
@@ -392,62 +415,36 @@ class TgApi(
         println("Message edited in chat ID $chatId for message ID $messageId at $editDate")
 
         if (chatId == saveChatId) {
-            CoroutineScope(Dispatchers.IO).launch {
-                // 异步获取消息的最新内容
-                val getMessageRequest = TdApi.GetMessage(chatId, messageId)
-                try {
-                    val result = sendRequest(getMessageRequest)
-                    if (result.constructor == TdApi.Message.CONSTRUCTOR) {
-                        val message = result as TdApi.Message
-
-                        // 更新聊天列表中的消息
-                        withContext(Dispatchers.Main) {
-                            saveChatList.value = saveChatList.value.toMutableList().apply {
-                                val messageIndex = indexOfFirst { it.id == messageId }
-                                if (messageIndex >= 0) {
-                                    // 找到消息并替换内容
-                                    val updatedMessage = TdApi.Message().apply {
-                                        this.chatId = message.chatId
-                                        this.id = message.id
-                                        this.date = message.date
-                                        this.senderId = message.senderId
-                                        this.content = message.content
-                                        this.isOutgoing = message.isOutgoing
-                                    }
-                                    set(messageIndex, updatedMessage)
-                                }
-                            }
-                        }
-                    } else {
-                        println("Failed to get message content: $result")
+            saveChatList.value = saveChatList.value.toMutableList().apply {
+                val messageIndex = indexOfFirst { it.id == messageId }
+                if (messageIndex >= 0) {
+                    // 合并旧消息的元数据和新内容
+                    val updatedMessage = get(messageIndex).apply {
+                        date = editDate
                     }
-                } catch (e: Exception) {
-                    println("Get message content request failed: ${e.message}")
+                    set(messageIndex, updatedMessage)
                 }
             }
         }
+    }
+
+    // 消息排序
+    private fun handleChatPositionUpdate(update: TdApi.UpdateChatPosition) {
+        val chatId = update.chatId
+        val position = update.position
+        //println("Chat position updated in chat ID $chatId: $position")
 
         // 更新聊天列表
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val chatResult = sendRequest(TdApi.GetChat(chatId))
-                if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
-                    withContext(Dispatchers.Main) {
-                        chatsList.value = chatsList.value.toMutableList().apply {
-                            // 查找现有的聊天并更新
-                            val existingChatIndex = indexOfFirst { it.id == chatId }
-                            if (existingChatIndex >= 0) {
-                                val updatedChat = get(existingChatIndex).copy(
-                                    message = handleAllMessages((chatResult as TdApi.Chat).lastMessage)
-                                )
-                                removeAt(existingChatIndex)
-                                add(0, updatedChat)
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                println("GetChat request failed (handleMessageEdited): ${e.message}")
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(
+                    isPinned = position.isPinned,
+                    order = position.order
+                )
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
             }
         }
     }
@@ -459,83 +456,122 @@ class TgApi(
         val chatId = newChat.id
 
         //println(newChat.lastMessage)
-        //println(update)
+        //println(newChat)
         //println(newChat.positions.firstOrNull()?.isPinned ?: false)
 
         var isPinned = newChat.positions.firstOrNull()?.isPinned ?: false
-        var isRead = false
+        var isRead = newChat.isMarkedAsUnread
         var isBot = false
         var isChannel = false
         var isGroup = false
         var isPrivateChat = false
         var chatTitle = newChat.title
-        var lastMessage = handleAllMessages(newChat.lastMessage)
-        var havePositions = true
-        // 异步获取聊天标题
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val chatResult = sendRequest(TdApi.GetChat(chatId))
-                if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
-                    if (chatResult.positions.isEmpty()) havePositions = false
-                    isPinned = chatResult.positions.firstOrNull()?.isPinned ?: false
-                    chatTitle = chatResult.title
-                    lastMessage = handleAllMessages(chatResult.lastMessage)
-                    isRead = chatResult.isMarkedAsUnread
-                    when (val messageType = chatResult.type) {
-                        is TdApi.ChatTypeSupergroup -> {
-                            if (messageType.isChannel) {
-                                isChannel = true
-                            } else {
-                                isGroup = true
-                            }
-                        }
-                        is TdApi.ChatTypeBasicGroup -> {
-                            isGroup = true
-                        }
-                        is TdApi.ChatTypePrivate -> {
-                            isPrivateChat = true
-                            val userResult = sendRequest(TdApi.GetUser(chatResult.id))
-                            if (userResult.type is TdApi.UserTypeBot) {
-                                isBot = true
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                println("GetChat request failed (handleNewChat): ${e.message}")
-            }
-            withContext(Dispatchers.Main) {
-                chatsList.value = chatsList.value.toMutableList().apply {
-                    // 查找现有的聊天并更新
-                    val existingChatIndex = indexOfFirst { it.id == chatId }
-                    if (existingChatIndex >= 0) {
-                        // 如果存在该聊天，更新并移动到顶部
-                        val updatedChat = get(existingChatIndex).copy(
-                            title = chatTitle,
-                            message = lastMessage
-                        )
-                        removeAt(existingChatIndex)  // 移除旧的聊天
-                        add(0, updatedChat)  // 将更新后的聊天添加到顶部
-                    } else {
-                        // 如果不存在该聊天，添加到列表末尾
-                        if (havePositions) {
-                            add(
-                                Chat(
-                                    id = chatId,
-                                    title = chatTitle, // 使用从 TdApi 获取的标题
-                                    message = lastMessage,
-                                    isPinned = isPinned,
-                                    isRead = isRead,
-                                    isBot = isBot,
-                                    isChannel = isChannel,
-                                    isGroup = isGroup,
-                                    isPrivateChat = isPrivateChat
-                                )
-                            )
-                        }
 
-                    }
+        isRead = newChat.isMarkedAsUnread
+        when (val messageType = newChat.type) {
+            is TdApi.ChatTypeSupergroup -> {
+                if (messageType.isChannel) {
+                    isChannel = true
+                } else {
+                    isGroup = true
                 }
+            }
+            is TdApi.ChatTypeBasicGroup -> {
+                isGroup = true
+            }
+            is TdApi.ChatTypePrivate -> {
+                isPrivateChat = true
+            }
+        }
+
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                // 如果存在该聊天，更新并移动到顶部
+                val updatedChat = get(existingChatIndex).copy(
+                    id = chatId,
+                    title = chatTitle,
+                    isPinned = isPinned,
+                    isRead = isRead,
+                    isBot = isBot,
+                    isChannel = isChannel,
+                    isGroup = isGroup,
+                    isPrivateChat = isPrivateChat
+                )
+                removeAt(existingChatIndex)  // 移除旧的聊天
+                add(0, updatedChat)  // 将更新后的聊天添加到顶部
+            } else {
+                // 如果不存在该聊天，添加到列表末尾
+                add(
+                    Chat(
+                        id = chatId,
+                        title = chatTitle,
+                        isPinned = isPinned,
+                        isRead = isRead,
+                        isBot = isBot,
+                        isChannel = isChannel,
+                        isGroup = isGroup,
+                        isPrivateChat = isPrivateChat
+                    )
+                )
+
+            }
+        }
+
+        if (isPrivateChat) {
+            // 判断是不是机器人
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val user = sendRequest(TdApi.GetUser(chatId))
+                    user?.let {
+                        when (user.type) {
+                            is TdApi.UserTypeDeleted -> chatTitle = context.getString(R.string.Deleted_User)
+                            is TdApi.UserTypeUnknown -> chatTitle = context.getString(R.string.Unknown_chat)
+                            is TdApi.UserTypeBot -> isBot = true
+                        }
+                        // 更新聊天列表
+                        withContext(Dispatchers.Main) {
+                            chatsList.value = chatsList.value.toMutableList().apply {
+                                // 查找现有的聊天并更新
+                                val existingChatIndex = indexOfFirst { it.id == chatId }
+                                if (existingChatIndex >= 0) {
+                                    val updatedChat = get(existingChatIndex).copy(
+                                        title = chatTitle,
+                                        isBot = isBot
+                                    )
+                                    removeAt(existingChatIndex)
+                                    add(0, updatedChat)
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("GetUser failed: ${e.message}")
+                }
+            }
+        }
+    }
+
+    // 更新消息内容
+    private fun handleChatLastMessageUpdate(update: TdApi.UpdateChatLastMessage) {
+        val chatId = update.chatId
+        val lastMessage = update.lastMessage
+        val lastMessageText = handleAllMessages(lastMessage)
+        val positions = update.positions
+
+        // 更新聊天列表
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            if (existingChatIndex >= 0) {
+                val updatedChat = get(existingChatIndex).copy(
+                    order = positions.firstOrNull()?.order ?: 0,
+                    isPinned = positions.firstOrNull()?.isPinned ?: false,
+                    message = lastMessageText
+                )
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
             }
         }
     }
@@ -621,9 +657,16 @@ class TgApi(
     }
 
     // 处理和简化消息
-    private fun handleAllMessages(message: TdApi.Message?): String {
-        if (message == null) return context.getString(R.string.Unknown_Message)
-        return when (val content = message.content) {
+    private fun handleAllMessages(message: TdApi.Message? = null, messageContext: TdApi.MessageContent? = null): String {
+        var content: TdApi.MessageContent
+        if (messageContext != null) {
+            content = messageContext
+        } else {
+            if (message == null) return context.getString(R.string.Unknown_Message)
+            else content = message.content
+        }
+
+        return when (content) {
             is TdApi.MessageText -> if (content.text.text.length > 20) content.text.text.take(20) + "..." else content.text.text
             is TdApi.MessagePhoto -> context.getString(R.string.Photo) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
             is TdApi.MessageVideo -> context.getString(R.string.Video) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
@@ -1332,6 +1375,12 @@ class TgApi(
         isExitChatPage = true
         saveChatId = 0L
         sendRequest(TdApi.CloseChat())
+    }
+
+    // 删除聊天
+    suspend fun deleteChat(chatId: Long){
+        saveChatId = -1L
+        sendRequest(TdApi.DeleteChat(chatId))
     }
 
     // 获取消息
