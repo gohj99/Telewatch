@@ -23,10 +23,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.gohj99.telewatch" />
+                  <option name="mobileSdkAppId" value="1:916601196285:android:383971ac8212565b2eb894" />
+                  <option name="projectId" value="telewatch-b8d79" />
+                  <option name="projectNumber" value="916601196285" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

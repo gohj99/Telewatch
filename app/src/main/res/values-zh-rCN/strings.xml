@@ -174,9 +174,14 @@
     <string name="Add">添加</string>  
     <string name="Key">密钥</string>  
     <string name="password">密码</string>  
-    <string name="Optional">可选</string>
+    <string name="Optional">可选</string>  
     <string name="Connecting_Proxy">连接代理中</string>  
     <string name="View_Tips">查看提示</string>  
-    <string name="Delete_Chat">删除聊天</string>
-    <string name="Deleted_User">删除用户</string>
+    <string name="Delete_Chat">删除聊天</string>  
+    <string name="Deleted_User">删除用户</string>  
+    <string name="Add_Proxy">添加代理</string>  
+    <string name="Saved_Messages">保存的消息</string>  
+    <string name="last_seen">最后一个见面</string>
+    <string name="Bot">机器人</string>
+    <string name="Bio">说明</string>
 </resources>

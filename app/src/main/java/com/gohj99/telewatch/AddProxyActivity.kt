@@ -140,7 +140,7 @@ fun SplashAddProxyScreen(add: (String, Int, TdApi.ProxyType) -> Unit, parseServe
                     verticalAlignment = Alignment.CenterVertically // 垂直方向居中对齐
                 ) {
                     Text(
-                        text = stringResource(id = R.string.Proxy),
+                        text = stringResource(id = R.string.Add_Proxy),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp

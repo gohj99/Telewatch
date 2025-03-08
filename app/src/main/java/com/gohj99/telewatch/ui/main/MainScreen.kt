@@ -58,7 +58,8 @@ fun MainScreen(
     settingList: MutableState<List<SettingItem>>,
     contacts: MutableState<List<Chat>>,
     topTitle: MutableState<String>,
-    chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
+    chatsFoldersList: MutableState<List<TdApi.ChatFolder>>,
+    currentUserId: MutableState<Long>
 ) {
     val search = stringResource(id = R.string.Global_Search)
     val contact = stringResource(id = R.string.Contacts)
@@ -162,6 +163,7 @@ fun MainScreen(
                         itemsList = chats,
                         callback = chatPage,
                         chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
+                        currentUserId = currentUserId,
                         contactsList = contacts.value
                     )
                 }
@@ -170,7 +172,8 @@ fun MainScreen(
                     home -> {
                         ChatLazyColumn(
                             itemsList = chats,
-                            callback = chatPage
+                            callback = chatPage,
+                            currentUserId = currentUserId,
                         )
                     }
 
@@ -200,18 +203,11 @@ fun MainScreen(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    // 傻逼钱显康
-    // 户籍：湖北省随州市曾都区 西城办事处沿江大道22号(地图查验为宾馆)
-    // 住址: 湖北省随州市曾都区汉东名居(无精确门牌)
-    // 学校：湖北省随州市二中
-    // 申必代码：421302200801060033
-    // “个人”网站： https://www.rechrd.top/
-
     val sampleChats = mutableStateOf(
         listOf(
-            Chat(id = 1, title = "钱显康", message = "我是傻逼"),
-            Chat(id = 2, title = "Rechrd", message = "我父亲是钱明"),
-            Chat(id = 3, title = "将军", message = "我母亲是康庆莉")
+            Chat(id = 1, title = "钱*康", message = "我是傻逼"),
+            Chat(id = 2, title = "Rechrd", message = "我父亲是*明"),
+            Chat(id = 3, title = "将军", message = "我母亲是*庆莉")
         )
     )
 
@@ -246,6 +242,7 @@ fun MainScreenPreview() {
             settingList = settings,
             contacts = remember { mutableStateOf(listOf()) },
             topTitle = remember { mutableStateOf("Home") },
+            currentUserId = remember { mutableStateOf(-1) },
             chatsFoldersList = remember { mutableStateOf(listOf()) }
         )
     }

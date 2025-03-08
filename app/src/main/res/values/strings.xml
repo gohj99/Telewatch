@@ -179,4 +179,9 @@
     <string name="View_Tips">View Tips</string>
     <string name="Delete_Chat">Delete chat</string>
     <string name="Deleted_User">Deleted user</string>
+    <string name="Add_Proxy">Add proxy</string>
+    <string name="Saved_Messages">Saved Messages</string>
+    <string name="last_seen">last seen</string>
+    <string name="Bot">bot</string>
+    <string name="Bio">Bio</string>
 </resources>

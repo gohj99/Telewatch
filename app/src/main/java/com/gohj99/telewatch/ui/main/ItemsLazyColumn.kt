@@ -51,7 +51,8 @@ fun ChatLazyColumn(
     itemsList: MutableState<List<Chat>>,
     callback: (Chat) -> Unit,
     chatsFolder: TdApi.ChatFolder? = null,
-    contactsList: List<Chat> = listOf()
+    contactsList: List<Chat> = listOf(),
+    currentUserId: MutableState<Long>
 ) {
     val listState = rememberLazyListState()
     val searchText = rememberSaveable { mutableStateOf("") }
@@ -93,10 +94,14 @@ fun ChatLazyColumn(
     // 每次itemsList更新时，增量更新 pinnedChats 和 regularChats
     LaunchedEffect(itemsList.value) {
         // 处理可能存在的 order 字段缺失问题（使用安全调用和默认值）
-        val sortedList = itemsList.value.sortedWith(
-            compareByDescending<Chat> { it.order ?: Long.MIN_VALUE } // 处理 null 情况
-                .thenByDescending { it.id } // 保证 id 必存在
-        )
+        val sortedList = itemsList.value
+            .filter { it.order != -1L }  // 过滤掉order=-1的记录
+            .sortedWith(
+                // 第一排序条件：order不为null时降序排列
+                compareByDescending<Chat> { it.order }
+                    // 第二排序条件：当order相同时按id降序排列
+                    .thenByDescending { it.id }
+            )
 
         if (chatsFolder == null) {
             // 分离置顶消息时需要保持原有置顶顺序
@@ -156,11 +161,23 @@ fun ChatLazyColumn(
         if (chatsFolder == null) {
             // 渲染置顶消息
             items(pinnedChats.value, key = { "${it.id}_${it.isPinned}" }) { item ->
-                ChatView(item, callback, searchText, pinnedView = true)
+                ChatView(
+                    chat = item,
+                    callback = callback,
+                    searchText = searchText,
+                    currentUserId = currentUserId,
+                    pinnedView = true
+                )
             }
             // 渲染普通消息
             items(regularChats.value, key = { it.id }) { item ->
-                ChatView(item, callback, searchText, pinnedView = false)
+                ChatView(
+                    chat = item,
+                    callback = callback,
+                    searchText = searchText,
+                    currentUserId = currentUserId,
+                    pinnedView = false
+                )
             }
         } else {
             // 渲染置顶消息
@@ -169,6 +186,7 @@ fun ChatLazyColumn(
                     chat = item,
                     callback = callback,
                     searchText = searchText,
+                    currentUserId = currentUserId,
                     pinnedView = true,
                     chatFolderInfo = chatsFolder,
                     contactsSet = contactsSet,
@@ -182,6 +200,7 @@ fun ChatLazyColumn(
                     chat = item,
                     callback = callback,
                     searchText = searchText,
+                    currentUserId = currentUserId,
                     pinnedView = false,
                     chatFolderInfo = chatsFolder,
                     contactsSet = contactsSet,
@@ -224,12 +243,12 @@ fun ChatView(
     chat: Chat,
     callback: (Chat) -> Unit,
     searchText: MutableState<String> = mutableStateOf(""),
+    currentUserId: MutableState<Long> = mutableStateOf(-1),
     pinnedView: Boolean? = null,
     chatFolderInfo: TdApi.ChatFolder? = null,
     contactsSet: Set<Long> = emptySet(),  // 确保类型为 Long
     includedChatIdsSet: Set<Long> = emptySet(),  // 确保类型为 Long
     excludedChatIdsSet: Set<Long> = emptySet(),  // 确保类型为 Long
-    notJoin: Boolean = false
 ) {
     // 使用 derivedStateOf 来确保不必要的重渲染
     val isMatchingSearchText by remember(searchText.value) {
@@ -242,7 +261,7 @@ fun ChatView(
                 MainCard(
                     column = {
                         Text(
-                            text = chat.title,
+                            text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -258,7 +277,7 @@ fun ChatView(
                     MainCard(
                         column = {
                             Text(
-                                text = chat.title,
+                                text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
                                 color = Color.White,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -275,7 +294,7 @@ fun ChatView(
             if ((chat.id in chatFolderInfo.pinnedChatIds.map { it } == pinnedView)) {
 
                 // 基于过滤条件设置显示会话
-                println(chat.isBot)
+                //println(chat.isBot)
                 val isShow by remember(chat.id, includedChatIdsSet, excludedChatIdsSet, contactsSet) {
                     derivedStateOf {
                         when {
@@ -297,7 +316,7 @@ fun ChatView(
                     MainCard(
                         column = {
                             Text(
-                                text = chat.title,
+                                text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
                                 color = Color.White,
                                 style = MaterialTheme.typography.titleMedium
                             )
