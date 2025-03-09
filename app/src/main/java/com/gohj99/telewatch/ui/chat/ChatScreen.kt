@@ -31,12 +31,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -83,10 +87,13 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.CustomButton
+import com.gohj99.telewatch.ui.InputBar
 import com.gohj99.telewatch.ui.main.LinkText
+import com.gohj99.telewatch.ui.main.MainCard
+import com.gohj99.telewatch.ui.main.MessageView
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
@@ -119,6 +126,7 @@ fun SplashChatScreen(
     listState: LazyListState = rememberLazyListState(),
     onLinkClick: (String) -> Unit,
     chatTitleClick: () -> Unit,
+    currentUserId: MutableState<Long>
 ) {
     var isFloatingVisible by remember { mutableStateOf(true) }
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
@@ -127,6 +135,7 @@ fun SplashChatScreen(
     var isLongPressed by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
     val senderNameMap by remember { mutableStateOf(mutableMapOf<Long, String?>()) }
+    val pagerState = rememberPagerState(pageCount = { 2 }, initialPage = 0)
     var notJoin = false
 
     // 获取context
@@ -169,7 +178,7 @@ fun SplashChatScreen(
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { index ->
                 if (index >= chatList.value.size - 5) {
-                    TgApiManager.tgApi?.fetchMessages()
+                    tgApi?.fetchMessages()
                 }
             }
     }
@@ -177,7 +186,6 @@ fun SplashChatScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp) // 调整垂直填充
     ) {
         Column(
             modifier = Modifier
@@ -186,517 +194,553 @@ fun SplashChatScreen(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             //println("开始渲染")
-            ClickableText(
-                text = AnnotatedString(if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle),
-                style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFFEFEFE), fontWeight = FontWeight.Bold),
-                onClick = { chatTitleClick() }
-            )
-
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .verticalRotaryScroll(listState, true)
-                    .weight(1f),
-                reverseLayout = true, // 反转布局
-                verticalArrangement = Arrangement.Top
+            Box(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp) // 调整垂直填充
             ) {
-                item {
-                    Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
-                }
-                itemsIndexed(
-                    chatList.value,
-                    key = { _, message -> message.id.toString() + message.date.toString() }) { index, message ->
-                    val isCurrentUser = message.isOutgoing
-                    val backgroundColor =
-                        if (isCurrentUser) Color(0xFF003C68) else Color(0xFF2C323A)
-                    val textColor = if (isCurrentUser) Color(0xFF66D3FE) else Color(0xFFFEFEFE)
-                    val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
-                    val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
-                    var videoDownloadDone = rememberSaveable { mutableStateOf(false) }
-                    var videoDownload = rememberSaveable { mutableStateOf(false) }
+                ClickableText(
+                    text = AnnotatedString(if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle),
+                    style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFFEFEFE), fontWeight = FontWeight.Bold),
+                    onClick = { chatTitleClick() }
+                )
+            }
 
-                    TgApiManager.tgApi?.markMessagesAsRead(message.id)
-
-                    Column {
-                        // 绘制日期
-                        val nextItem = chatList.value.getOrNull(index + 1)
-                        if (nextItem == null){
-                            DateText(formatTimestampToDate(message.date))
-                        } else {
-                            val currentDate = formatTimestampToDate(message.date)
-                            if (formatTimestampToDate(nextItem.date) != currentDate) {
-                                DateText(currentDate)
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 8.dp)
+                    .fillMaxSize()
+            ) { page ->
+                when (page) {
+                    0 -> {
+                        // 消息部分
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
+                                .verticalRotaryScroll(listState, true)
+                                .weight(1f),
+                            reverseLayout = true, // 反转布局
+                            verticalArrangement = Arrangement.Top
+                        ) {
+                            item {
+                                Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
                             }
-                        }
+                            itemsIndexed(
+                                chatList.value,
+                                key = { _, message -> message.id.toString() + message.date.toString() }) { index, message ->
+                                val isCurrentUser = message.isOutgoing
+                                val backgroundColor =
+                                    if (isCurrentUser) Color(0xFF003C68) else Color(0xFF2C323A)
+                                val textColor = if (isCurrentUser) Color(0xFF66D3FE) else Color(0xFFFEFEFE)
+                                val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
+                                val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
+                                var videoDownloadDone = rememberSaveable { mutableStateOf(false) }
+                                var videoDownload = rememberSaveable { mutableStateOf(false) }
 
-                        // 渲染用户名字
-                        if (!isCurrentUser) {
-                            var senderName by rememberSaveable { mutableStateOf("") }
-                            val senderId = message.senderId
-                            //println("senderId: $senderId")
-                            if (senderId.constructor == TdApi.MessageSenderUser.CONSTRUCTOR){
-                                val senderUser = senderId as TdApi.MessageSenderUser
-                                //println("senderUser: $senderUser")
-                                senderUser.userId.let {
-                                    Text(
-                                        text = senderName,
-                                        modifier = Modifier
-                                            .pointerInput(Unit) {
-                                                detectTapGestures(
-                                                    onTap = {
-                                                        if (senderUser.userId != chatId) {
-                                                            goToChat(
-                                                                Chat(
-                                                                    id = senderUser.userId,
-                                                                    title = senderName
-                                                                )
+                                tgApi?.markMessagesAsRead(message.id)
+
+                                Column {
+                                    // 绘制日期
+                                    val nextItem = chatList.value.getOrNull(index + 1)
+                                    if (nextItem == null){
+                                        DateText(formatTimestampToDate(message.date))
+                                    } else {
+                                        val currentDate = formatTimestampToDate(message.date)
+                                        if (formatTimestampToDate(nextItem.date) != currentDate) {
+                                            DateText(currentDate)
+                                        }
+                                    }
+
+                                    // 渲染用户名字
+                                    if (!isCurrentUser) {
+                                        var senderName by rememberSaveable { mutableStateOf("") }
+                                        val senderId = message.senderId
+                                        //println("senderId: $senderId")
+                                        if (senderId.constructor == TdApi.MessageSenderUser.CONSTRUCTOR){
+                                            val senderUser = senderId as TdApi.MessageSenderUser
+                                            //println("senderUser: $senderUser")
+                                            senderUser.userId.let {
+                                                Text(
+                                                    text = senderName,
+                                                    modifier = Modifier
+                                                        .pointerInput(Unit) {
+                                                            detectTapGestures(
+                                                                onTap = {
+                                                                    if (senderUser.userId != chatId) {
+                                                                        goToChat(
+                                                                            Chat(
+                                                                                id = senderUser.userId,
+                                                                                title = senderName
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                },
+                                                                onLongPress = {
+                                                                    selectMessage = message
+                                                                    isLongPressed = true
+                                                                }
                                                             )
                                                         }
-                                                    },
-                                                    onLongPress = {
-                                                        selectMessage = message
-                                                        isLongPressed = true
-                                                    }
+                                                        .padding(start = 10.dp, end = 5.dp),
+                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                                                 )
+                                                LaunchedEffect(message.senderId) {
+                                                    if (it in senderNameMap) {
+                                                        senderName = senderNameMap[it]!!
+                                                    } else {
+                                                        tgApi?.getUserName(it) { user ->
+                                                            senderName = user
+                                                            senderNameMap[it] = user
+                                                        }
+                                                    }
+                                                }
                                             }
-                                            .padding(start = 10.dp, end = 5.dp),
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                    LaunchedEffect(message.senderId) {
-                                        if (it in senderNameMap) {
-                                            senderName = senderNameMap[it]!!
-                                        } else {
-                                            TgApiManager.tgApi?.getUserName(it) { user ->
-                                                senderName = user
-                                                senderNameMap[it] = user
+                                        } else if (senderId.constructor == TdApi.MessageSenderChat.CONSTRUCTOR) {
+                                            val senderChat = senderId as TdApi.MessageSenderChat
+                                            println("senderChat: $senderChat")
+                                            senderChat.chatId.let { itChatId ->
+                                                Text(
+                                                    text = senderName,
+                                                    modifier = Modifier
+                                                        .padding(start = 10.dp, end = 5.dp)
+                                                        .pointerInput(Unit) {
+                                                            detectTapGestures(
+                                                                onLongPress = {
+                                                                    selectMessage = message
+                                                                    isLongPressed = true
+                                                                }
+                                                            )
+                                                        },
+                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                )
+                                                LaunchedEffect(message.senderId) {
+                                                    if (senderId.chatId == chatId) {
+                                                        senderName = chatTitle
+                                                    } else {
+                                                        val itChat = tgApi?.getChat(itChatId)
+                                                        itChat.let {
+                                                            senderName = it!!.title
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            } else if (senderId.constructor == TdApi.MessageSenderChat.CONSTRUCTOR) {
-                                val senderChat = senderId as TdApi.MessageSenderChat
-                                println("senderChat: $senderChat")
-                                senderChat.chatId.let { itChatId ->
-                                    Text(
-                                        text = senderName,
-                                        modifier = Modifier
-                                            .padding(start = 10.dp, end = 5.dp)
-                                            .pointerInput(Unit) {
-                                                detectTapGestures(
-                                                    onLongPress = {
-                                                        selectMessage = message
-                                                        isLongPressed = true
-                                                    }
-                                                )
-                                            },
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                    LaunchedEffect(message.senderId) {
-                                        if (senderId.chatId == chatId) {
-                                            senderName = chatTitle
-                                        } else {
-                                            val itChat = TgApiManager.tgApi?.getChat(itChatId)
-                                            itChat.let {
-                                                senderName = it!!.title
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
 
-                        // 回复
-                        if (message.replyTo != null) {
-                            var senderName by rememberSaveable { mutableStateOf("") }
-                            val replyTo = message.replyTo
-                            if (replyTo is TdApi.MessageReplyToMessage) {
-                                var content by remember { mutableStateOf<TdApi.MessageContent>(
-                                    TdApi.MessageText(
-                                        TdApi.FormattedText(
-                                            context.getString(R.string.loading),
-                                            emptyArray()
-                                        ),
-                                        null,
-                                        null
-                                    )
-                                )}
-                                LaunchedEffect(replyTo.chatId) {
-                                    if (replyTo.origin != null) {
-                                        //println(replyTo.origin)
-                                        when (val origin = replyTo.origin) {
-                                            is TdApi.MessageOriginChannel -> {
-                                                senderName = origin.authorSignature
-                                            }
-                                            is TdApi.MessageOriginChat -> {
-                                                senderName = origin.authorSignature
-                                            }
-                                            is TdApi.MessageOriginHiddenUser -> {
-                                                senderName = origin.senderName
-                                            }
-                                            is TdApi.MessageOriginUser -> {
-                                                val chat = TgApiManager.tgApi?.createPrivateChat(origin.senderUserId)
-                                                //println(chat)
-                                                chat?.let {
-                                                    senderName = it.title
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                //println(replyTo.content)
-                                LaunchedEffect(replyTo.content) {
-                                    if (replyTo.content != null) {
-                                        //println("replyTo.content: ${replyTo.content}")
-                                        content = replyTo.content!!
-                                    } else {
-                                        if (replyTo.chatId == 0L) {
-                                            if (replyTo.quote != null) {
-                                                if (replyTo.quote!!.text != null) {
-                                                    if (replyTo.quote!!.text.text != "") {
-                                                        content = TdApi.MessageText(
-                                                            TdApi.FormattedText(
-                                                                replyTo.quote!!.text.text,
-                                                                emptyArray()
-                                                            ),
-                                                            null,
-                                                            null
-                                                        )
-                                                    }
-                                                }
-                                            } else {
-                                                content = TdApi.MessageText(
+                                    // 回复
+                                    if (message.replyTo != null) {
+                                        var senderName by rememberSaveable { mutableStateOf("") }
+                                        val replyTo = message.replyTo
+                                        if (replyTo is TdApi.MessageReplyToMessage) {
+                                            var content by remember { mutableStateOf<TdApi.MessageContent>(
+                                                TdApi.MessageText(
                                                     TdApi.FormattedText(
-                                                        context.getString(R.string.empty_message),
+                                                        context.getString(R.string.loading),
                                                         emptyArray()
                                                     ),
                                                     null,
                                                     null
                                                 )
-                                            }
-                                        } else if (replyTo.chatId == chatId) {
-                                            val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId)
-                                            if (replyMessage != null) {
-                                                content = replyMessage.content
-
-                                                // 用户名称
-                                                //println(replyMessage.senderId)
-                                                if (replyMessage.senderId != null) {
-                                                    val senderId = replyMessage.senderId
-                                                    if (senderId is TdApi.MessageSenderUser){
-                                                        senderId.userId.let { senderUserId ->
-                                                            if (senderUserId in senderNameMap) {
-                                                                senderName = senderNameMap[senderUserId]!!
-                                                            } else {
-                                                                TgApiManager.tgApi?.getUserName(senderUserId) { user ->
-                                                                    senderName = user
-                                                                    senderNameMap[senderUserId] = user
-                                                                }
-                                                            }
+                                            )}
+                                            LaunchedEffect(replyTo.chatId) {
+                                                if (replyTo.origin != null) {
+                                                    //println(replyTo.origin)
+                                                    when (val origin = replyTo.origin) {
+                                                        is TdApi.MessageOriginChannel -> {
+                                                            senderName = origin.authorSignature
                                                         }
-                                                    } else if (senderId is TdApi.MessageSenderChat) {
-                                                        if (senderId.chatId == chatId) {
-                                                            senderName = chatTitle
-                                                        } else {
-                                                            val chat = TgApiManager.tgApi?.getChat(senderId.chatId)
+                                                        is TdApi.MessageOriginChat -> {
+                                                            senderName = origin.authorSignature
+                                                        }
+                                                        is TdApi.MessageOriginHiddenUser -> {
+                                                            senderName = origin.senderName
+                                                        }
+                                                        is TdApi.MessageOriginUser -> {
+                                                            val chat = tgApi?.createPrivateChat(origin.senderUserId)
+                                                            //println(chat)
                                                             chat?.let {
                                                                 senderName = it.title
                                                             }
                                                         }
                                                     }
                                                 }
-                                            } else {
-                                                content = TdApi.MessageText(
-                                                    TdApi.FormattedText(
-                                                        context.getString(R.string.Deleted_message),
-                                                        emptyArray()
-                                                    ),
-                                                    null,
-                                                    null
-                                                )
                                             }
-                                        } else {
-                                            val chat = TgApiManager.tgApi?.getChat(replyTo.chatId)
-                                            if (chat != null) {
-                                                val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId, replyTo.chatId)
-                                                replyMessage?.let { content = it.content }
-                                            } else {
-                                                content = TdApi.MessageText(
-                                                    TdApi.FormattedText(
-                                                        context.getString(R.string.empty_message),
-                                                        emptyArray()
-                                                    ),
-                                                    null,
-                                                    null
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                var parentHeight by remember { mutableIntStateOf(0) }
-
-                                if (isCurrentUser) {
-                                    Row(
-                                        modifier = Modifier
-                                            .padding(start = 5.dp, end = 5.dp, top = 5.dp)
-                                            .fillMaxWidth(),
-                                        horizontalArrangement = alignment
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .background(
-                                                    Color(0xFF3A4048),
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-                                                .clip(RoundedCornerShape(8.dp))
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .weight(1f, fill = false)
-                                                    .fillMaxHeight()
-                                                    .onSizeChanged { size ->
-                                                        parentHeight = size.height // 获取父容器的高度
-                                                    },
-                                            ) {
-                                                if (senderName != "") {
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .padding(bottom = 5.dp, start = 5.dp, end = 5.dp),
-                                                        horizontalAlignment = Alignment.End // 文字右对齐
-                                                    ) {
-                                                        Text(
-                                                            text = senderName,
-                                                            color = Color(0xFF66D3FE),
-                                                            fontSize = 10.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                        )
-                                                        messageDrawer(
-                                                            content = content,
-                                                            onLinkClick = onLinkClick,
-                                                            textColor = textColor,
-                                                            videoDownload = videoDownload,
-                                                            videoDownloadDone = videoDownloadDone,
-                                                            showUnknownMessageType = showUnknownMessageType
-                                                        )
-                                                    }
+                                            //println(replyTo.content)
+                                            LaunchedEffect(replyTo.content) {
+                                                if (replyTo.content != null) {
+                                                    //println("replyTo.content: ${replyTo.content}")
+                                                    content = replyTo.content!!
                                                 } else {
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .padding(5.dp),
-                                                        horizontalAlignment = Alignment.End // 文字右对齐
-                                                    ) {
-                                                        messageDrawer(
-                                                            content = content,
-                                                            onLinkClick = onLinkClick,
-                                                            textColor = textColor,
-                                                            videoDownload = videoDownload,
-                                                            videoDownloadDone = videoDownloadDone,
-                                                            showUnknownMessageType = showUnknownMessageType
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            Box(
-                                                modifier = Modifier
-                                                    .background(Color(0xFF397DBC))
-                                                    .width(8.dp)
-                                                    .fillMaxHeight()
-                                            ) {
-                                                Spacer(Modifier.height((parentHeight/2).dp)) // 保持Spacer，虽然在这里作用不大
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    Row(
-                                        modifier = Modifier
-                                            .padding(start = 5.dp, end = 5.dp, top = 5.dp)
-                                            .fillMaxWidth(),
-                                        horizontalArrangement = alignment
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .background(
-                                                    Color(0xFF3A4048),
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-                                                .clip(RoundedCornerShape(8.dp))
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .background(Color(0xFF397DBC))
-                                                    .width(8.dp) // 指定左边颜色宽度为 10.dp
-                                            ) {
-                                                Spacer(Modifier.height((parentHeight/2).dp))
-                                            }
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxHeight()
-                                                    .onSizeChanged { size ->
-                                                        parentHeight = size.height // 获取父容器的高度
-                                                    }
-                                            ) {
-                                                if (senderName != "") {
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .padding(bottom = 5.dp, start = 5.dp, end = 5.dp)
-                                                    ) {
-                                                        Text(
-                                                            text = senderName,
-                                                            color = Color(0xFF66D3FE),
-                                                            fontSize = 10.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                        )
-                                                        messageDrawer(
-                                                            content = content,
-                                                            onLinkClick = onLinkClick,
-                                                            textColor = textColor,
-                                                            videoDownload = videoDownload,
-                                                            videoDownloadDone = videoDownloadDone,
-                                                            showUnknownMessageType = showUnknownMessageType
-                                                        )
-                                                    }
-                                                } else {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .padding(5.dp)
-                                                    ) {
-                                                        messageDrawer(
-                                                            content = content,
-                                                            onLinkClick = onLinkClick,
-                                                            textColor = textColor,
-                                                            videoDownload = videoDownload,
-                                                            videoDownloadDone = videoDownloadDone,
-                                                            showUnknownMessageType = showUnknownMessageType
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
-
-                        // 正文
-                        Row(
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = alignment
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-                                    .padding(start = 8.dp, end = 8.dp, top = 6.dp, bottom = 1.dp)
-                                    .pointerInput(Unit) {
-                                        detectTapGestures(
-                                            onLongPress = {
-                                                selectMessage = message
-                                                isLongPressed = true
-                                            },
-                                            onTap = {
-                                                if (!videoDownload.value) {
-                                                    if (message.content is TdApi.MessageVideo) {
-                                                        val videoFile =
-                                                            (message.content as TdApi.MessageVideo).video.video
-                                                        if (!videoFile.local.isDownloadingCompleted) {
-                                                            TgApiManager.tgApi!!.downloadFile(
-                                                                file = videoFile,
-                                                                schedule = { schedule ->
-                                                                    println("下载进度: $schedule")
-                                                                },
-                                                                completion = { boolean, path ->
-                                                                    println("下载完成情况: $boolean")
-                                                                    println("下载路径: $path")
-                                                                    videoDownload.value = false
-                                                                    videoDownloadDone.value = true
+                                                    if (replyTo.chatId == 0L) {
+                                                        if (replyTo.quote != null) {
+                                                            if (replyTo.quote!!.text != null) {
+                                                                if (replyTo.quote!!.text.text != "") {
+                                                                    content = TdApi.MessageText(
+                                                                        TdApi.FormattedText(
+                                                                            replyTo.quote!!.text.text,
+                                                                            emptyArray()
+                                                                        ),
+                                                                        null,
+                                                                        null
+                                                                    )
                                                                 }
+                                                            }
+                                                        } else {
+                                                            content = TdApi.MessageText(
+                                                                TdApi.FormattedText(
+                                                                    context.getString(R.string.empty_message),
+                                                                    emptyArray()
+                                                                ),
+                                                                null,
+                                                                null
                                                             )
-                                                            videoDownload.value = true
+                                                        }
+                                                    } else if (replyTo.chatId == chatId) {
+                                                        val replyMessage = tgApi?.getMessageTypeById(replyTo.messageId)
+                                                        if (replyMessage != null) {
+                                                            content = replyMessage.content
+
+                                                            // 用户名称
+                                                            //println(replyMessage.senderId)
+                                                            if (replyMessage.senderId != null) {
+                                                                val senderId = replyMessage.senderId
+                                                                if (senderId is TdApi.MessageSenderUser){
+                                                                    senderId.userId.let { senderUserId ->
+                                                                        if (senderUserId in senderNameMap) {
+                                                                            senderName = senderNameMap[senderUserId]!!
+                                                                        } else {
+                                                                            tgApi?.getUserName(senderUserId) { user ->
+                                                                                senderName = user
+                                                                                senderNameMap[senderUserId] = user
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                } else if (senderId is TdApi.MessageSenderChat) {
+                                                                    if (senderId.chatId == chatId) {
+                                                                        senderName = chatTitle
+                                                                    } else {
+                                                                        val chat = tgApi?.getChat(senderId.chatId)
+                                                                        chat?.let {
+                                                                            senderName = it.title
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        } else {
+                                                            content = TdApi.MessageText(
+                                                                TdApi.FormattedText(
+                                                                    context.getString(R.string.Deleted_message),
+                                                                    emptyArray()
+                                                                ),
+                                                                null,
+                                                                null
+                                                            )
+                                                        }
+                                                    } else {
+                                                        val chat = tgApi?.getChat(replyTo.chatId)
+                                                        if (chat != null) {
+                                                            val replyMessage = tgApi?.getMessageTypeById(replyTo.messageId, replyTo.chatId)
+                                                            replyMessage?.let { content = it.content }
+                                                        } else {
+                                                            content = TdApi.MessageText(
+                                                                TdApi.FormattedText(
+                                                                    context.getString(R.string.empty_message),
+                                                                    emptyArray()
+                                                                ),
+                                                                null,
+                                                                null
+                                                            )
                                                         }
                                                     }
-                                                    press(message)
                                                 }
                                             }
-                                        )
-                                    }
-                            ) {
-                                Column {
-                                    val content = message.content
-                                    messageDrawer(
-                                        content = content,
-                                        onLinkClick = onLinkClick,
-                                        textColor = textColor,
-                                        videoDownload = videoDownload,
-                                        videoDownloadDone = videoDownloadDone,
-                                        showUnknownMessageType = showUnknownMessageType
-                                    )
 
-                                    Row(
-                                        modifier = modifier
-                                            .padding(top = 4.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween // 两端对齐
-                                    ) {
-                                        // 时间
-                                        Text(
-                                            text = if (message.editDate == 0) formatTimestampToTime(message.date)
-                                            else stringResource(id = R.string.edit) + " " + formatTimestampToTime(message.editDate),
-                                            modifier = modifier,
-                                            color = Color(0xFF6A86A3),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
+                                            var parentHeight by remember { mutableIntStateOf(0) }
 
-                                        // 已读未读标识
-                                        // 确定消息是否为自己发的
-                                        if (message.isOutgoing) {
-                                            //println("read.message.id: ${chatObject.lastReadInboxMessageId}")
-                                            if (message.id <= lastReadOutboxMessageId.value) {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.outgoing_read),
-                                                    contentDescription = null,
+                                            if (isCurrentUser) {
+                                                Row(
                                                     modifier = Modifier
-                                                        .size(19.4.dp, 12.dp) // 设置 Image 的大小
-                                                        .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                                                        .padding(start = 3.8.dp)
-                                                )
-                                            } else if (message.id <= lastReadInboxMessageId.value) {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.outgoing),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .size(16.2.dp, 11.dp) // 设置 Image 的大小
-                                                        .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                                                        .padding(start = 3.5.dp)
-                                                )
-                                            } else {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.sending),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .size(15.8.dp, 12.dp) // 设置 Image 的大小
-                                                        .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                                                        .padding(start = 3.5.dp)
-                                                )
-                                            }
-                                        }
-
-                                        if (!isCurrentUser) {
-                                            val forwardInfo = message.forwardInfo
-                                            forwardInfo?.origin?.let { origin ->
-                                                if (origin is TdApi.MessageOriginChannel) {
-                                                    // 署名
-                                                    Text(
-                                                        text = origin.authorSignature,
-                                                        color = Color(0xFF6A86A3),
-                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        .padding(
+                                                            start = 5.dp,
+                                                            end = 5.dp,
+                                                            top = 5.dp
+                                                        )
+                                                        .fillMaxWidth(),
+                                                    horizontalArrangement = alignment
+                                                ) {
+                                                    Row(
                                                         modifier = Modifier
-                                                            .align(Alignment.CenterVertically)
-                                                            .weight(1f)
-                                                            .wrapContentWidth(Alignment.End) // 向右对齐
+                                                            .background(
+                                                                Color(0xFF3A4048),
+                                                                shape = RoundedCornerShape(8.dp)
+                                                            )
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .weight(1f, fill = false)
+                                                                .fillMaxHeight()
+                                                                .onSizeChanged { size ->
+                                                                    parentHeight =
+                                                                        size.height // 获取父容器的高度
+                                                                },
+                                                        ) {
+                                                            if (senderName != "") {
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .padding(bottom = 5.dp, start = 5.dp, end = 5.dp),
+                                                                    horizontalAlignment = Alignment.End // 文字右对齐
+                                                                ) {
+                                                                    Text(
+                                                                        text = senderName,
+                                                                        color = Color(0xFF66D3FE),
+                                                                        fontSize = 10.sp,
+                                                                        fontWeight = FontWeight.Bold,
+                                                                    )
+                                                                    messageDrawer(
+                                                                        content = content,
+                                                                        onLinkClick = onLinkClick,
+                                                                        textColor = textColor,
+                                                                        videoDownload = videoDownload,
+                                                                        videoDownloadDone = videoDownloadDone,
+                                                                        showUnknownMessageType = showUnknownMessageType
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .padding(5.dp),
+                                                                    horizontalAlignment = Alignment.End // 文字右对齐
+                                                                ) {
+                                                                    messageDrawer(
+                                                                        content = content,
+                                                                        onLinkClick = onLinkClick,
+                                                                        textColor = textColor,
+                                                                        videoDownload = videoDownload,
+                                                                        videoDownloadDone = videoDownloadDone,
+                                                                        showUnknownMessageType = showUnknownMessageType
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .background(Color(0xFF397DBC))
+                                                                .width(8.dp)
+                                                                .fillMaxHeight()
+                                                        ) {
+                                                            Spacer(Modifier.height((parentHeight/2).dp)) // 保持Spacer，虽然在这里作用不大
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .padding(
+                                                            start = 5.dp,
+                                                            end = 5.dp,
+                                                            top = 5.dp
+                                                        )
+                                                        .fillMaxWidth(),
+                                                    horizontalArrangement = alignment
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .background(
+                                                                Color(0xFF3A4048),
+                                                                shape = RoundedCornerShape(8.dp)
+                                                            )
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .background(Color(0xFF397DBC))
+                                                                .width(8.dp) // 指定左边颜色宽度为 10.dp
+                                                        ) {
+                                                            Spacer(Modifier.height((parentHeight/2).dp))
+                                                        }
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxHeight()
+                                                                .onSizeChanged { size ->
+                                                                    parentHeight =
+                                                                        size.height // 获取父容器的高度
+                                                                }
+                                                        ) {
+                                                            if (senderName != "") {
+                                                                Column(
+                                                                    modifier = Modifier
+                                                                        .padding(bottom = 5.dp, start = 5.dp, end = 5.dp)
+                                                                ) {
+                                                                    Text(
+                                                                        text = senderName,
+                                                                        color = Color(0xFF66D3FE),
+                                                                        fontSize = 10.sp,
+                                                                        fontWeight = FontWeight.Bold,
+                                                                    )
+                                                                    messageDrawer(
+                                                                        content = content,
+                                                                        onLinkClick = onLinkClick,
+                                                                        textColor = textColor,
+                                                                        videoDownload = videoDownload,
+                                                                        videoDownloadDone = videoDownloadDone,
+                                                                        showUnknownMessageType = showUnknownMessageType
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                Box(
+                                                                    modifier = Modifier
+                                                                        .padding(5.dp)
+                                                                ) {
+                                                                    messageDrawer(
+                                                                        content = content,
+                                                                        onLinkClick = onLinkClick,
+                                                                        textColor = textColor,
+                                                                        videoDownload = videoDownload,
+                                                                        videoDownloadDone = videoDownloadDone,
+                                                                        showUnknownMessageType = showUnknownMessageType
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+
+                                    // 正文
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(5.dp)
+                                            .fillMaxWidth(),
+                                        horizontalArrangement = alignment
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    backgroundColor,
+                                                    shape = RoundedCornerShape(8.dp)
+                                                )
+                                                .padding(
+                                                    start = 8.dp,
+                                                    end = 8.dp,
+                                                    top = 6.dp,
+                                                    bottom = 1.dp
+                                                )
+                                                .pointerInput(Unit) {
+                                                    detectTapGestures(
+                                                        onLongPress = {
+                                                            selectMessage = message
+                                                            isLongPressed = true
+                                                        },
+                                                        onTap = {
+                                                            if (!videoDownload.value) {
+                                                                if (message.content is TdApi.MessageVideo) {
+                                                                    val videoFile =
+                                                                        (message.content as TdApi.MessageVideo).video.video
+                                                                    if (!videoFile.local.isDownloadingCompleted) {
+                                                                        tgApi!!.downloadFile(
+                                                                            file = videoFile,
+                                                                            schedule = { schedule ->
+                                                                                println("下载进度: $schedule")
+                                                                            },
+                                                                            completion = { boolean, path ->
+                                                                                println("下载完成情况: $boolean")
+                                                                                println("下载路径: $path")
+                                                                                videoDownload.value =
+                                                                                    false
+                                                                                videoDownloadDone.value =
+                                                                                    true
+                                                                            }
+                                                                        )
+                                                                        videoDownload.value = true
+                                                                    }
+                                                                }
+                                                                press(message)
+                                                            }
+                                                        }
                                                     )
+                                                }
+                                        ) {
+                                            Column {
+                                                val content = message.content
+                                                messageDrawer(
+                                                    content = content,
+                                                    onLinkClick = onLinkClick,
+                                                    textColor = textColor,
+                                                    videoDownload = videoDownload,
+                                                    videoDownloadDone = videoDownloadDone,
+                                                    showUnknownMessageType = showUnknownMessageType
+                                                )
+
+                                                Row(
+                                                    modifier = modifier
+                                                        .padding(top = 4.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween // 两端对齐
+                                                ) {
+                                                    // 时间
+                                                    Text(
+                                                        text = if (message.editDate == 0) formatTimestampToTime(message.date)
+                                                        else stringResource(id = R.string.edit) + " " + formatTimestampToTime(message.editDate),
+                                                        modifier = modifier,
+                                                        color = Color(0xFF6A86A3),
+                                                        style = MaterialTheme.typography.bodySmall
+                                                    )
+
+                                                    // 已读未读标识
+                                                    // 确定消息是否为自己发的
+                                                    if (message.isOutgoing) {
+                                                        //println("read.message.id: ${chatObject.lastReadInboxMessageId}")
+                                                        if (message.id <= lastReadOutboxMessageId.value) {
+                                                            Image(
+                                                                painter = painterResource(id = R.drawable.outgoing_read),
+                                                                contentDescription = null,
+                                                                modifier = Modifier
+                                                                    .size(19.4.dp, 12.dp) // 设置 Image 的大小
+                                                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                                                                    .padding(start = 3.8.dp)
+                                                            )
+                                                        } else if (message.id <= lastReadInboxMessageId.value) {
+                                                            Image(
+                                                                painter = painterResource(id = R.drawable.outgoing),
+                                                                contentDescription = null,
+                                                                modifier = Modifier
+                                                                    .size(16.2.dp, 11.dp) // 设置 Image 的大小
+                                                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                                                                    .padding(start = 3.5.dp)
+                                                            )
+                                                        } else {
+                                                            Image(
+                                                                painter = painterResource(id = R.drawable.sending),
+                                                                contentDescription = null,
+                                                                modifier = Modifier
+                                                                    .size(15.8.dp, 12.dp) // 设置 Image 的大小
+                                                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
+                                                                    .padding(start = 3.5.dp)
+                                                            )
+                                                        }
+                                                    }
+
+                                                    if (!isCurrentUser) {
+                                                        val forwardInfo = message.forwardInfo
+                                                        forwardInfo?.origin?.let { origin ->
+                                                            if (origin is TdApi.MessageOriginChannel) {
+                                                                // 署名
+                                                                Text(
+                                                                    text = origin.authorSignature,
+                                                                    color = Color(0xFF6A86A3),
+                                                                    style = MaterialTheme.typography.bodyMedium,
+                                                                    modifier = Modifier
+                                                                        .align(Alignment.CenterVertically)
+                                                                        .weight(1f)
+                                                                        .wrapContentWidth(Alignment.End) // 向右对齐
+                                                                )
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -705,8 +749,14 @@ fun SplashChatScreen(
                             }
                         }
                     }
+                    1 -> {
+                        // 发送消息页面部分
+                        SendPage(
+                            chatId = chatId,
+                            currentUserId = currentUserId
+                        )
+                    }
                 }
-
             }
         }
 
@@ -744,109 +794,204 @@ fun SplashChatScreen(
         )
 
         // 消息发送部分
-        var showKeyboard by remember { mutableStateOf(false) }
-        if (notJoin) {
-            showKeyboard = true
-        } else {
-            if (chatPermissions == null) {
+        if (pagerState.currentPage == 0) {
+            var showKeyboard by remember { mutableStateOf(false) }
+            if (notJoin) {
                 showKeyboard = true
             } else {
-                if (chatPermissions.canSendBasicMessages) {
+                if (chatPermissions == null) {
                     showKeyboard = true
+                } else {
+                    if (chatPermissions.canSendBasicMessages) {
+                        showKeyboard = true
+                    }
                 }
             }
-        }
-        if (showKeyboard) {
-            if (isFloatingVisible) {
-                if (notJoin) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 28.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CustomButton(
-                            onClick = {
-                                TgApiManager.tgApi?.joinChat(
-                                    chatId = chatId,
-                                    reInit = {
-                                        notJoin = false
-                                        //reInit("joined")
-                                    }
+            if (showKeyboard) {
+                if (isFloatingVisible) {
+                    if (notJoin) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 28.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CustomButton(
+                                onClick = {
+                                    tgApi?.joinChat(
+                                        chatId = chatId,
+                                        reInit = {
+                                            notJoin = false
+                                            //reInit("joined")
+                                        }
+                                    )
+                                },
+                                text = stringResource(id = R.string.join_in)
+                            )
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 4.dp)
+                                .alpha(1f),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
+                                    keyboardController?.show() // 显示输入法
+                                },
+                                modifier = Modifier
+                                    .size(84.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_custom_keyboard),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(82.dp)
                                 )
-                            },
-                            text = stringResource(id = R.string.join_in)
-                        )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    sendCallback(inputText.text)
+                                    inputText = TextFieldValue("")
+                                },
+                                modifier = Modifier
+                                    .size(45.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_custom_send),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(45.dp)
+                                )
+                            }
+                        }
                     }
                 } else {
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 4.dp)
-                            .alpha(1f),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
+                            .fillMaxHeight() // 使 Box 填满整个屏幕高度
+                            .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
+                        contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
                     ) {
                         IconButton(
                             onClick = {
-                                textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
-                                keyboardController?.show() // 显示输入法
+                                isFloatingVisible = true
                             },
                             modifier = Modifier
-                                .size(84.dp)
+                                .padding(3.dp) // 可选的内边距
+                                .size(20.dp) // 设置 IconButton 的大小
                         ) {
                             Image(
-                                painter = painterResource(id = R.drawable.ic_custom_keyboard),
+                                painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
                                 contentDescription = null,
-                                modifier = Modifier.size(82.dp)
+                                modifier = Modifier
+                                    .size(20.dp) // 设置 Image 的大小
+                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
                             )
                         }
-
-                        IconButton(
-                            onClick = {
-                                sendCallback(inputText.text)
-                                inputText = TextFieldValue("")
-                            },
-                            modifier = Modifier
-                                .size(45.dp)
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_custom_send),
-                                contentDescription = null,
-                                modifier = Modifier.size(45.dp)
-                            )
-                        }
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight() // 使 Box 填满整个屏幕高度
-                        .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
-                    contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
-                ) {
-                    IconButton(
-                        onClick = {
-                            isFloatingVisible = true
-                        },
-                        modifier = Modifier
-                            .padding(3.dp) // 可选的内边距
-                            .size(20.dp) // 设置 IconButton 的大小
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(20.dp) // 设置 Image 的大小
-                                .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                        )
                     }
                 }
             }
         }
+
+    }
+}
+
+@Composable
+fun SendPage(
+    chatId: Long,
+    currentUserId: MutableState<Long>
+) {
+    val scrollState = rememberScrollState()
+    var sendText by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
+            .verticalScroll(scrollState)
+            .verticalRotaryScroll(scrollState),
+        verticalArrangement = Arrangement.Top
+    ) {
+        InputBar(
+            query = sendText,
+            onQueryChange = { sendText = it },
+            placeholder = stringResource(id = R.string.Write_message),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        IconButton(
+            onClick = {
+                tgApi?.sendMessage(
+                    chatId = chatId,
+                    message = TdApi.InputMessageText().apply {  // 参数名改为message
+                        text = TdApi.FormattedText().apply {
+                            this.text = sendText  // 正确设置text字段
+                        }
+                    }
+                )
+                sendText = ""
+            },
+            modifier = Modifier
+                .size(45.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_custom_send),
+                contentDescription = null,
+                modifier = Modifier.size(45.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        val forwardMessage = tgApi!!.forwardMessage
+        if (forwardMessage.value != null) {
+            val messageText =
+                tgApi!!.handleAllMessages(message = forwardMessage.value, maxText = 100)
+            val targetTitle =
+                if (forwardMessage.value!!.chatId == currentUserId.value) stringResource(R.string.Saved_Messages) else
+                    tgApi!!.chatsList.value
+                        .find { it.id == forwardMessage.value!!.chatId }
+                        ?.title ?: stringResource(R.string.Unknown_chat) // 找不到时返回默认值
+
+            MainCard(
+                column = {
+                    Text(
+                        text = targetTitle,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    MessageView(message = messageText)
+                },
+                item = forwardMessage.value
+            )
+            IconButton(
+                onClick = {
+                    tgApi?.sendMessage(
+                        chatId = chatId,
+                        message = TdApi.InputMessageForwarded().apply {  // 参数名改为message
+                            copyOptions = null
+                            fromChatId = forwardMessage.value!!.chatId
+                            inGameShare = false
+                            messageId = forwardMessage.value!!.id
+                        }
+                    )
+                    sendText = ""
+                },
+                modifier = Modifier
+                    .size(45.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_custom_send),
+                    contentDescription = null,
+                    modifier = Modifier.size(45.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
@@ -1169,7 +1314,7 @@ fun MessageVideoNote(
                             .clip(CircleShape)
                             .clickable {
                                 downloading = true
-                                TgApiManager.tgApi!!.downloadFile(
+                                tgApi!!.downloadFile(
                                     file = voiceFile,
                                     schedule = { schedule -> },
                                     completion = { success, tdFleUrl ->
@@ -1245,7 +1390,7 @@ fun ThumbnailImage(
             } else {
                 //println("本地没图片，正在下载图片")
                 try {
-                    TgApiManager.tgApi!!.downloadPhoto(thumbnail) { success, path ->
+                    tgApi!!.downloadPhoto(thumbnail) { success, path ->
                         if (success) {
                             thumbnail.local.isDownloadingCompleted = true
                             thumbnail.local.path = path
@@ -1371,6 +1516,7 @@ fun SplashChatScreenPreview() {
             lastReadInboxMessageId = mutableLongStateOf(0L),
             onLinkClick = {},
             chatTitleClick = {},
+            currentUserId = mutableStateOf(-1L)
         )
     }
 }

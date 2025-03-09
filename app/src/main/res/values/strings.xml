@@ -185,4 +185,6 @@
     <string name="Bot">bot</string>
     <string name="Bio">Bio</string>
     <string name="Deleted_message">Message has been deleted</string>
+    <string name="Write_message">Write a message…</string>
+    <string name="Forward">Forward</string>
 </resources>

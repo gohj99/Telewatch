@@ -10,6 +10,7 @@ package com.gohj99.telewatch.utils.telegram
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
@@ -31,6 +32,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
+import org.drinkless.tdlib.TdApi.InputMessageContent
 import java.io.File
 import java.io.IOException
 import java.util.Properties
@@ -39,7 +41,7 @@ import kotlin.coroutines.resume
 
 class TgApi(
     private val context: Context,
-    private var chatsList: MutableState<List<Chat>>,
+    var chatsList: MutableState<List<Chat>>,
     private val userId: String = "",
     private val topTitle: MutableState<String>,
     private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
@@ -54,6 +56,7 @@ class TgApi(
     private var lastReadOutboxMessageId = mutableStateOf(0L)
     private var lastReadInboxMessageId = mutableStateOf(0L)
     private var currentUser: List<String> = emptyList()
+    var forwardMessage: MutableState<TdApi.Message?> = mutableStateOf(null)
 
     init {
         // 获取应用外部数据目录
@@ -126,9 +129,24 @@ class TgApi(
             TdApi.UpdateUser.CONSTRUCTOR -> handleUpdateUser(update as TdApi.UpdateUser)
             TdApi.UpdateChatLastMessage.CONSTRUCTOR -> handleChatLastMessageUpdate(update as TdApi.UpdateChatLastMessage)
             TdApi.UpdateChatPosition.CONSTRUCTOR -> handleChatPositionUpdate(update as TdApi.UpdateChatPosition)
+            TdApi.UpdateMessageSendSucceeded.CONSTRUCTOR -> handleMessageSendSucceededUpdate(update as TdApi.UpdateMessageSendSucceeded)
             // 其他更新
             else -> {
-                //println("Received update: $update")
+                Log.d("TdApiUpdate","Received update: $update")
+            }
+        }
+    }
+
+    // 消息发送成功
+    private fun handleMessageSendSucceededUpdate(update: TdApi.UpdateMessageSendSucceeded) {
+        val chatId = update.message.chatId
+        val oldMessageId = update.oldMessageId
+        if (chatId == saveChatId) {
+            saveChatList.value = saveChatList.value.toMutableList().apply {
+                val messageIndex = indexOfFirst { it.id == oldMessageId }
+                if (messageIndex >= 0) {
+                    set(messageIndex, update.message)
+                }
             }
         }
     }
@@ -285,24 +303,17 @@ class TgApi(
         println("Messages deleted in chat ID $chatId: $messageIds")
 
         if (chatId == saveChatId) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val messageType = getMessageTypeById(messageIds[0], chatId)
-                //println(messageType)
-                if (messageType == null) {
-                    val mutableChatListSize = saveChatList.value.size
-                    val mutableChatList = saveChatList.value.toMutableList()
-                    for (messageId in messageIds) {
-                        val message = mutableChatList.find { it.id == messageId }
-                        if (message != null) {
-                            // 更新保存的聊天列表
-                            mutableChatList.remove(message)
-                        }
-                    }
-                    if (mutableChatListSize - mutableChatList.size <= 1) saveChatList.value =
-                        mutableChatList
-                    reloadMessageById(messageIds[0])
+            val mutableChatList = saveChatList.value.toMutableList()
+            //println(mutableChatList)
+            messageIds.forEach { messageId ->
+                val message = mutableChatList.find { it.id == messageId }
+                if (message != null) {
+                    // 更新保存的聊天列表
+                    mutableChatList.remove(message)
                 }
             }
+            saveChatList.value = mutableChatList
+            //reloadMessageById(messageIds[0])
         }
     }
 
@@ -311,36 +322,12 @@ class TgApi(
         val message = update.message
         //println("New message received in chat ID ${message.chatId}\nmessageId ${message.id}")
         val chatId = message.chatId
-        val newMessageText = handleAllMessages(message)
 
         if (chatId == saveChatId) {
             // 将新消息添加到保存的聊天列表的前面
             saveChatList.value = saveChatList.value.toMutableList().apply {
                 add(0, message) // 新消息存储在最前面
             }
-        }
-
-        chatsList.value = chatsList.value.toMutableList().apply {
-            // 查找现有的聊天并更新
-            val existingChatIndex = indexOfFirst { it.id == chatId }
-            if (existingChatIndex >= 0) {
-                val updatedChat = get(existingChatIndex).copy(
-                    message = newMessageText
-                )
-                removeAt(existingChatIndex)
-                add(0, updatedChat)
-            }
-            /*else {
-                // 新增聊天到列表顶部
-                add(
-                    0,
-                    Chat(
-                        id = chatId,
-                        title = context.getString(R.string.loading),
-                        message = newMessageText
-                    )
-                )
-            }*/
         }
     }
 
@@ -656,9 +643,10 @@ class TgApi(
     }
 
     // 处理和简化消息
-    private fun handleAllMessages(
+    fun handleAllMessages(
         message: TdApi.Message? = null,
-        messageContext: TdApi.MessageContent? = null
+        messageContext: TdApi.MessageContent? = null,
+        maxText: Int = 20
     ): AnnotatedString {
         val content: TdApi.MessageContent = messageContext ?: message?.content
         ?: return buildAnnotatedString { append(context.getString(R.string.Unknown_Message)) }
@@ -666,7 +654,7 @@ class TgApi(
         return when (content) {
             is TdApi.MessageText -> buildAnnotatedString {
                 val text = content.text.text
-                append(if (text.length > 20) text.take(20) + "..." else text)
+                append(if (text.length > maxText) text.take(maxText) + "..." else text)
             }
             is TdApi.MessagePhoto -> buildAnnotatedString {
                 // 将 Photo 文本设置为蓝色
@@ -675,7 +663,7 @@ class TgApi(
                 }
                 append(" ")
                 val caption = content.caption.text
-                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+                append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageVideo -> buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
@@ -683,7 +671,7 @@ class TgApi(
                 }
                 append(" ")
                 val caption = content.caption.text
-                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+                append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageVoiceNote -> buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
@@ -691,7 +679,7 @@ class TgApi(
                 }
                 append(" ")
                 val caption = content.caption.text
-                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+                append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageAnimation -> buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
@@ -699,7 +687,7 @@ class TgApi(
                 }
                 append(" ")
                 val caption = content.caption.text
-                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+                append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageAnimatedEmoji -> buildAnnotatedString {
                 if (content.emoji.isEmpty()) append(context.getString(R.string.Unknown_Message))
@@ -1238,27 +1226,20 @@ class TgApi(
     }
 
     // 发送消息
-    fun sendMessage(chatId: Long, messageText: String): TdApi.Message? {
-        var sentMessage: TdApi.Message? = null
+    fun sendMessage(chatId: Long, message: InputMessageContent) {
         val message = TdApi.SendMessage().apply {
             this.chatId = chatId
-            inputMessageContent = TdApi.InputMessageText().apply {
-                text = TdApi.FormattedText().apply {
-                    this.text = messageText
-                }
-            }
+            inputMessageContent = message
         }
         client.send(message) { result ->
-            println("SendMessage result: $result")
+            //println("SendMessage result: $result")
             if (result.constructor == TdApi.Error.CONSTRUCTOR) {
                 val error = result as TdApi.Error
                 println("Send Message Error: ${error.message}")
             } else {
-                sentMessage = result as TdApi.Message
                 println("Message sent successfully")
             }
         }
-        return sentMessage
     }
 
     // 加载聊天列表
