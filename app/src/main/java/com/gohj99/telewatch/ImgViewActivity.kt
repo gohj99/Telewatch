@@ -24,7 +24,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -49,8 +48,6 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import coil.size.Size
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -363,18 +360,13 @@ fun saveImageToExternalStorage(context: Context, photoPath: String): String {
 private fun SplashImgView(photoPath: String, saveImage: () -> Unit) {
     Box(
         modifier = Modifier
-            .padding(20.dp)
+            .padding(16.dp)
             .fillMaxSize()
-            .aspectRatio(1f),
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = rememberAsyncImagePainter(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(photoPath)
-                    .size(Size.ORIGINAL) // 确保使用原始尺寸
-                    .build()
-            ),
+            painter = rememberAsyncImagePainter(model = photoPath),
             contentDescription = null,
             modifier = Modifier
                 .zoomable(
@@ -392,7 +384,8 @@ private fun SplashTgsView(photoPath: String) {
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxSize(),
+            .fillMaxSize()
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         // Load the Lottie composition from the file path
@@ -417,7 +410,8 @@ private fun SplashMp4View(photoPath: String) {
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxSize(),
+            .fillMaxSize()
+            .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         LoopingVideoPlayer(Uri.parse(photoPath))
