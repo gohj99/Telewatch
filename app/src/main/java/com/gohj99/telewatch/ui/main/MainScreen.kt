@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -209,9 +210,9 @@ fun MainScreenPreview() {
 
     val sampleChats = mutableStateOf(
         listOf(
-            Chat(id = 1, title = "钱显康", message = "我是傻逼"),
-            Chat(id = 2, title = "Rechrd", message = "我父亲是钱明"),
-            Chat(id = 3, title = "将军", message = "我母亲是康庆莉")
+            Chat(id = 1, title = "钱*康", message = buildAnnotatedString { append("我是**") }),
+            Chat(id = 2, title = "Rechrd", message = buildAnnotatedString { append("我**是*明") }),
+            Chat(id = 3, title = "将军", message = buildAnnotatedString { append("我**是**莉") })
         )
     )
 

@@ -315,7 +315,7 @@ fun ChatView(
 }
 
 @Composable
-fun MessageView(message: String) {
+fun MessageView(message: androidx.compose.ui.text.AnnotatedString) {
     var currentMessage by remember { mutableStateOf(message) }
 
     // 如果消息更新了，才重新设置状态

@@ -288,8 +288,7 @@ fun SplashChatScreen(
                                                             goToChat(
                                                                 Chat(
                                                                     id = senderUser.userId,
-                                                                    title = senderName,
-                                                                    message = ""
+                                                                    title = senderName
                                                                 )
                                                             )
                                                         }
@@ -385,7 +384,7 @@ fun SplashChatScreen(
                                     }
                                 }
                                 //println(replyTo.content)
-                                LaunchedEffect(replyTo.chatId) {
+                                LaunchedEffect(replyTo.content) {
                                     if (replyTo.content != null) {
                                         //println("replyTo.content: ${replyTo.content}")
                                         content = replyTo.content!!
@@ -416,8 +415,8 @@ fun SplashChatScreen(
                                             }
                                         } else if (replyTo.chatId == chatId) {
                                             val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId)
-                                            replyMessage?.let {
-                                                content = it.content
+                                            if (replyMessage != null) {
+                                                content = replyMessage.content
 
                                                 // 用户名称
                                                 //println(replyMessage.senderId)
@@ -445,6 +444,15 @@ fun SplashChatScreen(
                                                         }
                                                     }
                                                 }
+                                            } else {
+                                                content = TdApi.MessageText(
+                                                    TdApi.FormattedText(
+                                                        context.getString(R.string.Deleted_message),
+                                                        emptyArray()
+                                                    ),
+                                                    null,
+                                                    null
+                                                )
                                             }
                                         } else {
                                             val chat = TgApiManager.tgApi?.getChat(replyTo.chatId)
@@ -462,7 +470,6 @@ fun SplashChatScreen(
                                                 )
                                             }
                                         }
-
                                     }
                                 }
 
@@ -770,7 +777,6 @@ fun SplashChatScreen(
                 onDone = {
                     focusManager.clearFocus()
                     keyboardController?.hide()
-                    // TODO: Handle the input text (e.g., send message)
                 }
             )
         )

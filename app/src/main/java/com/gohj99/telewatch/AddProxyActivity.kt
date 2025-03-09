@@ -9,6 +9,9 @@
 package com.gohj99.telewatch
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -98,6 +101,10 @@ class AddProxyActivity : ComponentActivity() {
                 SplashAddProxyScreen(
                     add = { server, port, type ->
                         tgApi?.addProxy(server, port, type)
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
+                        }
+                        finish()
                     },
                     parseServer = parseServer,
                     parsePort = parsePort,

@@ -175,8 +175,14 @@
     <string name="password">Pasvorto</string>  
     <string name="Optional">Nedeviga</string>  
     <string name="Connecting_Proxy">Konektanta prokurilo</string>  
-    <string name="Remind1">Saluton! \ Nwelcome al la Telewatch -app! \ NTO Komencu, ni rekomendas aliĝi al nia oficiala telegrama grupo por subteno. Vi povas aliĝi alklakante la suban ligon: \nhttps: //t.me/teleandroidwatch \n \nhere \ \'estas rapida gvidilo por helpi vin uzi la app: \n \nurls kiel @ kaj https estas alklakeblaj. \ Non the Chat Paĝo, frapu la titolon por enigi babilajn informojn por pli da detaloj. \ Nlong Premu kaj trenu tekston por elekti kaj kopii. \ Nin la Bildo-Vidilo, longe premu bildon por konservi ĝin en via galerio. \ Ndelete prokurilo per longa premado de la Ero sur la prokura paĝo \n \ntelewatch estas malferma-fonta kaj senpaga. Se vi ŝatus subteni nian disvolviĝon, bonvolu konsideri donaci alklakante la butonon sube. \ N \nwe esperas, ke vi ĝuos uzi Telewatch!</string>  
     <string name="View_Tips">Vidi Konsiletojn</string>  
-    <string name="Delete_Chat">Forigi Babilejon</string>
-    <string name="Deleted_User">Forigita Uzanto</string>
+    <string name="Delete_Chat">Forigi Babilejon</string>  
+    <string name="Deleted_User">Forigita Uzanto</string>  
+    <string name="Add_Proxy">Aldonu Proxy</string>  
+    <string name="Saved_Messages">Konservitaj mesaĝoj</string>  
+    <string name="last_seen">Laste vidita</string>  
+    <string name="Bot">bot</string>  
+    <string name="Bio">Estis</string>  
+    <string name="Deleted_message">Forigita mesaĝo</string>  
+    <string name="Remind1">Saluton! \nwelcome al la Telewatch -programo! \nfirst, ni rekomendas aliĝi al nia oficiala telegrama grupo por subteno. Vi povas aliĝi alklakante la suban ligon: \nhttps: //t.me/teleandroidwatch \n \nhere \ \'estas rapida gvidilo por helpi vin uzi la aplikon: \n \nlong-press sur la mesaĝa limo por malkaŝi pli da funkcioj \ne la babileja paĝo, enigu babilejan mesaĝon per frapado de la titolo por akiri pli da detaloj. \nlong-press kaj trenu tekston por elekti kaj kopii. \ Nin la bilda spektanto, longa premo sur bildo por konservi ĝin en via galerio. \nlong-press sur ero en la paĝo Proxies por forigi predilojn \n \ntelewatch estas malferma fonto kaj senpaga. Se vi volas subteni nian disvolviĝon, bonvolu konsideri donaci alklakante la suban butonon. \n \nwe esperas, ke vi ĝuos uzi Telewatch!</string>
 </resources>
