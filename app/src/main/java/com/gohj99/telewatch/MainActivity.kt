@@ -71,7 +71,6 @@ class MainActivity : ComponentActivity() {
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
     private val contacts = mutableStateOf(listOf<Chat>())
-    private val currentUserId = mutableStateOf(-1L)
     private val settingsSharedPref: SharedPreferences by lazy {
         getSharedPreferences("app_settings", MODE_PRIVATE)
     }
@@ -181,7 +180,7 @@ class MainActivity : ComponentActivity() {
                         // 每次失败后等待1秒
                     )
 
-                    while (currentUser == null) {
+                    if (currentUser == null) {
                         currentUser = tempTgApi.getCurrentUser()
                     }
 
@@ -321,14 +320,6 @@ class MainActivity : ComponentActivity() {
                 ChatsListManager.chatsList = chatsList
                 TgApiManager.tgApi?.loadChats(15)
                 TgApiManager.tgApi?.getContacts(contacts)
-                // 异步获取当前用户 ID
-                lifecycleScope.launch {
-                    while (currentUserId.value == -1L) {
-                        TgApiManager.tgApi?.getCurrentUser() ?.let {
-                            currentUserId.value = it[0].toLong()
-                        }
-                    }
-                }
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
@@ -344,8 +335,7 @@ class MainActivity : ComponentActivity() {
                                 settingList = settingList,
                                 contacts = contacts,
                                 topTitle = topTitle,
-                                chatsFoldersList = chatsFoldersList,
-                                currentUserId = currentUserId
+                                chatsFoldersList = chatsFoldersList
                             )
                         }
                     }

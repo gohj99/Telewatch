@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
-    id("com.google.gms.google-services")
 }
 
 android {
@@ -24,7 +23,6 @@ android {
         targetSdk = 34
         versionCode = 26
         versionName = "1.3.5"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -121,9 +119,6 @@ dependencies {
     implementation(project(":libtd"))
     implementation(libs.lottie)
     implementation(libs.lottie.compose)
-    // Import the Firebase BoM
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
