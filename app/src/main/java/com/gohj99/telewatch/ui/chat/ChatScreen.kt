@@ -90,55 +90,17 @@ import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import com.gohj99.telewatch.utils.formatDuration
+import com.gohj99.telewatch.utils.formatTimestampToDate
+import com.gohj99.telewatch.utils.formatTimestampToTime
 import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 // 反射机制获取MessageContent的类信息
 fun getMessageContentTypeName(messageContent: TdApi.MessageContent): String {
     return messageContent::class.simpleName ?: "Unknown"
-}
-
-fun formatTimestampToTime(unixTimestamp: Int): String {
-    // 将 Unix 时间戳从 Int 转换为 Long，并转换为毫秒
-    val date = Date(unixTimestamp.toLong() * 1000)
-    // 定义时间格式
-    val format = SimpleDateFormat("HH:mm", Locale.getDefault())
-    // 返回格式化的时间字符串
-    return format.format(date)
-}
-
-fun formatDuration(duration: Int): String {
-    val minutes = duration / 60
-    val seconds = duration % 60
-    return String.format("%02d:%02d", minutes, seconds)
-}
-
-fun formatTimestampToDate(unixTimestamp: Int): String {
-    // 将时间戳转换为 Date 对象
-    val date = Date(unixTimestamp.toLong() * 1000)
-    // 获取当前年份
-    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    // 获取时间戳对应的年份
-    val calendar = Calendar.getInstance()
-    calendar.time = date
-    val timestampYear = calendar.get(Calendar.YEAR)
-    // 获取用户的本地化日期格式
-    val dateFormat: DateFormat = if (timestampYear == currentYear) {
-        // 当年份相同时，仅显示月和日
-        DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault())
-    } else {
-        // 当年份不同时，显示完整日期
-        DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault())
-    }
-    // 返回格式化的日期字符串
-    return dateFormat.format(date)
 }
 
 @SuppressLint("MutableCollectionMutableState")
@@ -288,8 +250,7 @@ fun SplashChatScreen(
                                                             goToChat(
                                                                 Chat(
                                                                     id = senderUser.userId,
-                                                                    title = senderName,
-                                                                    message = ""
+                                                                    title = senderName
                                                                 )
                                                             )
                                                         }
@@ -385,7 +346,7 @@ fun SplashChatScreen(
                                     }
                                 }
                                 //println(replyTo.content)
-                                LaunchedEffect(replyTo.chatId) {
+                                LaunchedEffect(replyTo.content) {
                                     if (replyTo.content != null) {
                                         //println("replyTo.content: ${replyTo.content}")
                                         content = replyTo.content!!
@@ -416,8 +377,8 @@ fun SplashChatScreen(
                                             }
                                         } else if (replyTo.chatId == chatId) {
                                             val replyMessage = TgApiManager.tgApi?.getMessageTypeById(replyTo.messageId)
-                                            replyMessage?.let {
-                                                content = it.content
+                                            if (replyMessage != null) {
+                                                content = replyMessage.content
 
                                                 // 用户名称
                                                 //println(replyMessage.senderId)
@@ -445,6 +406,15 @@ fun SplashChatScreen(
                                                         }
                                                     }
                                                 }
+                                            } else {
+                                                content = TdApi.MessageText(
+                                                    TdApi.FormattedText(
+                                                        context.getString(R.string.Deleted_message),
+                                                        emptyArray()
+                                                    ),
+                                                    null,
+                                                    null
+                                                )
                                             }
                                         } else {
                                             val chat = TgApiManager.tgApi?.getChat(replyTo.chatId)
@@ -462,7 +432,6 @@ fun SplashChatScreen(
                                                 )
                                             }
                                         }
-
                                     }
                                 }
 
@@ -770,7 +739,6 @@ fun SplashChatScreen(
                 onDone = {
                     focusManager.clearFocus()
                     keyboardController?.hide()
-                    // TODO: Handle the input text (e.g., send message)
                 }
             )
         )

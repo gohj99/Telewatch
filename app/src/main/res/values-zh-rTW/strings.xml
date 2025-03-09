@@ -156,7 +156,7 @@
     <string name="Audio_Error">音訊\n錯誤</string>  
     <string name="remind_activity">提醒活動</string>  
     <string name="Remind">提醒</string>  
-    <string name="Remind1">你好！ \n歡迎使用 Telewatch 應用程式！ \n首先，我們建議加入我們的官方 Telegram 群組以獲得支持。你可以點擊以下連結加入：\nhttps://t.me/teleAndroidwatch\n\n這裡有一個快速指南可以幫助你使用該應用程式：\n\n@ 和 https 等 URL 是可點擊的。 \n在聊天頁面上，點擊標題即可輸入聊天資訊以取得更多詳細資訊。 \n長按並拖曳文字以選擇和複製。 \n在影像檢視器中，長按影像即可儲存到你的圖庫。 \n長按代理頁面上的項目即可刪除代理\n\nTelewatch 是開源且免費的。如果你想支持我們的開發，請考慮點擊下面的按鈕進行捐款。 \n\n我們希望你喜歡使用 Telewatch！</string>  
+    <string name="Remind1">你好！ \n歡迎使用 Telewatch 應用程式！ \n首先，我們建議加入我們的官方 Telegram 群組以獲得支持。你可以點擊以下連結加入：\nhttps://t.me/teleAndroidwatch\n\n這裡有一個快速指南可以幫助你使用該應用程式：\n\n訊息邊框長按會顯示更多功能\n在聊天頁面上，點擊標題即可輸入聊天資訊以獲取更多詳細資訊。 \n長按並拖曳文字以選擇和複製。 \n在影像檢視器中，長按影像即可儲存到你的圖庫。 \n長按代理頁面上的項目即可刪除代理\n\nTelewatch 是開源且免費的。如果你想支持我們的開發，請考慮點擊下面的按鈕進行捐款。 \n\n我們希望你喜歡使用 Telewatch！</string>
     <string name="donate_activity">捐款活動</string>  
     <string name="Donate">捐款</string>  
     <string name="Telegram_not_connected">未連線（可能您還沒有登入）</string>  
@@ -174,9 +174,15 @@
     <string name="Add">添加</string>  
     <string name="Key">鑰匙</string>  
     <string name="password">密碼</string>  
-    <string name="Optional">可選</string>
+    <string name="Optional">可選</string>  
     <string name="Connecting_Proxy">連接代理中</string>  
     <string name="View_Tips">查看提示</string>  
-    <string name="Delete_Chat">刪除聊天</string>
-    <string name="Deleted_User">刪除用戶</string>
+    <string name="Delete_Chat">刪除聊天</string>  
+    <string name="Deleted_User">刪除用戶</string>  
+    <string name="Add_Proxy">添加代理</string>  
+    <string name="Saved_Messages">收藏夾</string>  
+    <string name="last_seen">最後上線</string>  
+    <string name="Bot">機器人</string>  
+    <string name="Bio">介紹</string>  
+    <string name="Deleted_message">訊息已刪除</string>
 </resources>

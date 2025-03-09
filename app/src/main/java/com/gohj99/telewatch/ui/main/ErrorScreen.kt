@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -28,7 +28,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 
 @Composable
-fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit = {}, cause: String = "") {
+fun ErrorScreen(onRetry: () -> Unit, onSetting: (() -> Unit)? = null, cause: String = "") {
     val scrollState = rememberScrollState()
 
     Column(
@@ -44,7 +44,7 @@ fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit = {}, cause: String =
         Button(onClick = onRetry) {
             Text(text = stringResource(id = R.string.Retry))
         }
-        if (onSetting != {}) {
+        if (onSetting != null) {
             Button(onClick = onSetting) {
                 Text(text = stringResource(id = R.string.Settings))
             }
@@ -61,6 +61,6 @@ fun ErrorScreen(onRetry: () -> Unit, onSetting: () -> Unit = {}, cause: String =
 @Composable
 fun ErrorScreenPreview() {
     TelewatchTheme {
-        ErrorScreen({ /*TODO*/ }, { /*TODO*/ })
+        ErrorScreen({ }, { })
     }
 }

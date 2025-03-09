@@ -12,6 +12,11 @@ import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.model.Chat
 import kotlinx.coroutines.CompletableDeferred
@@ -39,7 +44,7 @@ class TgApi(
     private val topTitle: MutableState<String>,
     private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
-    var saveChatId = 1L
+    var saveChatId = 0L
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
@@ -94,6 +99,13 @@ class TgApi(
         if (!isAuthorized) {
             close()
             throw IllegalStateException("Failed to authorize")
+        }
+
+        client.send(TdApi.GetMe()) {
+            if (it is TdApi.User) {
+                val user = it
+                currentUser = listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
+            }
         }
     }
 
@@ -272,11 +284,11 @@ class TgApi(
         val messageIds = update.messageIds
         println("Messages deleted in chat ID $chatId: $messageIds")
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val messageType = getMessageTypeById(messageIds[0], chatId)
-            //println(messageType)
-            if (messageType == null) {
-                if (chatId == saveChatId) {
+        if (chatId == saveChatId) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val messageType = getMessageTypeById(messageIds[0], chatId)
+                //println(messageType)
+                if (messageType == null) {
                     val mutableChatListSize = saveChatList.value.size
                     val mutableChatList = saveChatList.value.toMutableList()
                     for (messageId in messageIds) {
@@ -289,28 +301,6 @@ class TgApi(
                     if (mutableChatListSize - mutableChatList.size <= 1) saveChatList.value =
                         mutableChatList
                     reloadMessageById(messageIds[0])
-                }
-
-                // 更新聊天列表
-                try {
-                    val chatResult = sendRequest(TdApi.GetChat(chatId))
-                    if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
-                        withContext(Dispatchers.Main) {
-                            chatsList.value = chatsList.value.toMutableList().apply {
-                                // 查找现有的聊天并更新
-                                val existingChatIndex = indexOfFirst { it.id == chatId }
-                                if (existingChatIndex >= 0) {
-                                    val updatedChat = get(existingChatIndex).copy(
-                                        message = handleAllMessages((chatResult as TdApi.Chat).lastMessage)
-                                    )
-                                    removeAt(existingChatIndex)
-                                    add(0, updatedChat)
-                                }
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    println("GetChat request failed (handleDeleteMessages): ${e.message}")
                 }
             }
         }
@@ -564,12 +554,21 @@ class TgApi(
         chatsList.value = chatsList.value.toMutableList().apply {
             // 查找现有的聊天并更新
             val existingChatIndex = indexOfFirst { it.id == chatId }
+            val order = positions.firstOrNull()?.order
             if (existingChatIndex >= 0) {
-                val updatedChat = get(existingChatIndex).copy(
-                    order = positions.firstOrNull()?.order ?: 0,
-                    isPinned = positions.firstOrNull()?.isPinned ?: false,
-                    message = lastMessageText
-                )
+                val updatedChat =
+                    if (order != null) {
+                        get(existingChatIndex).copy(
+                            order = order,
+                            isPinned = positions.firstOrNull()?.isPinned ?: false,
+                            message = lastMessageText
+                        )
+                    } else {
+                        get(existingChatIndex).copy(
+                            isPinned = positions.firstOrNull()?.isPinned ?: false,
+                            message = lastMessageText
+                        )
+                    }
                 removeAt(existingChatIndex)
                 add(0, updatedChat)
             }
@@ -657,24 +656,60 @@ class TgApi(
     }
 
     // 处理和简化消息
-    private fun handleAllMessages(message: TdApi.Message? = null, messageContext: TdApi.MessageContent? = null): String {
-        var content: TdApi.MessageContent
-        if (messageContext != null) {
-            content = messageContext
-        } else {
-            if (message == null) return context.getString(R.string.Unknown_Message)
-            else content = message.content
-        }
+    private fun handleAllMessages(
+        message: TdApi.Message? = null,
+        messageContext: TdApi.MessageContent? = null
+    ): AnnotatedString {
+        val content: TdApi.MessageContent = messageContext ?: message?.content
+        ?: return buildAnnotatedString { append(context.getString(R.string.Unknown_Message)) }
 
         return when (content) {
-            is TdApi.MessageText -> if (content.text.text.length > 20) content.text.text.take(20) + "..." else content.text.text
-            is TdApi.MessagePhoto -> context.getString(R.string.Photo) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageVideo -> context.getString(R.string.Video) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageVoiceNote -> context.getString(R.string.Voice) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageAnimation -> context.getString(R.string.Animation) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageAnimatedEmoji -> if (content.emoji == "") context.getString(R.string.Unknown_Message) else content.emoji
-            is TdApi.MessageSticker -> if (content.sticker.emoji == "") context.getString(R.string.Unknown_Message) else content.sticker.emoji
-            else -> context.getString(R.string.Unknown_Message)
+            is TdApi.MessageText -> buildAnnotatedString {
+                val text = content.text.text
+                append(if (text.length > 20) text.take(20) + "..." else text)
+            }
+            is TdApi.MessagePhoto -> buildAnnotatedString {
+                // 将 Photo 文本设置为蓝色
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Photo))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageVideo -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Video))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageVoiceNote -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Voice))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageAnimation -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Animation))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageAnimatedEmoji -> buildAnnotatedString {
+                if (content.emoji.isEmpty()) append(context.getString(R.string.Unknown_Message))
+                else append(content.emoji)
+            }
+            is TdApi.MessageSticker -> buildAnnotatedString {
+                if (content.sticker.emoji.isEmpty()) append(context.getString(R.string.Unknown_Message))
+                else append(content.sticker.emoji)
+            }
+            else -> buildAnnotatedString { append(context.getString(R.string.Unknown_Message)) }
         }
     }
 
@@ -888,7 +923,7 @@ class TgApi(
                         var isGroup = false
                         var isPrivateChat = false
                         var chatTitle = "error"
-                        var lastMessage = ""
+                        var lastMessage = buildAnnotatedString {}
                         try {
                             val chatResult = sendRequest(TdApi.GetChat(id))
                             if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
@@ -983,6 +1018,17 @@ class TgApi(
     suspend fun getUser(id: Long): TdApi.User? {
         try {
             val getResult = sendRequest(TdApi.GetUser(id))
+            return getResult
+        } catch (e: Exception) {
+            println("GetUser request failed: ${e.message}")
+            return null
+        }
+    }
+
+    // 获取用户详细信息
+    suspend fun getUserFullInfo(id: Long): TdApi.UserFullInfo? {
+        try {
+            val getResult = sendRequest(TdApi.GetUserFullInfo(id))
             return getResult
         } catch (e: Exception) {
             println("GetUser request failed: ${e.message}")
@@ -1121,16 +1167,14 @@ class TgApi(
                                             // 替换原有的联系人
                                             existingContacts[existingContactIndex] = Chat(
                                                 id = user.id,
-                                                title = "${user.firstName} ${user.lastName}",
-                                                message = ""
+                                                title = "${user.firstName} ${user.lastName}"
                                             )
                                         } else {
                                             // 添加新联系人
                                             existingContacts.add(
                                                 Chat(
                                                     id = user.id,
-                                                    title = "${user.firstName} ${user.lastName}",
-                                                    message = ""
+                                                    title = "${user.firstName} ${user.lastName}"
                                                 )
                                             )
                                         }
@@ -1283,7 +1327,7 @@ class TgApi(
     }
 
     // 获取当前用户 ID 的方法
-    suspend fun getCurrentUser(): List<String> {
+    suspend fun getCurrentUser(): List<String>? {
         if (currentUser.isEmpty()) {
             try {
                 val result = sendRequest(TdApi.GetMe())
@@ -1296,21 +1340,15 @@ class TgApi(
                 }
             } catch (e: Exception) {
                 println("GetMe request failed: ${e.message}")
-                try {
-                    val result = sendRequest(TdApi.GetMe())
-                    if (result.constructor == TdApi.User.CONSTRUCTOR) {
-                        val user = result as TdApi.User
-                        currentUser = listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
-                        return currentUser
-                    } else {
-                        throw IllegalStateException("Failed to get current user ID")
-                    }
-                } catch (e: Exception) {
-                    println("GetMe request failed: ${e.message}")
-                    throw IllegalStateException("Failed to get current user ID")
-                }
+                return null
             }
         } else {
+            client.send(TdApi.GetMe()) {
+                if (it is TdApi.User) {
+                    val user = it
+                    currentUser = listOf(user.id.toString(), "${user.firstName} ${user.lastName}")
+                }
+            }
             return currentUser
         }
     }
@@ -1371,10 +1409,16 @@ class TgApi(
     }
 
     // 退出聊天页面
-    suspend fun exitChatPage(){
+    fun exitChatPage(){
         isExitChatPage = true
         saveChatId = 0L
-        sendRequest(TdApi.CloseChat())
+        client.send(TdApi.CloseChat()) { result ->
+            if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
+                println("Closed chat page successfully")
+            } else {
+                println("Failed to close chat page: $result")
+            }
+        }
     }
 
     // 删除聊天
