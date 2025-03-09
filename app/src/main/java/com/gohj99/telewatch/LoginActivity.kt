@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -273,28 +273,23 @@ class LoginActivity : ComponentActivity() {
                     }
                     // 处理其他授权状态...
                     TdApi.AuthorizationStateClosed.CONSTRUCTOR -> {
-                        // TDLib 已关闭
-                        println("TDLib 已关闭")
+                        TODO()
                     }
 
                     TdApi.AuthorizationStateClosing.CONSTRUCTOR -> {
-                        // TDLib 正在关闭
-                        println("TDLib 正在关闭")
+                        TODO()
                     }
 
                     TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR -> {
-                        // 正在退出登录
-                        println("正在退出登录")
+                        TODO()
                     }
 
                     TdApi.AuthorizationStateWaitCode.CONSTRUCTOR -> {
-                        // 请求验证码
-                        println("请求验证码")
+                        TODO()
                     }
 
                     TdApi.AuthorizationStateWaitRegistration.CONSTRUCTOR -> {
-                        // 请求注册
-                        println("请求注册")
+                        TODO()
                     }
                 }
             }

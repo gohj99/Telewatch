@@ -175,14 +175,8 @@
     <string name="password">Passwort</string>  
     <string name="Optional">Optional</string>  
     <string name="Connecting_Proxy">Stellvertreter anschließen</string>  
+    <string name="Remind1">Hallo! \ Nwelcome In die Telewatch -App! Sie können anschließen, indem Sie auf den Link unten klicken: \nhttps: //t.me/teleandroidwatch \n \nhere \ s eine schnelle Anleitung, mit Seite, tippen Sie auf den Titel, um Chat-Informationen einzugeben, um weitere Informationen zu erhalten. \nlong Drücken und ziehen Sie Text, um zu wählen und zu kopieren. \nin Der Bildbetreiber, drücken Sie ein Bild, um ihn in Ihrer Galerie zu speichern. Element auf der Proxy-Seite \n \nTelewatch ist Open-Source und kostenlos. Wenn Sie unsere Entwicklung unterstützen möchten, überlegen Sie bitte die Schaltfläche unten.</string>  
     <string name="View_Tips">Tipps anzeigen</string>  
-    <string name="Delete_Chat">Chat löschen</string>  
-    <string name="Deleted_User">Benutzer gelöscht</string>  
-    <string name="Add_Proxy">Proxy hinzufügen</string>  
-    <string name="Saved_Messages">Gespeicherte Nachrichten</string>  
-    <string name="last_seen">zuletzt gesehen</string>  
-    <string name="Bot">Bot</string>  
-    <string name="Bio">War</string>  
-    <string name="Deleted_message">Nachricht wurde gelöscht</string>  
-    <string name="Remind1">Hallo! \nwelcome in die Telewatch -App! Wir empfehlen, unserer offiziellen Telegrammgruppe zur Unterstützung beizutreten. Sie können anschließen, indem Sie auf den Link unten klicken: \nhttps: //t.me/teleandroidwatch \n \nhere \ s eine schnelle Anleitung, die Ihnen bei der Verwendung der App: \n \nlong-press auf den Meldungsgrenze hilft. \nlong-press und ziehen Sie Text, um auszuwählen und zu kopieren. \nin Der Bildbieter, Langzeitpresse auf einem Bild, um es in Ihrer Galerie zu speichern. \nlong-drücken Sie ein Element auf der Proxies-Seite, um eine Proxies zu entfernen. \n \nTelewatch ist Open Source und Free. Wenn Sie unsere Entwicklung unterstützen möchten, erwägen Sie bitte die Spende, indem Sie auf die Schaltfläche unten klicken. Ich hoffe, Sie verwenden gerne Telewatch!</string>
+    <string name="Delete_Chat">Chat löschen</string>
+    <string name="Deleted_User">Benutzer gelöscht</string>
 </resources>

@@ -63,7 +63,11 @@ class ChatActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        TgApiManager.tgApi?.exitChatPage()
+        runBlocking {
+            lifecycleScope.launch {
+                TgApiManager.tgApi?.exitChatPage()
+            }.join() // 等待协程执行完毕
+        }
     }
 
     override fun onResume() {
@@ -142,11 +146,7 @@ class ChatActivity : ComponentActivity() {
 
         // 异步获取当前用户 ID 和聊天记录
         lifecycleScope.launch {
-            while (currentUserId.value == -1L) {
-                tgApi!!.getCurrentUser() ?.let {
-                    currentUserId.value = it[0].toLong()
-                }
-            }
+            currentUserId.value = tgApi!!.getCurrentUser()[0].toLong()
             tgApi!!.fetchMessages(0, chat!!.id)
         }
 

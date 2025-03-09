@@ -67,7 +67,7 @@ fun SplashChatInfoScreen(
 chatObject: TdApi.Chat,
 subtitle: String,
 info: String,
-deleteChat: (() -> Unit)? = null
+deleteChat: () -> Unit
 ) {
     val gson = Gson()
     var messageJson = ""
@@ -244,28 +244,26 @@ deleteChat: (() -> Unit)? = null
                     }
                 }
             }
-            if (deleteChat != null) {
-                item {
-                    // 删除聊天
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight()
-                            .background(
-                                Color.Black.copy(alpha = 0.8f),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .padding(7.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CustomButton(
-                            text = stringResource(R.string.Delete_Chat),
-                            color = Color(0xFFF44336),
-                            onClick = {
-                                deleteChat()
-                            }
+            item {
+                // 删除聊天
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .background(
+                            Color.Black.copy(alpha = 0.8f),
+                            shape = RoundedCornerShape(8.dp)
                         )
-                    }
+                        .padding(7.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CustomButton(
+                        text = stringResource(R.string.Delete_Chat),
+                        color = Color(0xFFF44336),
+                        onClick = {
+                            deleteChat()
+                        }
+                    )
                 }
             }
             item {

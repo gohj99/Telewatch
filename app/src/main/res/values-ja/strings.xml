@@ -175,14 +175,8 @@
     <string name="password">パスワード</string>  
     <string name="Optional">オプション</string>  
     <string name="Connecting_Proxy">プロキシの接続</string>  
+    <string name="Remind1">こんにちは！\nwelcome to telewatchアプリ！以下のリンクをクリックして参加できます。ページ、タイトルをタップしてチャット情報を入力して詳細を参照してください。\nlongを押してテキストをドラッグしてコピーします。画像ビューアーを使用して、画像をギャラリーに保存するために画像を長く押します。プロキシページのアイテム\n \ntelwatchはオープンソースで無料です。開発をサポートしたい場合は、下のボタンをクリックして寄付を検討してください。</string>  
     <string name="View_Tips">ヒントを表示します</string>  
-    <string name="Delete_Chat">チャットを削除します</string>  
-    <string name="Deleted_User">削除されたユーザー</string>  
-    <string name="Add_Proxy">プロキシを追加します</string>  
-    <string name="Saved_Messages">保存されたメッセージ</string>  
-    <string name="last_seen">最後に見た</string>  
-    <string name="Bot">ボット</string>  
-    <string name="Bio">だった</string>  
-    <string name="Deleted_message">メッセージが削除されました</string>  
-    <string name="Remind1">こんにちは！ \nwelcome to telewatchアプリ！ \nfirst、サポートのために公式のTelegram Groupに参加することをお勧めします。以下のリンクをクリックして参加できます。 \nlong-pressとドラッグテキストを選択してコピーします。画像ビューアー、画像にロングプレスしてギャラリーに保存します。プロキシページのアイテムのnlong-pressプロキシを削除する\n \ntelwatchはオープンソースで無料です。開発をサポートしたい場合は、下のボタンをクリックして寄付を検討してください。 \n \nwe TeleWatchの使用を楽しんでいただければ幸いです。</string>
+    <string name="Delete_Chat">チャットを削除します</string>
+    <string name="Deleted_User">削除されたユーザー</string>
 </resources>

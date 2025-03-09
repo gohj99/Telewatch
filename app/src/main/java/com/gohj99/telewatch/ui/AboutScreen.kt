@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -154,7 +154,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
                         text = stringResource(R.string.notice_about_1) + "\n" +
                                 stringResource(R.string.notice_about_2)+ "\n" +
                                 stringResource(R.string.notice_about_3)+ "\n" +
-                                "telegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch",
+                                "telegram: https://t.me/teleAndroidwatch\nGitHub: https://github.com/gohj99/telewatch/",
                         color = Color.White,
                         style = MaterialTheme.typography.titleMedium,
                         onLinkClick = { url ->
