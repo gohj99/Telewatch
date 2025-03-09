@@ -156,6 +156,6 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
 @Composable
 fun SplashGoToCheckUpdateScreenPreview() {
     TelewatchTheme {
-        SplashAllowDataCollectionScreen { /*TODO*/ }
+        SplashAllowDataCollectionScreen { }
     }
 }

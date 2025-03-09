@@ -11,12 +11,13 @@ package com.gohj99.telewatch.model
 import android.annotation.SuppressLint
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.compose.ui.text.buildAnnotatedString
 
 @SuppressLint("ParcelCreator")
 data class Chat(
     val id: Long,
     val title: String,
-    val message: String = "",
+    val message: androidx.compose.ui.text.AnnotatedString = buildAnnotatedString {},
     val order: Long = -1, // 会话排序
     val isPinned: Boolean = false, // 是否在全部会话置顶
     val isRead: Boolean = false, // 聊天是否已读
@@ -32,7 +33,6 @@ data class Chat(
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeLong(id)
         dest.writeString(title)
-        dest.writeString(message)
     }
 
     companion object CREATOR : Parcelable.Creator<Chat> {
@@ -40,7 +40,6 @@ data class Chat(
             return Chat(
                 parcel.readLong(),
                 parcel.readString() ?: "",
-                parcel.readString() ?: ""
             )
         }
 
