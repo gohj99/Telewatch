@@ -12,6 +12,11 @@ import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.model.Chat
 import kotlinx.coroutines.CompletableDeferred
@@ -651,24 +656,60 @@ class TgApi(
     }
 
     // 处理和简化消息
-    private fun handleAllMessages(message: TdApi.Message? = null, messageContext: TdApi.MessageContent? = null): String {
-        var content: TdApi.MessageContent
-        if (messageContext != null) {
-            content = messageContext
-        } else {
-            if (message == null) return context.getString(R.string.Unknown_Message)
-            else content = message.content
-        }
+    private fun handleAllMessages(
+        message: TdApi.Message? = null,
+        messageContext: TdApi.MessageContent? = null
+    ): AnnotatedString {
+        val content: TdApi.MessageContent = messageContext ?: message?.content
+        ?: return buildAnnotatedString { append(context.getString(R.string.Unknown_Message)) }
 
         return when (content) {
-            is TdApi.MessageText -> if (content.text.text.length > 20) content.text.text.take(20) + "..." else content.text.text
-            is TdApi.MessagePhoto -> context.getString(R.string.Photo) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageVideo -> context.getString(R.string.Video) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageVoiceNote -> context.getString(R.string.Voice) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageAnimation -> context.getString(R.string.Animation) + " " + if (content.caption.text.length > 20) content.caption.text.take(20) + "..." else content.caption.text
-            is TdApi.MessageAnimatedEmoji -> if (content.emoji == "") context.getString(R.string.Unknown_Message) else content.emoji
-            is TdApi.MessageSticker -> if (content.sticker.emoji == "") context.getString(R.string.Unknown_Message) else content.sticker.emoji
-            else -> context.getString(R.string.Unknown_Message)
+            is TdApi.MessageText -> buildAnnotatedString {
+                val text = content.text.text
+                append(if (text.length > 20) text.take(20) + "..." else text)
+            }
+            is TdApi.MessagePhoto -> buildAnnotatedString {
+                // 将 Photo 文本设置为蓝色
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Photo))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageVideo -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Video))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageVoiceNote -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Voice))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageAnimation -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.Animation))
+                }
+                append(" ")
+                val caption = content.caption.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+            is TdApi.MessageAnimatedEmoji -> buildAnnotatedString {
+                if (content.emoji.isEmpty()) append(context.getString(R.string.Unknown_Message))
+                else append(content.emoji)
+            }
+            is TdApi.MessageSticker -> buildAnnotatedString {
+                if (content.sticker.emoji.isEmpty()) append(context.getString(R.string.Unknown_Message))
+                else append(content.sticker.emoji)
+            }
+            else -> buildAnnotatedString { append(context.getString(R.string.Unknown_Message)) }
         }
     }
 
@@ -882,7 +923,7 @@ class TgApi(
                         var isGroup = false
                         var isPrivateChat = false
                         var chatTitle = "error"
-                        var lastMessage = ""
+                        var lastMessage = buildAnnotatedString {}
                         try {
                             val chatResult = sendRequest(TdApi.GetChat(id))
                             if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
@@ -1126,16 +1167,14 @@ class TgApi(
                                             // 替换原有的联系人
                                             existingContacts[existingContactIndex] = Chat(
                                                 id = user.id,
-                                                title = "${user.firstName} ${user.lastName}",
-                                                message = ""
+                                                title = "${user.firstName} ${user.lastName}"
                                             )
                                         } else {
                                             // 添加新联系人
                                             existingContacts.add(
                                                 Chat(
                                                     id = user.id,
-                                                    title = "${user.firstName} ${user.lastName}",
-                                                    message = ""
+                                                    title = "${user.firstName} ${user.lastName}"
                                                 )
                                             )
                                         }

@@ -156,7 +156,7 @@
     <string name="Audio_Error">Audio\nError</string>
     <string name="remind_activity">Remind Activity</string>
     <string name="Remind">Remind</string>
-    <string name="Remind1">Hello!\nWelcome to the Telewatch app!\nTo get started, we recommend joining our official Telegram group for support. You can join by clicking the link below:\nhttps://t.me/teleAndroidwatch\n\nHere\'s a quick guide to help you use the app:\n\nURLs like @ and https are clickable.\nOn the chat page, tap the title to enter chat info for more details.\nLong press and drag text to select and copy.\nIn the image viewer, long press an image to save it to your gallery.\nDelete a proxy by long-pressing the item on the proxy page\n\nTelewatch is open-source and free. If you\'d like to support our development, please consider donating by clicking the button below.\n\nWe hope you enjoy using Telewatch!</string>
+    <string name="Remind1">Hello! \nWelcome to the Telewatch app! \nFirst, we recommend joining our official Telegram group for support. You can join by clicking on the link below: \nhttps://t.me/teleAndroidwatch\n\nHere\'s a quick guide to help you use the app: \n\nLong-press on the message border to reveal more features\nOn the chat page, enter a chat message by tapping the title to get more details. \nLong-press and drag text to select and copy. \nIn the image viewer, long-press on an image to save it to your gallery. \nLong-press on an item on the proxies page to remove a proxies\n\nTelewatch is open source and free. If you want to support our development, please consider donating by clicking the button below. \n\nWe hope you enjoy using Telewatch!</string>
     <string name="donate_activity">Donate Activity</string>
     <string name="Donate">Donate</string>
     <string name="Telegram_not_connected">No connected (maybe you are not logged in)</string>
@@ -184,4 +184,5 @@
     <string name="last_seen">last seen</string>
     <string name="Bot">bot</string>
     <string name="Bio">Bio</string>
+    <string name="Deleted_message">Message has been deleted</string>
 </resources>
