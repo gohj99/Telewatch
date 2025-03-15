@@ -62,14 +62,16 @@ fun MainScreen(
     chatsFoldersList: MutableState<List<TdApi.ChatFolder>>,
     currentUserId: MutableState<Long>
 ) {
+    val archivedChats = stringResource(id = R.string.Archived_Chats)
     val search = stringResource(id = R.string.Global_Search)
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
     val setting = stringResource(id = R.string.Settings)
     var showMenu by remember { mutableStateOf(false) }
     val lastPages = listOf(
-        search,
+        archivedChats,
         contact,
+        search,
         setting,
     )
     var allPages by remember {
@@ -178,8 +180,9 @@ fun MainScreen(
                         )
                     }
 
-                    search -> {
-                        SearchLazyColumn(
+                    archivedChats -> {
+                        ArchivedChatsLazyColumn(
+                            itemsList = chats,
                             callback = chatPage
                         )
                     }
@@ -187,6 +190,12 @@ fun MainScreen(
                     contact -> {
                         ContactsLazyColumn(
                             itemsList = contacts.value,
+                            callback = chatPage
+                        )
+                    }
+
+                    search -> {
+                        SearchLazyColumn(
                             callback = chatPage
                         )
                     }

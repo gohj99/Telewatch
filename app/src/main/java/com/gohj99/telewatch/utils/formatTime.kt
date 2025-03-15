@@ -47,3 +47,34 @@ fun formatTimestampToDate(unixTimestamp: Int): String {
         DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault()).format(date)
     }
 }
+
+fun formatTimestampToDateAndTime(unixTimestamp: Int): String {
+    val date = Date(unixTimestamp.toLong() * 1000)
+    val now = Calendar.getInstance()
+    val calendar = Calendar.getInstance().apply { time = date }
+
+    // 获取当前和日期的时间组成部分
+    val currentYear = now.get(Calendar.YEAR)
+    val currentMonth = now.get(Calendar.MONTH)
+    val currentDay = now.get(Calendar.DAY_OF_MONTH)
+
+    val timestampYear = calendar.get(Calendar.YEAR)
+    val timestampMonth = calendar.get(Calendar.MONTH)
+    val timestampDay = calendar.get(Calendar.DAY_OF_MONTH)
+
+    // 根据日期差异选择格式模板
+    val skeleton = when {
+        timestampYear != currentYear -> "yMMMdHHmm"    // 跨年：显示完整日期+时间
+        timestampMonth != currentMonth -> "MMMdHHmm"   // 同年跨月：月日+时间
+        timestampDay != currentDay -> "dHHmm"          // 同月跨天：日期+时间
+        else -> "HHmm"                                 // 同天：仅时间
+    }
+
+    // 获取本地化最佳格式模板
+    val pattern = android.text.format.DateFormat.getBestDateTimePattern(
+        Locale.getDefault(),
+        skeleton
+    )
+
+    return SimpleDateFormat(pattern, Locale.getDefault()).format(date)
+}

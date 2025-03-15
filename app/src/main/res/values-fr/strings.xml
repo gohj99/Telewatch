@@ -185,6 +185,8 @@
     <string name="Bio">Était</string>  
     <string name="Deleted_message">Le message a été supprimé</string>  
     <string name="Remind1">Bonjour! \nwelcome à l\'application Telewatch! \nFirst, nous vous recommandons de rejoindre notre groupe de télégrammes officiel pour obtenir un soutien. Vous pouvez rejoindre en cliquant sur le lien ci-dessous: \nhttps: //t.me/teleandroidwatch \n \nhere \ \'est un guide rapide pour vous aider à utiliser l\'application: \n \nlong-press sur la bordure du message pour révéler plus de fonctionnalités \non la page de chat, entrez un message de chat en tapant le titre pour obtenir plus de détails. \nlong-pression et glisser le texte pour sélectionner et copier. \ Nin la visionneuse d\'image, appuyez sur une image pour l\'enregistrer dans votre galerie. \nlong-pression sur un élément sur la page des proxies pour supprimer un proxy \n \ntelewatch est open source et gratuit. Si vous souhaitez soutenir notre développement, veuillez envisager de faire un don en cliquant sur le bouton ci-dessous. \n \nwe j\'espère que vous apprécierez l\'utilisation de Telewatch!</string>  
-    <string name="Write_message">Écrire un message…</string>
-    <string name="Forward">Avant</string>
+    <string name="Write_message">Écrire un message…</string>  
+    <string name="Forward">Avant</string>  
+    <string name="Archived_Chats">Chats archivés</string>  
+    <string name="Reply">Répondre</string>
 </resources>

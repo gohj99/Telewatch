@@ -185,6 +185,8 @@
     <string name="Bot">機器人</string>  
     <string name="Bio">介紹</string>  
     <string name="Deleted_message">訊息已刪除</string>  
-    <string name="Write_message">輸入訊息…</string>
-    <string name="Forward">轉發</string>
+    <string name="Write_message">輸入訊息…</string>  
+    <string name="Forward">轉發</string>  
+    <string name="Archived_Chats">已歸檔對話</string>  
+    <string name="Reply">回覆</string>
 </resources>

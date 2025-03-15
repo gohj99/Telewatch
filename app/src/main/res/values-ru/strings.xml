@@ -185,6 +185,8 @@
     <string name="Bio">Был</string>  
     <string name="Deleted_message">Сообщение было удалено</string>  
     <string name="Remind1">Привет! \nwelcome в приложение Telewatch! \nfirst, мы рекомендуем присоединиться к нашей официальной Telegram Group для поддержки. Вы можете присоединиться, нажав на ссылку ниже: \nhttps: //t.me/teleandroidwatch \n \nhere \ \ \'s affect hiled, которое поможет вам использовать приложение: \n \nlong-press на границе с сообщением, чтобы раскрыть больше функций \non the Chat-страница, введите сообщение в чате, нажав на заголовок, чтобы получить более подробную информацию. \nlong-press и перетащите текст, чтобы выбрать и копировать. \ Nin Viewer, Long-Press на изображении, чтобы сохранить его в вашей галерее. \nlong-press на элементе на странице прокси, чтобы удалить прокси \n \ntelewatch, открыт и бесплатный. Если вы хотите поддержать нашу разработку, пожалуйста, рассмотрите возможность пожертвования, нажав кнопку ниже. \n \nwe надеюсь, что вам понравится использовать Telewatch!</string>  
-    <string name="Write_message">Напишите сообщение …</string>
-    <string name="Forward">Вперед</string>
+    <string name="Write_message">Напишите сообщение …</string>  
+    <string name="Forward">Вперед</string>  
+    <string name="Archived_Chats">Архивированные чаты</string>  
+    <string name="Reply">Отвечать</string>
 </resources>

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.model.Chat
+import com.gohj99.telewatch.model.ChatMessagesSave
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +48,10 @@ class TgApi(
     private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
 ) {
     var saveChatId = 0L
+    var replyMessage = mutableStateOf<TdApi.Message?>(null)
+    private var saveChatMessagesList = mutableMapOf<Long, ChatMessagesSave>()
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
+    private var saveChatIdList = mutableListOf<Long>()
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
@@ -148,6 +152,8 @@ class TgApi(
                     set(messageIndex, update.message)
                 }
             }
+            saveChatIdList.remove(oldMessageId)
+            saveChatIdList.add(oldMessageId)
         }
     }
 
@@ -300,7 +306,7 @@ class TgApi(
     private fun handleDeleteMessages(update: TdApi.UpdateDeleteMessages) {
         val chatId = update.chatId
         val messageIds = update.messageIds
-        println("Messages deleted in chat ID $chatId: $messageIds")
+        //println("Messages deleted in chat ID $chatId: $messageIds")
 
         if (chatId == saveChatId) {
             val mutableChatList = saveChatList.value.toMutableList()
@@ -310,6 +316,7 @@ class TgApi(
                 if (message != null) {
                     // 更新保存的聊天列表
                     mutableChatList.remove(message)
+                    saveChatIdList.remove(message.id)
                 }
             }
             saveChatList.value = mutableChatList
@@ -328,6 +335,7 @@ class TgApi(
             saveChatList.value = saveChatList.value.toMutableList().apply {
                 add(0, message) // 新消息存储在最前面
             }
+            saveChatIdList.add(message.id)
         }
     }
 
@@ -416,10 +424,30 @@ class TgApi(
             // 查找现有的聊天并更新
             val existingChatIndex = indexOfFirst { it.id == chatId }
             if (existingChatIndex >= 0) {
-                val updatedChat = get(existingChatIndex).copy(
-                    isPinned = position.isPinned,
-                    order = position.order
-                )
+                var updatedChat = get(existingChatIndex).copy()
+                if (position.list is TdApi.ChatListMain) {
+                    if (position.order == 0L) {
+                        updatedChat = get(existingChatIndex).copy(
+                            isArchiveChatPin = position.isPinned
+                        )
+                    } else {
+                        updatedChat = get(existingChatIndex).copy(
+                            order = position.order,
+                            isPinned = position.isPinned,
+                            isArchiveChatPin = null
+                        )
+                    }
+                } else if (position.list is TdApi.ChatListArchive) {
+                    if (position.order == 0L) {
+                        updatedChat = get(existingChatIndex).copy(
+                            isArchiveChatPin = null
+                        )
+                    } else {
+                        updatedChat = get(existingChatIndex).copy(
+                            isArchiveChatPin = position.isPinned
+                        )
+                    }
+                }
                 removeAt(existingChatIndex)
                 add(0, updatedChat)
             }
@@ -428,7 +456,7 @@ class TgApi(
 
     // 处理新聊天
     private fun handleNewChat(update: TdApi.UpdateNewChat){
-        //println(update)
+        //println("New chat received: ${update.chat}")
         val newChat = update.chat
         val chatId = newChat.id
 
@@ -722,6 +750,41 @@ class TgApi(
         } catch (e: Exception) {
             "1.0.0"
         }.toString()
+    }
+
+    fun getArchiveChats() {
+        client.send(TdApi.GetChats(TdApi.ChatListArchive(), 1000)) { response ->
+            if (response is TdApi.Chats) {
+                val chatIds = response.chatIds
+                chatIds.forEach { chatId ->
+                    chatsList.value = chatsList.value.toMutableList().apply {
+                        // 查找现有的聊天并更新
+                        val existingChatIndex = indexOfFirst { it.id == chatId }
+                        if (existingChatIndex >= 0) {
+                            // 如果存在该聊天，更新并移动到顶部
+                            if (get(existingChatIndex).isArchiveChatPin != true) {
+                                val updatedChat = get(existingChatIndex).copy(
+                                    id = chatId,
+                                    isArchiveChatPin = false
+                                )
+                                removeAt(existingChatIndex)  // 移除旧的聊天
+                                add(0, updatedChat)  // 将更新后的聊天添加到顶部
+                            }
+                        } else {
+                            // 如果不存在该聊天，添加到列表末尾
+                            add(
+                                Chat(
+                                    id = chatId,
+                                    title = context.getString(R.string.loading),
+                                    isArchiveChatPin = false
+                                )
+                            )
+
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // 下载文件
@@ -1226,9 +1289,10 @@ class TgApi(
     }
 
     // 发送消息
-    fun sendMessage(chatId: Long, message: InputMessageContent) {
+    fun sendMessage(chatId: Long, message: InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null) {
         val message = TdApi.SendMessage().apply {
             this.chatId = chatId
+            this.replyTo = replyTo
             inputMessageContent = message
         }
         client.send(message) { result ->
@@ -1295,6 +1359,7 @@ class TgApi(
                             } else {
                                 // 如果列表中没有此消息，则将其添加到列表的开头
                                 add(0, message)
+                                saveChatIdList.add(message.id)
                             }
                         }
                     }
@@ -1377,29 +1442,48 @@ class TgApi(
 
     // 进入聊天页面
     fun openChatPage(openChatId: Long, chatList: MutableState<List<TdApi.Message>>) {
-        saveChatId = openChatId
-        saveChatList = chatList
-        isExitChatPage = false
         client.send(TdApi.OpenChat(openChatId)) { result ->
             if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
-                println("Opened chat page successfully")
+                println("Opened chat page successfully, ChatId: $openChatId")
             } else {
                 println("Failed to open chat page: $result")
             }
         }
+        if (saveChatId != 0L && saveChatId != -1L && saveChatId != openChatId){
+            saveChatMessagesList = saveChatMessagesList.toMutableMap().apply {
+                put(saveChatId, ChatMessagesSave(saveChatList, saveChatIdList))
+            }
+        }
+        saveChatId = openChatId
+        val oldChatList = saveChatMessagesList[openChatId]
+        if (oldChatList == null) {
+            saveChatList = chatList
+            saveChatIdList = mutableListOf()
+        } else {
+            saveChatList = oldChatList.messages
+            saveChatIdList = oldChatList.messagesIdList
+        }
+        isExitChatPage = false
     }
 
     // 退出聊天页面
     fun exitChatPage(){
-        isExitChatPage = true
-        saveChatId = 0L
-        client.send(TdApi.CloseChat()) { result ->
+        val closeChatId = saveChatId
+        client.send(TdApi.CloseChat(closeChatId)) { result ->
             if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
-                println("Closed chat page successfully")
+                println("Closed chat page successfully, ChatId: $closeChatId")
             } else {
                 println("Failed to close chat page: $result")
             }
         }
+        if (closeChatId != 0L && closeChatId != -1L){
+            saveChatMessagesList = saveChatMessagesList.toMutableMap().apply {
+                remove(closeChatId)
+            }
+        }
+        isExitChatPage = true
+        saveChatId = 0L
+        saveChatIdList = mutableListOf()
     }
 
     // 删除聊天
@@ -1409,13 +1493,13 @@ class TgApi(
     }
 
     // 获取消息
-    fun fetchMessages(fromMessageId: Long = saveChatList.value.lastOrNull()?.id ?: -1L, nowChatId: Long = saveChatId) {
+    fun fetchMessages(fromMessageId: Long = saveChatList.value.lastOrNull()?.id ?: -1L, nowChatId: Long = saveChatId, limit: Int = 10) {
         //println("fetchMessages启动")
         //println(saveChatId)
         if (fromMessageId != -1L) {
             val getChatMessages = TdApi.GetChatHistory().apply {
                 this.chatId = nowChatId
-                this.limit = 10 // 每次获取 10 条消息
+                this.limit = limit // 每次获取 10 条消息
                 this.fromMessageId = fromMessageId
             }
 
@@ -1428,8 +1512,13 @@ class TgApi(
                     } else {
                         val messages = result as TdApi.Messages
                         if (messages.messages.isNotEmpty()) {
-                            val sortedMessages =
-                                messages.messages.toList().sortedByDescending { it.date }
+                            val sortedMessages = messages.messages
+                                .toList()
+                                .sortedByDescending { it.date }
+                                .filterNot { message ->
+                                    saveChatList.value.any { it.id == message.id }
+                                }
+
                             saveChatList.value = saveChatList.value.toMutableList().apply {
                                 if (nowChatId == saveChatId) {
                                     addAll(sortedMessages) // 将新消息添加到列表最后面
@@ -1451,13 +1540,13 @@ class TgApi(
 
     // 根据消息id获取消息
     suspend fun getMessageTypeById(messageId: Long, chatId: Long = saveChatId): TdApi.Message? {
-
         val getMessageRequest = TdApi.GetMessage(chatId, messageId)
 
         try {
             val result = sendRequest(getMessageRequest)
             if (result.constructor == TdApi.Message.CONSTRUCTOR) {
                 val message = result as TdApi.Message
+                //println("GetMessage result: $message")
                 return message
             } else {
                 println("Failed to get message with ID $messageId: $result")

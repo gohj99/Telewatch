@@ -37,14 +37,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -54,6 +51,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -62,22 +61,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -101,6 +94,7 @@ import com.gohj99.telewatch.utils.formatDuration
 import com.gohj99.telewatch.utils.formatTimestampToDate
 import com.gohj99.telewatch.utils.formatTimestampToTime
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
@@ -116,7 +110,6 @@ fun SplashChatScreen(
     chatTitle: String,
     chatList: MutableState<List<TdApi.Message>>,
     chatId: Long,
-    sendCallback: (String) -> Unit,
     goToChat: (Chat) -> Unit,
     press: (TdApi.Message) -> Unit,
     longPress: suspend (String, TdApi.Message) -> String,
@@ -128,18 +121,50 @@ fun SplashChatScreen(
     chatTitleClick: () -> Unit,
     currentUserId: MutableState<Long>
 ) {
+    // 获取context
+    val context = LocalContext.current
+
     var isFloatingVisible by remember { mutableStateOf(true) }
-    var inputText by remember { mutableStateOf(TextFieldValue("")) }
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
+    var inputText by rememberSaveable { mutableStateOf(("")) }
     var isLongPressed by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
     val senderNameMap by remember { mutableStateOf(mutableMapOf<Long, String?>()) }
     val pagerState = rememberPagerState(pageCount = { 2 }, initialPage = 0)
     var notJoin = false
+    val coroutineScope = rememberCoroutineScope()
+    var planReplyMessage by remember { mutableStateOf(tgApi!!.replyMessage.value) }
+    var planReplyMessageSenderName by rememberSaveable { mutableStateOf("") }
+    val scrollState = rememberScrollState()
 
-    // 获取context
-    val context = LocalContext.current
+    // 保存和恢复MessageContent
+    val MessageContentSaver = Saver<TdApi.MessageContent, Any>(
+        save = { messageContent ->
+            when (messageContent) {
+                is TdApi.MessageText -> mapOf(
+                    "type" to "MessageText",
+                    "text" to messageContent.text.text,
+                    "entities" to messageContent.text.entities.toList(),
+                    "linkPreview" to messageContent.linkPreview,
+                    "linkPreviewOptions" to messageContent.linkPreviewOptions
+                )
+                else -> throw IllegalStateException("Unsupported type")
+            }
+        },
+        restore = { value ->
+            when ((value as Map<String, *>)["type"]) {
+                "MessageText" -> TdApi.MessageText(
+                    TdApi.FormattedText(
+                        value["text"] as String,
+                        (value["entities"] as List<TdApi.TextEntity>).toTypedArray()
+                    ),
+                    value["linkPreview"] as? TdApi.LinkPreview,
+                    value["linkPreviewOptions"] as? TdApi.LinkPreviewOptions
+                )
+                else -> throw IllegalStateException("Unsupported type")
+            }
+        }
+    )
+
     // 获取show_unknown_message_type值
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val showUnknownMessageType = settingsSharedPref.getBoolean("show_unknown_message_type", false)
@@ -172,6 +197,49 @@ fun SplashChatScreen(
                 previousIndex = index
                 previousScrollOffset = scrollOffset
             }
+    }
+
+    // 更新将回复消息的发送者
+    LaunchedEffect(planReplyMessage) {
+        if (planReplyMessage != null) {
+            when (val sender = planReplyMessage!!.senderId) {
+                is TdApi.MessageSenderUser -> {
+                    if (sender.userId in senderNameMap) {
+                        planReplyMessageSenderName = senderNameMap[sender.userId]!!
+                    } else {
+                        tgApi?.getUserName(sender.userId) { user ->
+                            planReplyMessageSenderName = user
+                            senderNameMap[sender.userId] = user
+                        }
+                    }
+                    val replyChatId = planReplyMessage!!.chatId
+                    if (replyChatId != chatId && replyChatId != sender.userId) {
+                        val itChat = tgApi?.getChat(replyChatId)
+                        itChat.let {
+                            planReplyMessageSenderName += " -> ${it!!.title}"
+                        }
+                    }
+                }
+                is TdApi.MessageSenderChat -> {
+                    if (sender.chatId == chatId) {
+                        planReplyMessageSenderName = chatTitle
+                    } else {
+                        val itChat = tgApi?.getChat(sender.chatId)
+                        itChat.let {
+                            planReplyMessageSenderName = it!!.title
+                        }
+                    }
+                    val replyChatId = planReplyMessage!!.chatId
+                    if (replyChatId != chatId && replyChatId != sender.chatId) {
+                        val itChat = tgApi?.getChat(replyChatId)
+                        itChat.let {
+                            planReplyMessageSenderName += " -> ${it!!.title}"
+                        }
+                    }
+                }
+                else -> "" // 处理未知类型
+            }
+        }
     }
 
     LaunchedEffect(listState) {
@@ -298,7 +366,7 @@ fun SplashChatScreen(
                                             }
                                         } else if (senderId.constructor == TdApi.MessageSenderChat.CONSTRUCTOR) {
                                             val senderChat = senderId as TdApi.MessageSenderChat
-                                            println("senderChat: $senderChat")
+                                            //println("senderChat: $senderChat")
                                             senderChat.chatId.let { itChatId ->
                                                 Text(
                                                     text = senderName,
@@ -331,9 +399,10 @@ fun SplashChatScreen(
                                     // 回复
                                     if (message.replyTo != null) {
                                         var senderName by rememberSaveable { mutableStateOf("") }
+                                        var messagePosition by remember { mutableStateOf(-1) }
                                         val replyTo = message.replyTo
                                         if (replyTo is TdApi.MessageReplyToMessage) {
-                                            var content by remember { mutableStateOf<TdApi.MessageContent>(
+                                            var content by rememberSaveable(stateSaver = MessageContentSaver) { mutableStateOf<TdApi.MessageContent>(
                                                 TdApi.MessageText(
                                                     TdApi.FormattedText(
                                                         context.getString(R.string.loading),
@@ -348,17 +417,28 @@ fun SplashChatScreen(
                                                     //println(replyTo.origin)
                                                     when (val origin = replyTo.origin) {
                                                         is TdApi.MessageOriginChannel -> {
-                                                            senderName = origin.authorSignature
+                                                            if (origin.authorSignature != "") senderName = origin.authorSignature
+                                                            else {
+                                                                val chat = tgApi?.getChat(origin.chatId)
+                                                                chat?.let {
+                                                                    senderName = it.title
+                                                                }
+                                                            }
                                                         }
                                                         is TdApi.MessageOriginChat -> {
-                                                            senderName = origin.authorSignature
+                                                            if (origin.authorSignature != "") senderName = origin.authorSignature
+                                                            else {
+                                                                val chat = tgApi?.getChat(origin.senderChatId)
+                                                                chat?.let {
+                                                                    senderName = it.title
+                                                                }
+                                                            }
                                                         }
                                                         is TdApi.MessageOriginHiddenUser -> {
                                                             senderName = origin.senderName
                                                         }
                                                         is TdApi.MessageOriginUser -> {
                                                             val chat = tgApi?.createPrivateChat(origin.senderUserId)
-                                                            //println(chat)
                                                             chat?.let {
                                                                 senderName = it.title
                                                             }
@@ -397,8 +477,16 @@ fun SplashChatScreen(
                                                             )
                                                         }
                                                     } else if (replyTo.chatId == chatId) {
-                                                        val replyMessage = tgApi?.getMessageTypeById(replyTo.messageId)
+                                                        var replyMessage = chatList.value.find { it.id == replyTo.messageId }
+                                                        if (replyMessage == null) replyMessage = tgApi?.getMessageTypeById(replyTo.messageId)
+                                                        else messagePosition = chatList.value.indexOfFirst {
+                                                            it.id == replyTo.messageId
+                                                        }
                                                         if (replyMessage != null) {
+                                                            chatList.value.find { it.id == replyTo.messageId }?.let {
+                                                                content = it.content
+                                                            }
+
                                                             content = replyMessage.content
 
                                                             // 用户名称
@@ -458,156 +546,307 @@ fun SplashChatScreen(
 
                                             var parentHeight by remember { mutableIntStateOf(0) }
 
-                                            if (isCurrentUser) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .padding(
-                                                            start = 5.dp,
-                                                            end = 5.dp,
-                                                            top = 5.dp
-                                                        )
-                                                        .fillMaxWidth(),
-                                                    horizontalArrangement = alignment
-                                                ) {
-                                                    Row(
-                                                        modifier = Modifier
-                                                            .background(
-                                                                Color(0xFF3A4048),
-                                                                shape = RoundedCornerShape(8.dp)
-                                                            )
-                                                            .clip(RoundedCornerShape(8.dp))
-                                                    ) {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .weight(1f, fill = false)
-                                                                .fillMaxHeight()
-                                                                .onSizeChanged { size ->
-                                                                    parentHeight =
-                                                                        size.height // 获取父容器的高度
-                                                                },
-                                                        ) {
-                                                            if (senderName != "") {
-                                                                Column(
-                                                                    modifier = Modifier
-                                                                        .padding(bottom = 5.dp, start = 5.dp, end = 5.dp),
-                                                                    horizontalAlignment = Alignment.End // 文字右对齐
-                                                                ) {
-                                                                    Text(
-                                                                        text = senderName,
-                                                                        color = Color(0xFF66D3FE),
-                                                                        fontSize = 10.sp,
-                                                                        fontWeight = FontWeight.Bold,
-                                                                    )
-                                                                    messageDrawer(
-                                                                        content = content,
-                                                                        onLinkClick = onLinkClick,
-                                                                        textColor = textColor,
-                                                                        videoDownload = videoDownload,
-                                                                        videoDownloadDone = videoDownloadDone,
-                                                                        showUnknownMessageType = showUnknownMessageType
-                                                                    )
-                                                                }
-                                                            } else {
-                                                                Column(
-                                                                    modifier = Modifier
-                                                                        .padding(5.dp),
-                                                                    horizontalAlignment = Alignment.End // 文字右对齐
-                                                                ) {
-                                                                    messageDrawer(
-                                                                        content = content,
-                                                                        onLinkClick = onLinkClick,
-                                                                        textColor = textColor,
-                                                                        videoDownload = videoDownload,
-                                                                        videoDownloadDone = videoDownloadDone,
-                                                                        showUnknownMessageType = showUnknownMessageType
-                                                                    )
-                                                                }
+                                            Box (
+                                                modifier = Modifier.clickable(
+                                                    onClick = {
+                                                        if (messagePosition != -1) {
+                                                            coroutineScope.launch {
+                                                                listState.animateScrollToItem(messagePosition)
                                                             }
                                                         }
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .background(Color(0xFF397DBC))
-                                                                .width(8.dp)
-                                                                .fillMaxHeight()
-                                                        ) {
-                                                            Spacer(Modifier.height((parentHeight/2).dp)) // 保持Spacer，虽然在这里作用不大
-                                                        }
                                                     }
-                                                }
-                                            } else {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .padding(
-                                                            start = 5.dp,
-                                                            end = 5.dp,
-                                                            top = 5.dp
-                                                        )
-                                                        .fillMaxWidth(),
-                                                    horizontalArrangement = alignment
-                                                ) {
+                                                )
+                                            ) {
+                                                if (isCurrentUser) {
                                                     Row(
                                                         modifier = Modifier
-                                                            .background(
-                                                                Color(0xFF3A4048),
-                                                                shape = RoundedCornerShape(8.dp)
+                                                            .clickable(
+                                                                onClick = {
+                                                                    if (messagePosition != -1) {
+                                                                        coroutineScope.launch {
+                                                                            listState.animateScrollToItem(
+                                                                                messagePosition
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
                                                             )
-                                                            .clip(RoundedCornerShape(8.dp))
+                                                            .padding(
+                                                                start = 5.dp,
+                                                                end = 5.dp,
+                                                                top = 5.dp
+                                                            )
+                                                            .fillMaxWidth(),
+                                                        horizontalArrangement = alignment
                                                     ) {
-                                                        Box(
+                                                        Row(
                                                             modifier = Modifier
-                                                                .background(Color(0xFF397DBC))
-                                                                .width(8.dp) // 指定左边颜色宽度为 10.dp
+                                                                .clickable(
+                                                                    onClick = {
+                                                                        if (messagePosition != -1) {
+                                                                            coroutineScope.launch {
+                                                                                listState.animateScrollToItem(
+                                                                                    messagePosition
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                )
+                                                                .background(
+                                                                    Color(0xFF3A4048),
+                                                                    shape = RoundedCornerShape(8.dp)
+                                                                )
+                                                                .clip(RoundedCornerShape(8.dp))
                                                         ) {
-                                                            Spacer(Modifier.height((parentHeight/2).dp))
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .clickable(
+                                                                        onClick = {
+                                                                            if (messagePosition != -1) {
+                                                                                coroutineScope.launch {
+                                                                                    listState.animateScrollToItem(
+                                                                                        messagePosition
+                                                                                    )
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    )
+                                                                    .weight(1f, fill = false)
+                                                                    .fillMaxHeight()
+                                                                    .onSizeChanged { size ->
+                                                                        parentHeight =
+                                                                            size.height // 获取父容器的高度
+                                                                    },
+                                                            ) {
+                                                                if (senderName != "") {
+                                                                    Column(
+                                                                        modifier = Modifier
+                                                                            .clickable(
+                                                                                onClick = {
+                                                                                    if (messagePosition != -1) {
+                                                                                        coroutineScope.launch {
+                                                                                            listState.animateScrollToItem(
+                                                                                                messagePosition
+                                                                                            )
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            )
+                                                                            .padding(
+                                                                                bottom = 5.dp,
+                                                                                start = 5.dp,
+                                                                                end = 5.dp
+                                                                            ),
+                                                                        horizontalAlignment = Alignment.End // 文字右对齐
+                                                                    ) {
+                                                                        Text(
+                                                                            text = senderName,
+                                                                            color = Color(0xFF66D3FE),
+                                                                            fontSize = 10.sp,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                        )
+                                                                        messageDrawer(
+                                                                            content = content,
+                                                                            onLinkClick = onLinkClick,
+                                                                            textColor = textColor,
+                                                                            videoDownload = videoDownload,
+                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            showUnknownMessageType = showUnknownMessageType
+                                                                        )
+                                                                    }
+                                                                } else {
+                                                                    Column(
+                                                                        modifier = Modifier
+                                                                            .clickable(
+                                                                                onClick = {
+                                                                                    if (messagePosition != -1) {
+                                                                                        coroutineScope.launch {
+                                                                                            listState.animateScrollToItem(
+                                                                                                messagePosition
+                                                                                            )
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            )
+                                                                            .padding(5.dp),
+                                                                        horizontalAlignment = Alignment.End // 文字右对齐
+                                                                    ) {
+                                                                        messageDrawer(
+                                                                            content = content,
+                                                                            onLinkClick = onLinkClick,
+                                                                            textColor = textColor,
+                                                                            videoDownload = videoDownload,
+                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            showUnknownMessageType = showUnknownMessageType
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .clickable(
+                                                                        onClick = {
+                                                                            if (messagePosition != -1) {
+                                                                                coroutineScope.launch {
+                                                                                    listState.animateScrollToItem(
+                                                                                        messagePosition
+                                                                                    )
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    )
+                                                                    .background(Color(0xFF397DBC))
+                                                                    .width(8.dp)
+                                                                    .fillMaxHeight()
+                                                            ) {
+                                                                Spacer(Modifier.height((parentHeight/2).dp)) // 保持Spacer，虽然在这里作用不大
+                                                            }
                                                         }
-                                                        Box(
+                                                    }
+                                                } else {
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .clickable(
+                                                                onClick = {
+                                                                    if (messagePosition != -1) {
+                                                                        coroutineScope.launch {
+                                                                            listState.animateScrollToItem(
+                                                                                messagePosition
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+                                                            )
+                                                            .padding(
+                                                                start = 5.dp,
+                                                                end = 5.dp,
+                                                                top = 5.dp
+                                                            )
+                                                            .fillMaxWidth(),
+                                                        horizontalArrangement = alignment
+                                                    ) {
+                                                        Row(
                                                             modifier = Modifier
-                                                                .fillMaxHeight()
-                                                                .onSizeChanged { size ->
-                                                                    parentHeight =
-                                                                        size.height // 获取父容器的高度
-                                                                }
+                                                                .clickable(
+                                                                    onClick = {
+                                                                        if (messagePosition != -1) {
+                                                                            coroutineScope.launch {
+                                                                                listState.animateScrollToItem(
+                                                                                    messagePosition
+                                                                                )
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                )
+                                                                .background(
+                                                                    Color(0xFF3A4048),
+                                                                    shape = RoundedCornerShape(8.dp)
+                                                                )
+                                                                .clip(RoundedCornerShape(8.dp))
                                                         ) {
-                                                            if (senderName != "") {
-                                                                Column(
-                                                                    modifier = Modifier
-                                                                        .padding(bottom = 5.dp, start = 5.dp, end = 5.dp)
-                                                                ) {
-                                                                    Text(
-                                                                        text = senderName,
-                                                                        color = Color(0xFF66D3FE),
-                                                                        fontSize = 10.sp,
-                                                                        fontWeight = FontWeight.Bold,
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .clickable(
+                                                                        onClick = {
+                                                                            if (messagePosition != -1) {
+                                                                                coroutineScope.launch {
+                                                                                    listState.animateScrollToItem(
+                                                                                        messagePosition
+                                                                                    )
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     )
-                                                                    messageDrawer(
-                                                                        content = content,
-                                                                        onLinkClick = onLinkClick,
-                                                                        textColor = textColor,
-                                                                        videoDownload = videoDownload,
-                                                                        videoDownloadDone = videoDownloadDone,
-                                                                        showUnknownMessageType = showUnknownMessageType
+                                                                    .background(Color(0xFF397DBC))
+                                                                    .width(8.dp) // 指定左边颜色宽度为 10.dp
+                                                            ) {
+                                                                Spacer(Modifier.height((parentHeight/2).dp))
+                                                            }
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .clickable(
+                                                                        onClick = {
+                                                                            if (messagePosition != -1) {
+                                                                                coroutineScope.launch {
+                                                                                    listState.animateScrollToItem(
+                                                                                        messagePosition
+                                                                                    )
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     )
-                                                                }
-                                                            } else {
-                                                                Box(
-                                                                    modifier = Modifier
-                                                                        .padding(5.dp)
-                                                                ) {
-                                                                    messageDrawer(
-                                                                        content = content,
-                                                                        onLinkClick = onLinkClick,
-                                                                        textColor = textColor,
-                                                                        videoDownload = videoDownload,
-                                                                        videoDownloadDone = videoDownloadDone,
-                                                                        showUnknownMessageType = showUnknownMessageType
-                                                                    )
+                                                                    .fillMaxHeight()
+                                                                    .onSizeChanged { size ->
+                                                                        parentHeight =
+                                                                            size.height // 获取父容器的高度
+                                                                    }
+                                                            ) {
+                                                                if (senderName != "") {
+                                                                    Column(
+                                                                        modifier = Modifier
+                                                                            .clickable(
+                                                                                onClick = {
+                                                                                    if (messagePosition != -1) {
+                                                                                        coroutineScope.launch {
+                                                                                            listState.animateScrollToItem(
+                                                                                                messagePosition
+                                                                                            )
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            )
+                                                                            .padding(
+                                                                                bottom = 5.dp,
+                                                                                start = 5.dp,
+                                                                                end = 5.dp
+                                                                            )
+                                                                    ) {
+                                                                        Text(
+                                                                            text = senderName,
+                                                                            color = Color(0xFF66D3FE),
+                                                                            fontSize = 10.sp,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                        )
+                                                                        messageDrawer(
+                                                                            content = content,
+                                                                            onLinkClick = onLinkClick,
+                                                                            textColor = textColor,
+                                                                            videoDownload = videoDownload,
+                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            showUnknownMessageType = showUnknownMessageType
+                                                                        )
+                                                                    }
+                                                                } else {
+                                                                    Box(
+                                                                        modifier = Modifier
+                                                                            .clickable(
+                                                                                onClick = {
+                                                                                    if (messagePosition != -1) {
+                                                                                        coroutineScope.launch {
+                                                                                            listState.animateScrollToItem(
+                                                                                                messagePosition
+                                                                                            )
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            )
+                                                                            .padding(5.dp)
+                                                                    ) {
+                                                                        messageDrawer(
+                                                                            content = content,
+                                                                            onLinkClick = onLinkClick,
+                                                                            textColor = textColor,
+                                                                            videoDownload = videoDownload,
+                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            showUnknownMessageType = showUnknownMessageType
+                                                                        )
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
-
                                         }
                                     }
 
@@ -751,10 +990,240 @@ fun SplashChatScreen(
                     }
                     1 -> {
                         // 发送消息页面部分
-                        SendPage(
-                            chatId = chatId,
-                            currentUserId = currentUserId
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
+                                .verticalScroll(scrollState)
+                                .verticalRotaryScroll(scrollState),
+                            verticalArrangement = Arrangement.Top
+                        ) {
+                            if (planReplyMessage != null) {
+                                // 将回复消息显示
+                                Box (
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            onClick = {
+                                                planReplyMessage = null
+                                                tgApi!!.replyMessage.value = null
+                                            }
+                                        )
+                                )
+                                Text(
+                                    text = stringResource(R.string.Reply),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 5.dp,
+                                            top = 5.dp
+                                        )
+                                        .fillMaxWidth()
+                                )
+                                var parentHeight by remember { mutableIntStateOf(0) }
+                                var videoDownloadDone = rememberSaveable { mutableStateOf(false) }
+                                var videoDownload = rememberSaveable { mutableStateOf(false) }
+
+                                Row(
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 5.dp,
+                                            end = 5.dp,
+                                            top = 5.dp
+                                        )
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .background(
+                                                Color(0xFF3A4048),
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .clip(RoundedCornerShape(8.dp))
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(Color(0xFF397DBC))
+                                                .width(8.dp) // 指定左边颜色宽度为 10.dp
+                                        ) {
+                                            Spacer(Modifier.height((parentHeight/2).dp))
+                                        }
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .onSizeChanged { size ->
+                                                    parentHeight =
+                                                        size.height // 获取父容器的高度
+                                                }
+                                        ) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .padding(
+                                                        bottom = 5.dp,
+                                                        start = 5.dp,
+                                                        end = 5.dp
+                                                    )
+                                            ) {
+                                                if (planReplyMessageSenderName == "") {
+                                                    messageDrawer(
+                                                        content = planReplyMessage!!.content,
+                                                        onLinkClick = onLinkClick,
+                                                        textColor = Color(0xFFFEFEFE),
+                                                        videoDownload = videoDownload,
+                                                        videoDownloadDone = videoDownloadDone,
+                                                        showUnknownMessageType = showUnknownMessageType
+                                                    )
+                                                } else {
+                                                    Text(
+                                                        text = planReplyMessageSenderName,
+                                                        color = Color(0xFF66D3FE),
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                    )
+                                                    messageDrawer(
+                                                        content = planReplyMessage!!.content,
+                                                        onLinkClick = onLinkClick,
+                                                        textColor = Color(0xFFFEFEFE),
+                                                        videoDownload = videoDownload,
+                                                        videoDownloadDone = videoDownloadDone,
+                                                        showUnknownMessageType = showUnknownMessageType
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            InputBar(
+                                query = inputText,
+                                onQueryChange = { inputText = it },
+                                placeholder = stringResource(id = R.string.Write_message),
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            // 发送消息按钮
+                            Column(
+                                horizontalAlignment = Alignment.End,
+                                modifier = Modifier
+                                    .padding(end = 10.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                IconButton(
+                                    onClick = {
+                                        if (planReplyMessage == null) {
+                                            tgApi?.sendMessage(
+                                                chatId = chatId,
+                                                message = TdApi.InputMessageText().apply {  // 参数名改为message
+                                                    text = TdApi.FormattedText().apply {
+                                                        this.text = inputText  // 正确设置text字段
+                                                    }
+                                                }
+                                            )
+                                        } else {
+                                            if (planReplyMessage!!.chatId != chatId) {
+                                                tgApi?.sendMessage(
+                                                    chatId = chatId,
+                                                    message = TdApi.InputMessageText().apply {
+                                                        text = TdApi.FormattedText().apply {
+                                                            this.text = inputText
+                                                        }
+                                                    },
+                                                    replyTo = TdApi.InputMessageReplyToExternalMessage(
+                                                        planReplyMessage!!.chatId,
+                                                        planReplyMessage!!.id, null)
+                                                )
+                                            } else {
+                                                tgApi?.sendMessage(
+                                                    chatId = chatId,
+                                                    message = TdApi.InputMessageText().apply {
+                                                        text = TdApi.FormattedText().apply {
+                                                            this.text = inputText
+                                                        }
+                                                    },
+                                                    replyTo = TdApi.InputMessageReplyToMessage(
+                                                        planReplyMessage!!.id, null)
+                                                )
+                                            }
+                                            planReplyMessage = null
+                                            tgApi!!.replyMessage.value = null
+                                        }
+                                        inputText = ""
+                                    },
+                                    modifier = Modifier
+                                        .size(45.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_custom_send),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(45.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            val forwardMessage = tgApi!!.forwardMessage
+                            if (forwardMessage.value != null) {
+                                val messageText =
+                                    tgApi!!.handleAllMessages(message = forwardMessage.value, maxText = 100)
+                                val targetTitle =
+                                    if (forwardMessage.value!!.chatId == currentUserId.value) stringResource(R.string.Saved_Messages) else
+                                        tgApi!!.chatsList.value
+                                            .find { it.id == forwardMessage.value!!.chatId }
+                                            ?.title ?: stringResource(R.string.Unknown_chat) // 找不到时返回默认值
+
+                                Text(
+                                    text = stringResource(R.string.Forward),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                MainCard(
+                                    column = {
+                                        Text(
+                                            text = targetTitle,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        MessageView(message = messageText)
+                                    },
+                                    item = forwardMessage.value
+                                )
+                                // 转发消息部分发送按钮
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                    modifier = Modifier
+                                        .padding(end = 10.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            tgApi?.sendMessage(
+                                                chatId = chatId,
+                                                message = TdApi.InputMessageForwarded().apply {  // 参数名改为message
+                                                    copyOptions = null
+                                                    fromChatId = forwardMessage.value!!.chatId
+                                                    inGameShare = false
+                                                    messageId = forwardMessage.value!!.id
+                                                }
+                                            )
+                                            inputText = ""
+                                        },
+                                        modifier = Modifier
+                                            .size(45.dp)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.ic_custom_send),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(45.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(80.dp))
+                        }
                     }
                 }
             }
@@ -764,13 +1233,22 @@ fun SplashChatScreen(
         if (isLongPressed) {
             LongPressBox(
                 callBack = { select ->
-                    return@LongPressBox longPress(select, selectMessage)
+                    when (select) {
+                        "Reply" -> {
+                            // 返回空字符串同时执行操作
+                            planReplyMessage = selectMessage
+                            tgApi!!.replyMessage.value = selectMessage
+                            ""
+                        }
+                        else -> return@LongPressBox longPress(select, selectMessage)
+                    }
                 },
                 onDismiss = { isLongPressed = false }
             )
         }
 
         // 隐藏的 TextField 用于触发输入法
+        /*
         val textFieldFocusRequester by remember { mutableStateOf(FocusRequester()) }
 
         TextField(
@@ -792,10 +1270,12 @@ fun SplashChatScreen(
                 }
             )
         )
+         */
 
         // 消息发送部分
         if (pagerState.currentPage == 0) {
-            var showKeyboard by remember { mutableStateOf(false) }
+            var showKeyboard by remember { mutableStateOf(true) }
+            /*
             if (notJoin) {
                 showKeyboard = true
             } else {
@@ -807,6 +1287,7 @@ fun SplashChatScreen(
                     }
                 }
             }
+             */
             if (showKeyboard) {
                 if (isFloatingVisible) {
                     if (notJoin) {
@@ -843,8 +1324,9 @@ fun SplashChatScreen(
                         ) {
                             IconButton(
                                 onClick = {
-                                    textFieldFocusRequester.requestFocus() // 将焦点移动到隐藏的 TextField
-                                    keyboardController?.show() // 显示输入法
+                                    coroutineScope.launch {
+                                        pagerState.animateScrollToPage(1)
+                                    }
                                 },
                                 modifier = Modifier
                                     .size(84.dp)
@@ -856,16 +1338,18 @@ fun SplashChatScreen(
                                 )
                             }
 
+                            // 滑动最下面按钮
                             IconButton(
                                 onClick = {
-                                    sendCallback(inputText.text)
-                                    inputText = TextFieldValue("")
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(0)
+                                    }
                                 },
                                 modifier = Modifier
                                     .size(45.dp)
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ic_custom_send),
+                                    painter = painterResource(id = R.drawable.bottom),
                                     contentDescription = null,
                                     modifier = Modifier.size(45.dp)
                                 )
@@ -900,98 +1384,6 @@ fun SplashChatScreen(
             }
         }
 
-    }
-}
-
-@Composable
-fun SendPage(
-    chatId: Long,
-    currentUserId: MutableState<Long>
-) {
-    val scrollState = rememberScrollState()
-    var sendText by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
-            .verticalScroll(scrollState)
-            .verticalRotaryScroll(scrollState),
-        verticalArrangement = Arrangement.Top
-    ) {
-        InputBar(
-            query = sendText,
-            onQueryChange = { sendText = it },
-            placeholder = stringResource(id = R.string.Write_message),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        IconButton(
-            onClick = {
-                tgApi?.sendMessage(
-                    chatId = chatId,
-                    message = TdApi.InputMessageText().apply {  // 参数名改为message
-                        text = TdApi.FormattedText().apply {
-                            this.text = sendText  // 正确设置text字段
-                        }
-                    }
-                )
-                sendText = ""
-            },
-            modifier = Modifier
-                .size(45.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_custom_send),
-                contentDescription = null,
-                modifier = Modifier.size(45.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        val forwardMessage = tgApi!!.forwardMessage
-        if (forwardMessage.value != null) {
-            val messageText =
-                tgApi!!.handleAllMessages(message = forwardMessage.value, maxText = 100)
-            val targetTitle =
-                if (forwardMessage.value!!.chatId == currentUserId.value) stringResource(R.string.Saved_Messages) else
-                    tgApi!!.chatsList.value
-                        .find { it.id == forwardMessage.value!!.chatId }
-                        ?.title ?: stringResource(R.string.Unknown_chat) // 找不到时返回默认值
-
-            MainCard(
-                column = {
-                    Text(
-                        text = targetTitle,
-                        color = Color.White,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    MessageView(message = messageText)
-                },
-                item = forwardMessage.value
-            )
-            IconButton(
-                onClick = {
-                    tgApi?.sendMessage(
-                        chatId = chatId,
-                        message = TdApi.InputMessageForwarded().apply {  // 参数名改为message
-                            copyOptions = null
-                            fromChatId = forwardMessage.value!!.chatId
-                            inGameShare = false
-                            messageId = forwardMessage.value!!.id
-                        }
-                    )
-                    sendText = ""
-                },
-                modifier = Modifier
-                    .size(45.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_custom_send),
-                    contentDescription = null,
-                    modifier = Modifier.size(45.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
@@ -1499,9 +1891,6 @@ fun SplashChatScreenPreview() {
             chatTitle = "XCちゃん",
             chatList = sampleMessages,
             chatId = 1L,
-            sendCallback = { text ->
-                println(text)
-            },
             goToChat = { },
             press = {
                 println("点击触发")

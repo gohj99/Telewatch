@@ -328,6 +328,7 @@ class MainActivity : ComponentActivity() {
                             currentUserId.value = it[0].toLong()
                         }
                     }
+                    TgApiManager.tgApi?.getArchiveChats()
                 }
                 launch(Dispatchers.Main) {
                     setContent {

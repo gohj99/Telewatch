@@ -147,7 +147,7 @@ class ChatActivity : ComponentActivity() {
                     currentUserId.value = it[0].toLong()
                 }
             }
-            tgApi!!.fetchMessages(0, chat!!.id)
+            tgApi!!.fetchMessages(0, chat!!.id, 1)
         }
 
         // 异步获取当前用户聊天对象
@@ -173,16 +173,6 @@ class ChatActivity : ComponentActivity() {
                                 chatTitle = chat!!.title,
                                 chatList = chatList,
                                 chatId = chat!!.id,
-                                sendCallback = { messageText ->
-                                    tgApi?.sendMessage(
-                                        chatId = chat!!.id,
-                                        message = TdApi.InputMessageText().apply {  // 参数名改为message
-                                            text = TdApi.FormattedText().apply {
-                                                this.text = messageText  // 正确设置text字段
-                                            }
-                                        }
-                                    )
-                                },
                                 goToChat = { chat ->
                                     goToChat.value = true
                                     runBlocking {
@@ -273,6 +263,7 @@ class ChatActivity : ComponentActivity() {
                                             return@SplashChatScreen runBlocking { // 同步阻塞当前线程
                                                 try {
                                                     tgApi!!.getMessageTypeById(message.id)?.let { messageType ->
+                                                        println("GetMessage result: $messageType")
                                                         val gson = Gson()
                                                         formatJson(gson.toJson(messageType))
                                                     } ?: "error"

@@ -20,7 +20,7 @@ import com.gohj99.telewatch.ui.SplashChatInfoScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
-import com.gohj99.telewatch.utils.formatTimestampToDate
+import com.gohj99.telewatch.utils.formatTimestampToDateAndTime
 import com.gohj99.telewatch.utils.telegram.TgApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -113,7 +113,7 @@ class ChatInfoActivity : ComponentActivity() {
                                     subtitle = getString(R.string.Last_month)
                                 is TdApi.UserStatusOffline ->
                                     if (status.wasOnline > 0) {
-                                        subtitle = "${getString(R.string.last_seen)} ${formatTimestampToDate(status.wasOnline)}"
+                                        subtitle = "${getString(R.string.last_seen)} ${formatTimestampToDateAndTime(status.wasOnline)}"
                                     } else {
                                         subtitle = getString(R.string.Offline)
                                     }

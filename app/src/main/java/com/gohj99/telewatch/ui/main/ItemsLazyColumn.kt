@@ -95,7 +95,10 @@ fun ChatLazyColumn(
     LaunchedEffect(itemsList.value) {
         // 处理可能存在的 order 字段缺失问题（使用安全调用和默认值）
         val sortedList = itemsList.value
-            .filter { it.order != -1L }  // 过滤掉order=-1的记录
+            .filter {
+                //println("Filtering chat ${it.id}: order=${it.order}, isArchive=${it.isArchiveChatPin}")
+                it.order !in listOf(-1L, 0L) && it.isArchiveChatPin == null
+            }
             .sortedWith(
                 // 第一排序条件：order不为null时降序排列
                 compareByDescending<Chat> { it.order }
@@ -212,6 +215,102 @@ fun ChatLazyColumn(
 
         item {
             Spacer(modifier = Modifier.height(50.dp))
+        }
+    }
+}
+
+@Composable
+fun ArchivedChatsLazyColumn(itemsList: MutableState<List<Chat>>, callback: (Chat) -> Unit) {
+    val listState = rememberLazyListState()
+    val searchText = rememberSaveable { mutableStateOf("") }
+
+    // 延迟加载时检测到滚动接近底部时加载更多聊天项
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .collect { index ->
+                if (index >= itemsList.value.size - 5) {
+                    TgApiManager.tgApi?.loadChats(itemsList.value.size + 1)
+                }
+            }
+    }
+
+    // 只有首次加载时分区数据，之后直接更新 pinned 和 regular 数据
+    val pinnedChats = remember { mutableStateOf<List<Chat>>(emptyList()) }
+    val regularChats = remember { mutableStateOf<List<Chat>>(emptyList()) }
+
+    // 每次itemsList更新时，增量更新 pinnedChats 和 regularChats
+    LaunchedEffect(itemsList.value) {
+        // 处理可能存在的 order 字段缺失问题（使用安全调用和默认值）
+        val sortedList = itemsList.value
+            .filter {
+                it.isArchiveChatPin != null  // 仅接受归档会话
+            }
+            .sortedWith(
+                // 第一排序条件：order不为null时降序排列
+                compareByDescending<Chat> { it.order }
+                    // 第二排序条件：当order相同时按id降序排列
+                    .thenByDescending { it.id }
+            )
+
+        // 分离置顶消息时需要保持原有置顶顺序
+        val newPinnedChats = sortedList
+            .filter { it.isPinned }
+            .sortedWith(compareByDescending { it.order ?: Long.MIN_VALUE }) // 置顶组内单独排序
+
+        val newRegularChats = sortedList
+            .filter { it !in newPinnedChats }
+            .sortedWith(compareByDescending { it.order ?: Long.MIN_VALUE }) // 非置顶组内单独排序
+
+
+        if (newPinnedChats != pinnedChats.value) {
+            pinnedChats.value = newPinnedChats
+        }
+
+        if (newRegularChats != regularChats.value) {
+            regularChats.value = newRegularChats
+        }
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize() // 确保 LazyColumn 填满父容器
+            .padding(horizontal = 16.dp) // 只在左右添加 padding
+            .verticalRotaryScroll(listState)
+    ) {
+        item {
+            Spacer(modifier = Modifier.height(8.dp)) // 添加一个高度为 8dp 的 Spacer
+        }
+        item {
+            // 搜索框
+            SearchBar(
+                query = searchText.value,
+                onQueryChange = { searchText.value = it },
+                placeholder = stringResource(id = R.string.Search),
+                modifier = Modifier
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+        // 渲染置顶消息
+        items(pinnedChats.value, key = { "${it.id}_${it.isPinned}" }) { item ->
+            ChatView(
+                chat = item,
+                callback = callback,
+                searchText = searchText,
+                pinnedView = true
+            )
+        }
+        // 渲染普通消息
+        items(regularChats.value, key = { it.id }) { item ->
+            ChatView(
+                chat = item,
+                callback = callback,
+                searchText = searchText,
+                pinnedView = false
+            )
+        }
+        item {
+            Spacer(modifier = Modifier.height(50.dp)) // 添加一个高度为 50dp 的 Spacer
         }
     }
 }

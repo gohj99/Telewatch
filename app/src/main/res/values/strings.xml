@@ -187,4 +187,6 @@
     <string name="Deleted_message">Message has been deleted</string>
     <string name="Write_message">Write a message…</string>
     <string name="Forward">Forward</string>
+    <string name="Archived_Chats">Archived chats</string>
+    <string name="Reply">Reply</string>
 </resources>

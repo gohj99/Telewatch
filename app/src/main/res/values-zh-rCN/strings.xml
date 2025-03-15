@@ -185,6 +185,8 @@
     <string name="Bot">机器人</string>  
     <string name="Bio">简介</string>  
     <string name="Deleted_message">消息已被删除</string>  
-    <string name="Write_message">输入消息…</string>
-    <string name="Forward">转发</string>
+    <string name="Write_message">输入消息…</string>  
+    <string name="Forward">转发</string>  
+    <string name="Archived_Chats">已归档对话</string>  
+    <string name="Reply">回复</string>
 </resources>

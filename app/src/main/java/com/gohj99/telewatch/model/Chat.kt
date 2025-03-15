@@ -24,7 +24,8 @@ data class Chat(
     val isBot: Boolean = false, // 是否为机器人对话
     val isChannel: Boolean = false, // 是否为频道
     val isGroup: Boolean = false, // 是否为群组或者超级群组（supergroups??
-    val isPrivateChat: Boolean = false // 是否为私人会话
+    val isPrivateChat: Boolean = false, // 是否为私人会话
+    val isArchiveChatPin: Boolean? = null // 归档会话是否置顶（非归档对话为null）
 ) : Parcelable {
     override fun describeContents(): Int {
         return 0 // 通常返回0即可，除非有特殊情况需要返回其他值

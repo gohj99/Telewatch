@@ -185,6 +185,8 @@
     <string name="Bio">だった</string>  
     <string name="Deleted_message">メッセージが削除されました</string>  
     <string name="Remind1">こんにちは！ \nwelcome to telewatchアプリ！ \nfirst、サポートのために公式のTelegram Groupに参加することをお勧めします。以下のリンクをクリックして参加できます。 \nlong-pressとドラッグテキストを選択してコピーします。画像ビューアー、画像にロングプレスしてギャラリーに保存します。プロキシページのアイテムのnlong-pressプロキシを削除する\n \ntelwatchはオープンソースで無料です。開発をサポートしたい場合は、下のボタンをクリックして寄付を検討してください。 \n \nwe TeleWatchの使用を楽しんでいただければ幸いです。</string>  
-    <string name="Write_message">メッセージを書く…</string>
-    <string name="Forward">フォワード</string>
+    <string name="Write_message">メッセージを書く…</string>  
+    <string name="Forward">フォワード</string>  
+    <string name="Archived_Chats">アーカイブされたチャット</string>  
+    <string name="Reply">返事</string>
 </resources>
