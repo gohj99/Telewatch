@@ -16,7 +16,7 @@ composeFoundation = "1.4.0"
 gson-versions = "2.10.1"
 acra = "5.11.4"
 media3Exoplayer = "1.4.1"
-media3Ui = "1.4.1"
+media3Ui = "1.5.1"
 markwon = "4.6.2"
 
 [libraries]
