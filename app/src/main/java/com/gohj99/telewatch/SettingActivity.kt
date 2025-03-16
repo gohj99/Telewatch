@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -35,7 +35,7 @@ class SettingActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
 
         val externalDir: File = getExternalFilesDir(null)
@@ -59,6 +59,18 @@ class SettingActivity : ComponentActivity() {
         when (page) {
             0 -> {
                 settingsList.value = listOf(
+                    // 捐赠
+                    SettingItem.Click(
+                        itemName = getString(R.string.Donate),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    DonateActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 网络设置
                     /*
                     SettingItem.Click(
@@ -96,6 +108,18 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    // 查看提示
+                    SettingItem.Click(
+                        itemName = getString(R.string.View_Tips),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    RemindActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     // 检查更新
                     SettingItem.Click(
                         itemName = getString(R.string.Check_Update),
@@ -109,6 +133,7 @@ class SettingActivity : ComponentActivity() {
                         }
                     ),
                     // 公告
+                    /*
                     SettingItem.Click(
                         itemName = getString(R.string.announcement_title),
                         onClick = {
@@ -120,6 +145,7 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                     */
                     // 关于
                     SettingItem.Click(
                         itemName = getString(R.string.About),
@@ -138,6 +164,19 @@ class SettingActivity : ComponentActivity() {
             1 -> {
                 title = getString(R.string.UI_Edit)
                 settingsList.value = listOf(
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.Line_spacing),
+                        progress = settingsSharedPref.getFloat("Line_spacing", 6f),
+                        maxValue = 10f,
+                        minValue = 1f,
+                        base = 0.1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("Line_spacing", size)
+                                apply()
+                            }
+                        }
+                    ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.title_medium_font_size),
                         progress = settingsSharedPref.getFloat("title_medium_font_size", 13f),
@@ -193,6 +232,7 @@ class SettingActivity : ComponentActivity() {
                             }
                         }
                     ),
+                    /*
                     SettingItem.Switch(
                         itemName = getString(R.string.is_home_page_pin),
                         isSelected = settingsSharedPref.getBoolean("is_home_page_pin", false),
@@ -203,6 +243,7 @@ class SettingActivity : ComponentActivity() {
                             }
                         }
                     ),
+                    */
                     SettingItem.Switch(
                         itemName = getString(R.string.data_Collection),
                         isSelected = settingsSharedPref.getBoolean("Data_Collection", false),
@@ -255,6 +296,20 @@ class SettingActivity : ComponentActivity() {
                         onClick = {
                             val dir = File(externalDir.absolutePath + chatId + "/tdlib")
                             dir.listFiles()?.find { it.name == "photos" && it.isDirectory }
+                                ?.deleteRecursively()
+                            cacheDir.deleteRecursively()
+                            Toast.makeText(
+                                this,
+                                getString(R.string.Successful),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.Clear_voice),
+                        onClick = {
+                            val dir = File(externalDir.absolutePath + chatId + "/tdlib")
+                            dir.listFiles()?.find { it.name == "voice" && it.isDirectory }
                                 ?.deleteRecursively()
                             cacheDir.deleteRecursively()
                             Toast.makeText(

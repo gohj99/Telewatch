@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -66,7 +66,8 @@ import java.io.IOException
 fun SplashChatInfoScreen(
 chatObject: TdApi.Chat,
 subtitle: String,
-info: String
+info: String,
+deleteChat: (() -> Unit)? = null
 ) {
     val gson = Gson()
     var messageJson = ""
@@ -243,6 +244,30 @@ info: String
                     }
                 }
             }
+            if (deleteChat != null) {
+                item {
+                    // 删除聊天
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .background(
+                                Color.Black.copy(alpha = 0.8f),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(7.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CustomButton(
+                            text = stringResource(R.string.Delete_Chat),
+                            color = Color(0xFFF44336),
+                            onClick = {
+                                deleteChat()
+                            }
+                        )
+                    }
+                }
+            }
             item {
                 Spacer(modifier = Modifier.height(50.dp))
             }
@@ -293,7 +318,7 @@ fun ThumbnailChatPhoto(thumbnail: TdApi.File, callback: () -> Unit) {
             .clip(CircleShape)
             .clickable {
                 // 在这里处理点击事件
-                println("Box clicked!")
+                //println("Box clicked!")
                 callback()
             }
     ) {
@@ -318,5 +343,5 @@ fun ThumbnailChatPhoto(thumbnail: TdApi.File, callback: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun SplashChatInfoScreenPreview() {
-    SplashChatInfoScreen(chatObject = TdApi.Chat(), "群组", "电话号码")
+    SplashChatInfoScreen(chatObject = TdApi.Chat(), "群组", "电话号码", {})
 }

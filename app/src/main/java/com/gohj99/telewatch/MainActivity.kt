@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -10,7 +10,9 @@ package com.gohj99.telewatch
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -40,10 +42,15 @@ import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.telegram.TgApi
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
+import org.json.JSONObject
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.util.UUID
 
 
 object TgApiManager {
@@ -51,7 +58,7 @@ object TgApiManager {
     var tgApi: TgApi? = null
 }
 
-object chatsListManager {
+object ChatsListManager {
     @SuppressLint("StaticFieldLeak")
     var chatsList: MutableState<List<Chat>> = mutableStateOf(listOf())
 }
@@ -64,6 +71,10 @@ class MainActivity : ComponentActivity() {
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
     private val contacts = mutableStateOf(listOf<Chat>())
+    private val currentUserId = mutableStateOf(-1L)
+    private val settingsSharedPref: SharedPreferences by lazy {
+        getSharedPreferences("app_settings", MODE_PRIVATE)
+    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -75,7 +86,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // 获取数据收集配置
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         if (!settingsSharedPref.contains("Data_Collection")) {
             startActivity(
                 Intent(
@@ -105,7 +115,7 @@ class MainActivity : ComponentActivity() {
     private fun initializeApp() {
         topTitle.value = getString(R.string.HOME)
 
-        val loginSharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+        val loginSharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
         isLoggedIn = loginSharedPref.getBoolean("isLoggedIn", false)
 
         if (!isLoggedIn) {
@@ -117,6 +127,20 @@ class MainActivity : ComponentActivity() {
                     SplashLoadingScreen(modifier = Modifier.fillMaxSize())
                 }
             }
+
+            CoroutineScope(Dispatchers.IO).launch {
+                checkAndUpdateConfiguration(this)
+            }
+
+            if (!settingsSharedPref.getBoolean("Remind1_read", false)) {
+                startActivity(
+                    Intent(
+                        this,
+                        RemindActivity::class.java
+                    )
+                )
+            }
+
             initMain()
         }
     }
@@ -157,7 +181,7 @@ class MainActivity : ComponentActivity() {
                         // 每次失败后等待1秒
                     )
 
-                    if (currentUser == null) {
+                    while (currentUser == null) {
                         currentUser = tempTgApi.getCurrentUser()
                     }
 
@@ -226,6 +250,30 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    // 捐赠
+                    SettingItem.Click(
+                        itemName = getString(R.string.Donate),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    DonateActivity::class.java
+                                )
+                            )
+                        }
+                    ),
+                    // 设置代理
+                    SettingItem.Click(
+                        itemName = getString(R.string.Proxy),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this@MainActivity,
+                                    SetProxyActivity::class.java
+                                )
+                            )
+                        }
+                    ),
                     SettingItem.Click(
                         itemName = getString(R.string.Check_Update),
                         onClick = {
@@ -270,9 +318,18 @@ class MainActivity : ComponentActivity() {
                     topTitle = topTitle,
                     chatsFoldersList = chatsFoldersList
                 )
-                chatsListManager.chatsList = chatsList
+                ChatsListManager.chatsList = chatsList
                 TgApiManager.tgApi?.loadChats(15)
                 TgApiManager.tgApi?.getContacts(contacts)
+                // 异步获取当前用户 ID
+                lifecycleScope.launch {
+                    while (currentUserId.value == -1L) {
+                        TgApiManager.tgApi?.getCurrentUser() ?.let {
+                            currentUserId.value = it[0].toLong()
+                        }
+                    }
+                    TgApiManager.tgApi?.getArchiveChats()
+                }
                 launch(Dispatchers.Main) {
                     setContent {
                         TelewatchTheme {
@@ -288,7 +345,8 @@ class MainActivity : ComponentActivity() {
                                 settingList = settingList,
                                 contacts = contacts,
                                 topTitle = topTitle,
-                                chatsFoldersList = chatsFoldersList
+                                chatsFoldersList = chatsFoldersList,
+                                currentUserId = currentUserId
                             )
                         }
                     }
@@ -379,6 +437,45 @@ class MainActivity : ComponentActivity() {
     private fun retryInitialization() {
         exceptionState = null
         initMain()
+    }
+}
+
+private fun Context.checkAndUpdateConfiguration(scope: CoroutineScope = CoroutineScope(Dispatchers.IO)) {
+    scope.launch {
+        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
+        val dataCollection = settingsSharedPref.getBoolean("Data_Collection", false)
+        if (dataCollection) {
+            val appConfig = getSharedPreferences("app_config", Context.MODE_PRIVATE)
+            val configStatus = getSharedPreferences("config_status", Context.MODE_PRIVATE)
+
+            if (!configStatus.getBoolean("is_configured", false)) {
+                var uniqueId = appConfig.getString("unique_identifier", null)
+                if (uniqueId == null) {
+                    uniqueId = UUID.randomUUID().toString()
+                    appConfig.edit().putString("unique_identifier", uniqueId).apply()
+                }
+
+                try {
+                    val domain = getDomain(this@checkAndUpdateConfiguration)
+                    val url = URL("https://$domain/config/?data=$uniqueId")
+
+                    with(url.openConnection() as HttpURLConnection) {
+                        requestMethod = "GET"
+
+                        if (responseCode == HttpURLConnection.HTTP_OK) {
+                            val response = inputStream.bufferedReader().use { it.readText() }
+                            val configData = JSONObject(response)
+                            val configCode = configData.optInt("status_code", -1) // Use optInt to avoid exceptions
+                            if (configCode == 200) {
+                                configStatus.edit().putBoolean("is_configured", true).apply()
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Handle or log the exception as needed
+                }
+            }
+        }
     }
 }
 

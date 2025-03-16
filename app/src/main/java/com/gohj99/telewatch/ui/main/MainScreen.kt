@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -12,6 +12,7 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,16 +59,19 @@ fun MainScreen(
     settingList: MutableState<List<SettingItem>>,
     contacts: MutableState<List<Chat>>,
     topTitle: MutableState<String>,
-    chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
+    chatsFoldersList: MutableState<List<TdApi.ChatFolder>>,
+    currentUserId: MutableState<Long>
 ) {
+    val archivedChats = stringResource(id = R.string.Archived_Chats)
     val search = stringResource(id = R.string.Global_Search)
     val contact = stringResource(id = R.string.Contacts)
     val home = stringResource(id = R.string.HOME)
     val setting = stringResource(id = R.string.Settings)
     var showMenu by remember { mutableStateOf(false) }
     val lastPages = listOf(
-        search,
+        archivedChats,
         contact,
+        search,
         setting,
     )
     var allPages by remember {
@@ -90,15 +98,15 @@ fun MainScreen(
         // 包含 Row 的 Box
         Box(
             modifier = Modifier
-                .fillMaxWidth() // 只填充宽度
-                .padding(top = 14.dp) // 添加顶部填充
-                .clickable { showMenu = !showMenu } // 点击时切换显示状态
+                .fillMaxWidth()
+                .padding(top = 14.dp)
+                .clickable { showMenu = !showMenu }
         ) {
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopCenter) // 将 Row 对齐到顶部中央
+                    .align(Alignment.TopCenter)
                     .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically // 垂直方向居中对齐
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
                     painter = if (showMenu) {
@@ -110,20 +118,30 @@ fun MainScreen(
                     modifier = Modifier.size(19.9114514.dp) // 设置图片大小
                 )
                 Spacer(modifier = Modifier.width(8.dp)) // 添加间距
-                Text(
-                    text =
-                    if (showMenu) if (nowPage <= allPages.size) allPages[nowPage] else "error$nowPage"
-                    else
-                        if (nowPage <= allPages.size)
-                            if (nowPage < allPages.size - lastPages.size)
-                                if (topTitle.value == "") allPages[nowPage]
-                                else topTitle.value
-                            else allPages[nowPage]
-                        else "error",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+
+                // 关键修改点：用 Row 替代 Box 作为滚动容器
+                Row(
+                    modifier = Modifier
+                        .widthIn(max = 100.dp)
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text =
+                            if (showMenu) if (nowPage <= allPages.size) allPages[nowPage] else "error$nowPage"
+                            else
+                                if (nowPage <= allPages.size)
+                                    if (nowPage < allPages.size - lastPages.size)
+                                        if (topTitle.value == "") allPages[nowPage]
+                                        else topTitle.value
+                                    else allPages[nowPage]
+                                else "error",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .wrapContentWidth(unbounded = true) // 允许内容无限扩展
+                    )
+                }
             }
         }
 
@@ -148,6 +166,7 @@ fun MainScreen(
                         itemsList = chats,
                         callback = chatPage,
                         chatsFolder = chatsFoldersList.value.find { it.title == allPages[nowPage] },
+                        currentUserId = currentUserId,
                         contactsList = contacts.value
                     )
                 }
@@ -156,12 +175,14 @@ fun MainScreen(
                     home -> {
                         ChatLazyColumn(
                             itemsList = chats,
-                            callback = chatPage
+                            callback = chatPage,
+                            currentUserId = currentUserId,
                         )
                     }
 
-                    search -> {
-                        SearchLazyColumn(
+                    archivedChats -> {
+                        ArchivedChatsLazyColumn(
+                            itemsList = chats,
                             callback = chatPage
                         )
                     }
@@ -169,6 +190,12 @@ fun MainScreen(
                     contact -> {
                         ContactsLazyColumn(
                             itemsList = contacts.value,
+                            callback = chatPage
+                        )
+                    }
+
+                    search -> {
+                        SearchLazyColumn(
                             callback = chatPage
                         )
                     }
@@ -186,18 +213,11 @@ fun MainScreen(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    // 傻逼钱显康
-    // 户籍：湖北省随州市曾都区 西城办事处沿江大道22号(地图查验为宾馆)
-    // 住址: 湖北省随州市曾都区汉东名居(无精确门牌)
-    // 学校：湖北省随州市二中
-    // 申必代码：421302200801060033
-    // “个人”网站： https://www.rechrd.top/
-
     val sampleChats = mutableStateOf(
         listOf(
-            Chat(id = 1, title = "钱显康", message = "我是傻逼"),
-            Chat(id = 2, title = "Rechrd", message = "我父亲是钱明"),
-            Chat(id = 3, title = "将军", message = "我母亲是康庆莉")
+            Chat(id = 1, title = "钱*康", message = buildAnnotatedString { append("我是**") }),
+            Chat(id = 2, title = "Rechrd", message = buildAnnotatedString { append("我**是*明") }),
+            Chat(id = 3, title = "将军", message = buildAnnotatedString { append("我**是**莉") })
         )
     )
 
@@ -232,6 +252,7 @@ fun MainScreenPreview() {
             settingList = settings,
             contacts = remember { mutableStateOf(listOf()) },
             topTitle = remember { mutableStateOf("Home") },
+            currentUserId = remember { mutableStateOf(-1) },
             chatsFoldersList = remember { mutableStateOf(listOf()) }
         )
     }

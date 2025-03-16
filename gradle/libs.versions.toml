@@ -1,6 +1,7 @@
 [versions]
 agp = "8.7.2"
 annotation = "1.9.1"
+firebaseBom = "33.10.0"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -14,7 +15,7 @@ lottie = "6.6.0"
 zxing-core = "3.5.3"
 composeFoundation = "1.4.0"
 gson-versions = "2.10.1"
-acra = "5.11.4"
+acra = "5.12.0"
 media3Exoplayer = "1.4.1"
 media3Ui = "1.4.1"
 markwon = "4.6.2"
@@ -22,6 +23,8 @@ markwon = "4.6.2"
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -18,7 +19,6 @@ import androidx.annotation.Keep
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
-import com.gohj99.telewatch.model.Announcement
 import com.gohj99.telewatch.ui.SplashAnnouncementScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
@@ -62,9 +62,10 @@ class AnnouncementActivity : ComponentActivity() {
     private fun initIdPage(id: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val domain = getDomain(this@AnnouncementActivity)
                 val client = OkHttpClient()
                 val request = Request.Builder()
-                    .url("https://telewatch.gohj99.site/announcement/?id=${id}")
+                    .url("https://$domain/announcement/?id=${id}")
                     .build()
 
                 client.newCall(request).enqueue(object : Callback {
@@ -138,9 +139,8 @@ class AnnouncementActivity : ComponentActivity() {
 
                             val responseData = response.body?.string()
                             if (responseData != null) {
-                                // 使用 Gson 将 JSON 字符串转换为 List<Announcement>
-                                val listType = object : TypeToken<List<Announcement>>() {}.type
-                                val announcementList: List<Announcement> = Gson().fromJson(responseData, listType)
+                                val gson = Gson()
+                                val announcementList: List<Map<String, Any>> = gson.fromJson(responseData, object : TypeToken<List<Map<String, Any>>>() {}.type)
 
                                 // 在主线程上更新 UI
                                 runOnUiThread {
@@ -181,4 +181,8 @@ class AnnouncementActivity : ComponentActivity() {
             }
         }
     }
+}
+fun getDomain(context: Context) : String {
+    val domainParts = listOf("site", context.packageName.split(".")[1], context.packageName.split(".")[2])
+    return domainParts.reversed().joinToString(".")
 }

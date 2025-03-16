@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -24,6 +24,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,6 +49,8 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -220,7 +223,7 @@ class ImgViewActivity : ComponentActivity() {
                         }
                     }
                 }
-            } // 添加了缺失的闭合括号
+            }
         }
     }
 
@@ -360,13 +363,18 @@ fun saveImageToExternalStorage(context: Context, photoPath: String): String {
 private fun SplashImgView(photoPath: String, saveImage: () -> Unit) {
     Box(
         modifier = Modifier
-            .padding(16.dp)
+            .padding(20.dp)
             .fillMaxSize()
-            .fillMaxWidth(),
+            .aspectRatio(1f),
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = rememberAsyncImagePainter(model = photoPath),
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(photoPath)
+                    .size(Size.ORIGINAL) // 确保使用原始尺寸
+                    .build()
+            ),
             contentDescription = null,
             modifier = Modifier
                 .zoomable(
@@ -384,8 +392,7 @@ private fun SplashTgsView(photoPath: String) {
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxSize()
-            .fillMaxWidth(),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         // Load the Lottie composition from the file path
@@ -410,8 +417,7 @@ private fun SplashMp4View(photoPath: String) {
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxSize()
-            .fillMaxWidth(),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         LoopingVideoPlayer(Uri.parse(photoPath))

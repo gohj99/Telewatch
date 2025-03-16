@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -20,6 +20,7 @@ import com.gohj99.telewatch.ui.SplashChatInfoScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.formatTimestampToDateAndTime
 import com.gohj99.telewatch.utils.telegram.TgApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,26 +93,41 @@ class ChatInfoActivity : ComponentActivity() {
                     val userInfo = runBlocking {
                         tgApi!!.getUser(chatType.userId)
                     }
+                    val userFullInfo = runBlocking {
+                        tgApi!!.getUserFullInfo(chatType.userId)
+                    }
                     if (userInfo != null) {
-                        when(userInfo.status) {
-                            is TdApi.UserStatusOnline ->
-                                subtitle = getString(R.string.Online)
-                            is TdApi.UserStatusEmpty ->
-                                subtitle = getString(R.string.Unknown)
-                            is TdApi.UserStatusRecently ->
-                                subtitle = getString(R.string.Lately)
-                            is TdApi.UserStatusLastWeek ->
-                                subtitle = getString(R.string.Last_week)
-                            is TdApi.UserStatusLastMonth ->
-                                subtitle = getString(R.string.Last_month)
-                            is TdApi.UserStatusOffline ->
-                                subtitle = getString(R.string.Offline)
-                        }
-                        if (userInfo.phoneNumber != "") {
-                            info += "\n**${getString(R.string.phoneNumber)}**\n+${userInfo.phoneNumber}"
-                        }
-                        if (userInfo.usernames != null) {
-                            info += "\n**${getString(R.string.username)}**\n@${userInfo.usernames!!.activeUsernames[0]}"
+                        if (userInfo.type is TdApi.UserTypeBot) {
+                            subtitle = getString(R.string.Bot)
+                        } else {
+                            when(val status = userInfo.status) {
+                                is TdApi.UserStatusOnline ->
+                                    subtitle = getString(R.string.Online)
+                                is TdApi.UserStatusEmpty ->
+                                    subtitle = getString(R.string.Unknown)
+                                is TdApi.UserStatusRecently ->
+                                    subtitle = getString(R.string.Lately)
+                                is TdApi.UserStatusLastWeek ->
+                                    subtitle = getString(R.string.Last_week)
+                                is TdApi.UserStatusLastMonth ->
+                                    subtitle = getString(R.string.Last_month)
+                                is TdApi.UserStatusOffline ->
+                                    if (status.wasOnline > 0) {
+                                        subtitle = "${getString(R.string.last_seen)} ${formatTimestampToDateAndTime(status.wasOnline)}"
+                                    } else {
+                                        subtitle = getString(R.string.Offline)
+                                    }
+                            }
+                            if (userInfo.phoneNumber != "") {
+                                info += "\n**${getString(R.string.phoneNumber)}**\n+${userInfo.phoneNumber}"
+                            }
+                            if (userInfo.usernames != null) {
+                                info += "\n**${getString(R.string.username)}**\n@${userInfo.usernames!!.activeUsernames[0]}"
+                            }
+                            val bio = userFullInfo?.bio?.text?: ""
+                            if (bio.isNotEmpty() == true) {
+                                info += "\n**${getString(R.string.Bio)}**\n${bio}"
+                            }
                         }
                     }
                 }
@@ -145,7 +161,7 @@ class ChatInfoActivity : ComponentActivity() {
 
                 // 超级群组
                 is TdApi.ChatTypeSupergroup -> {
-                    println("超级群组")
+                    //println("超级群组")
                     subtitle = getString(R.string.Supergroup_Chat)
                     val supergroupInfo = runBlocking {
                         tgApi!!.getSupergroup(chatType.supergroupId)
@@ -183,17 +199,37 @@ class ChatInfoActivity : ComponentActivity() {
                 }
 
             }
-            runOnUiThread {
-                setContent {
-                    TelewatchTheme {
-                        SplashChatInfoScreen(
-                            chatObject = chatObject!!,
-                            subtitle = subtitle,
-                            info = info
-                        )
+            if (chatType is TdApi.ChatTypePrivate) {
+                runOnUiThread {
+                    setContent {
+                        TelewatchTheme {
+                            SplashChatInfoScreen(
+                                chatObject = chatObject!!,
+                                subtitle = subtitle,
+                                info = info,
+                                deleteChat = {
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                        tgApi!!.deleteChat(safeChat.id)
+                                        finish()
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            } else {
+                runOnUiThread {
+                    setContent {
+                        TelewatchTheme {
+                            SplashChatInfoScreen(
+                                chatObject = chatObject!!,
+                                subtitle = subtitle,
+                                info = info
+                            )
+                        }
                     }
                 }
             }
-            }
+        }
     }
 }

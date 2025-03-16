@@ -15,4 +15,3 @@
 -keepattributes Signature
 -keepattributes EnclosingMethod
 -keep class com.google.gson.reflect.TypeToken { *; }
--keep class com.gohj99.telewatch.model.Announcement { *; }

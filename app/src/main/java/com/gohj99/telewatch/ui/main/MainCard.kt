@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -8,7 +8,9 @@
 
 package com.gohj99.telewatch.ui.main
 
-import androidx.compose.foundation.clickable
+import android.content.Context
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -35,94 +38,110 @@ fun LinkText(
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     onLinkClick: ((String) -> Unit)? = null
 ) {
-    if (text.isNotEmpty()) {
-        val annotatedString = buildAnnotatedString {
-            val urlRegex = Regex(
-                "(?i)\\b((https?://)?[-a-zA-Z0-9@:%._+~#=]+" +
-                        "\\.(com|org|net|me|io|co|edu|gov|us|uk|cn|de|jp|ru|in|site)" +
-                        "([-a-zA-Z0-9@:%_+.~#?&/=]*)?)"
-            )
+    if (text.isEmpty()) return
 
-            val usernameRegex = Regex("(?<!\\w)@(\\w{4,})(?!\\w)")
-            val boldRegex = Regex("\\*\\*(.*?)\\*\\*") // Regex for bold text
+    val annotatedString = buildAnnotatedString {
+        // 改进后的URL正则表达式（支持更广泛的域名格式）
+        val urlRegex = Regex(
+            """(?i)\b((?:https?|ftp)://)?(?:www\.|[\p{L}0-9-]+\.)*[\p{L}0-9-]+(?:\.[\p{L}0-9-]+)+(?:/[/\p{L}0-9-_.~?=%&@#]*)?\b"""
+        )
+        val usernameRegex = Regex(
+            """(?<!\S)@(\w{4,})(?![\w/.-])"""
+        )
+        val boldRegex = Regex(
+            """\*\*([^*]+)\*\*"""
+        )
 
-            var lastIndex = 0
+        var lastIndex = 0
 
-            (urlRegex.findAll(text) + usernameRegex.findAll(text) + boldRegex.findAll(text))
-                .sortedBy { it.range.first }
-                .forEach { result ->
-                    val start = result.range.first
-                    val end = result.range.last + 1
+        // 匹配优先级：URL > Bold > Username
+        val allMatches = sequence {
+            yieldAll(urlRegex.findAll(text))
+            yieldAll(boldRegex.findAll(text))
+            yieldAll(usernameRegex.findAll(text))
+        }.sortedBy { it.range.first }
 
-                    if (start >= lastIndex) {
-                        append(text.substring(lastIndex, start))
-                    } else {
-                        println("Error: start ($start) is less than lastIndex ($lastIndex)")
+        allMatches.forEach { match ->
+            val start = match.range.first
+            val end = match.range.last + 1
+
+            // 处理未匹配的普通文本
+            if (start > lastIndex) append(text.substring(lastIndex, start))
+
+            when {
+                match.value.matches(urlRegex) -> {
+                    val fullUrl = when {
+                        match.value.startsWith("www.") -> "https://${match.value}"
+                        match.value.contains("://") -> match.value
+                        else -> "https://${match.value}"
                     }
-
-                    when {
-                        result.value.matches(urlRegex) -> {
-                            pushStringAnnotation(tag = "URL", annotation = result.value)
-                            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
-                                append(result.value)
-                            }
-                            pop()
-                        }
-                        result.value.matches(usernameRegex) -> {
-                            val nowUrl = "https://t.me/${result.value}"
-                            pushStringAnnotation(tag = "URL", annotation = nowUrl)
-                            withStyle(style = SpanStyle(color = Color(0xFF2397D3), textDecoration = TextDecoration.Underline)) {
-                                append(result.value)
-                            }
-                            pop()
-
-                        }
-                        result.value.matches(boldRegex) -> {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(result.groups[1]?.value ?: "") // Append the text inside the asterisks
-                            }
-                        }
-                        else -> {
-                            append(result.value)
-                        }
+                    pushStringAnnotation("URL", fullUrl)
+                    withStyle(SpanStyle(
+                        color = Color(0xFF2397D3),
+                        textDecoration = TextDecoration.Underline
+                    )) {
+                        append(match.value)
                     }
-
-                    lastIndex = end
+                    pop()
                 }
-
-            if (lastIndex < text.length) {
-                append(text.substring(lastIndex))
+                match.value.matches(boldRegex) -> {
+                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(match.groupValues[1])
+                    }
+                }
+                match.value.matches(usernameRegex) -> {
+                    val username = match.groupValues[1]
+                    pushStringAnnotation("URL", "https://t.me/$username")
+                    withStyle(SpanStyle(
+                        color = Color(0xFF2397D3),
+                        textDecoration = TextDecoration.Underline
+                    )) {
+                        append("@$username")
+                    }
+                    pop()
+                }
             }
+
+            lastIndex = end
         }
 
-
-        ClickableText(
-            text = annotatedString,
-            style = style.copy(color = color),
-            modifier = modifier,
-            onClick = { offset ->
-                annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                    .firstOrNull()?.let { annotation ->
-                        onLinkClick?.invoke(annotation.item)
-                    }
-            }
-        )
+        // 添加剩余文本
+        if (lastIndex < text.length) append(text.substring(lastIndex))
     }
+
+    ClickableText(
+        text = annotatedString,
+        style = style.copy(color = color),
+        modifier = modifier,
+        onClick = { offset ->
+            annotatedString.getStringAnnotations("URL", offset, offset)
+                .firstOrNull()?.let { onLinkClick?.invoke(it.item) }
+        }
+    )
 }
 
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun <T> MainCard(
     column: @Composable () -> Unit,
     item: T,
     callback: (T) -> Unit = {},
+    onLongClick: (T) -> Unit = {},
     color: Color = Color(0xFF404953)
 ) {
+    // 获取context
+    val context = LocalContext.current
+    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    val lineSpacing = settingsSharedPref.getFloat("Line_spacing", 6f)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clickable { callback(item) },
+            .padding(vertical = lineSpacing.dp)
+            .combinedClickable(
+                onClick = { callback(item) }, // 处理点击
+                onLongClick = { onLongClick(item) } // 处理长按
+            ),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(
             containerColor = color // 设置 Card 的背景颜色

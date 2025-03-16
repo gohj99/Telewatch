@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -8,7 +8,6 @@
 
 package com.gohj99.telewatch
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -46,7 +45,7 @@ class GoToCheckUpdateActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         if (settingsSharedPref.getBoolean("Skip_GoToCheckUpdateActivity", false)) {
             startActivity(
                 Intent(
@@ -157,6 +156,6 @@ fun SplashGoToCheckUpdateScreen(set: (Boolean) -> Unit) {
 @Composable
 fun SplashGoToCheckUpdateScreenPreview() {
     TelewatchTheme {
-        SplashAllowDataCollectionScreen { /*TODO*/ }
+        SplashAllowDataCollectionScreen { }
     }
 }

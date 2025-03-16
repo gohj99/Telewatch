@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -78,10 +78,37 @@ fun LongPressBox(
                             .verticalRotaryScroll(scrollState)
                     ) {
                         LPMainCard(
+                            text = stringResource(id = R.string.Reply),
+                            callback = {
+                                coroutineScope.launch {
+                                    callBack("Reply")
+                                    onDismiss()
+                                }
+                            }
+                        )
+                        LPMainCard(
+                            text = stringResource(id = R.string.Forward),
+                            callback = {
+                                coroutineScope.launch {
+                                    callBack("Forward")
+                                    onDismiss()
+                                }
+                            }
+                        )
+                        LPMainCard(
                             text = stringResource(id = R.string.DeleteMessage),
                             callback = {
                                 coroutineScope.launch {
                                     callBack("DeleteMessage")
+                                    onDismiss()
+                                }
+                            }
+                        )
+                        LPMainCard(
+                            text = stringResource(id = R.string.copy_link),
+                            callback = {
+                                coroutineScope.launch {
+                                    callBack("CopyLink")
                                     onDismiss()
                                 }
                             }
@@ -173,7 +200,7 @@ fun LongPressBoxPreview() {
     TelewatchTheme {
         LongPressBox(
             callBack = { return@LongPressBox "OK" },
-            onDismiss = { /*TODO*/ }
+            onDismiss = { }
         )
     }
 }

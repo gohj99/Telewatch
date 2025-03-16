@@ -1,154 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
   ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
   ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
   ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
   ~ Vestibulum commodo. Ut rhoncus gravida arcu.
   -->
-
-<resources>
-    <string name="title_activity_login" translatable="false">LoginActivity</string>
-    <string name="title_activity_main" translatable="false">MainActivity</string>
-    <string name="title_activity_setting" translatable="false">SettingActivity</string>
-    <string name="title_activity_welcome" translatable="false">WelcomeActivity</string>
-    <string name="chat_activity_main" translatable="false">chat_activity_main</string>
-    <string name="about_activity_setting" translatable="false">about_activity_setting</string>
-    <string name="img_activity_view" translatable="false">img_activity_view</string>
-    <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>
-    <string name="app_name" translatable="false">Telewatch</string>
-    <string name="Start_messaging">開始發送訊息</string>
-    <string name="Welcome_to_app">歡迎使用Telewatch應用程式</string>
-    <string name="Network">網路</string>
-    <string name="Settings">環境</string>
-    <string name="Clearing_cache">清除快取</string>
-    <string name="Reset_self">自我重置（重新啟動）</string>
-    <string name="Successful">成功的</string>
-    <string name="Password">密碼</string>
-    <string name="Password_Error">密碼錯誤</string>
-    <string name="OK" translatable="false">OK</string>
-    <string name="Done">完畢</string>
-    <string name="scan_qr">掃描電報表格</string>
-    <string name="loading">載入中…</string>
-    <string name="Request_error">請求錯誤</string>
-    <string name="HOME">家</string>
-    <string name="Login_Successful">登入成功</string>
-    <string name="Retry">重試</string>
-    <string name="Error">發生錯誤\n請重試</string>
-    <string name="Unknown_Message">不支援的消息</string>
-    <string name="Contacts">聯絡方式</string>
-    <string name="setting_all">所有設定</string>
-    <string name="About">關於</string>
-    <string name="little_jelly">小果凍</string>
-    <string name="Version">版本</string>
-    <string name="Build_Date">建造日期：</string>
-    <string name="Photo">照片</string>
-    <string name="Unknown_Photo">未知照片</string>
-    <string name="Restart">重新啟動</string>
-    <string name="No_thumbnail_available">沒有可用的縮圖</string>
-    <string name="Video">影片</string>
-    <string name="Voice">嗓音</string>
-    <string name="Animation">動圖</string>
-    <string name="Error_ImgView">這不是圖像，或者您無法下載圖像</string>
-    <string name="edit">編輯</string>
-    <string name="ReloadMessage">重新載入訊息</string>
-    <string name="GetMessage">獲取訊息訊息</string>
-    <string name="Same_name_image_exists">有同一張圖</string>
-    <string name="failling">失敗</string>
-    <string name="Read_failed">讀取失敗</string>
-    <string name="Save_success">保存成功</string>
-    <string name="Select_player">選擇玩家</string>
-    <string name="No_player">沒有找到玩家</string>
-    <string name="Save">節省</string>
-    <string name="Download_first">先下載</string>
-    <string name="Same_name_video_exists">有同一個視頻</string>
-    <string name="No_need_to_save">無需保存</string>
-    <string name="Download">下載</string>
-    <string name="Play">玩</string>
-    <string name="Clear_cache">清除快取</string>
-    <string name="Clear_thumbnails">清除縮圖</string>
-    <string name="Clear_photos">清晰的照片</string>
-    <string name="Clear_videos">清晰的視頻</string>
-    <string name="error_activity_view">錯誤頁面</string>
-    <string name="allow_data_Collection">允許數據收集</string>
-    <string name="data_collection_description">我們使用開源收集工具 ACRA 匿名收集崩潰報告、追蹤最常用的功能並收集使用模式數據，以使 Telewatch 更加用戶友好。您可以隨時在設定中停用此功能。</string>
-    <string name="data_collection_title">匿名統計\n崩潰報告</string>
-    <string name="disagree">不好</string>
-    <string name="agree">好</string>
-    <string name="data_Collection">數據收集</string>
-    <string name="UI_Edit">使用者介面編輯</string>
-    <string name="App_setting">應用程式設定</string>
-    <string name="Add_Account">新增帳戶</string>
-    <string name="Switch_Account">切換帳戶</string>
-    <string name="switch_account_sure">您確定要切換到帳戶 %s 嗎？</string>
-    <string name="title_medium_font_size">首頁聊天標題字體大小</string>
-    <string name="body_medium_font_size">聊天頁面內容字體大小</string>
-    <string name="body_small_font_size">首頁聊天內容字體大小</string>
-    <string name="size">大小</string>
-    <string name="pre_release">預發布</string>
-    <string name="release">發布</string>
-    <string name="Check_Update">檢查更新</string>
-    <string name="already_latest">已經是最新版本了</string>
-    <string name="New_version">新版本</string>
-    <string name="version">版本</string>
-    <string name="Release_type">版本類型</string>
-    <string name="Release_time">發佈時間</string>
-    <string name="downloads">下載</string>
-    <string name="install">安裝</string>
-    <string name="unknown_apps_install_permission_denied">您需要允許安裝未知來源的應用程式才能繼續安裝更新</string>
-    <string name="Connecting">連接中</string>
-    <string name="Update">更新中</string>
-    <string name="Offline">離線</string>
-    <string name="Reset_libtd">重設libtd（清除未登入的新帳戶或舊版本殘留）</string>
-    <string name="Duplicate_account">重複帳戶</string>
-    <string name="Log_out">登出</string>
-    <string name="Confirm_Logout">確認登出</string>
-    <string name="Confirm_logout_sure">您確定要登出登入嗎？</string>
-    <string name="Update_tips">小提醒：下載後將存放於系統下載資料夾</string>
-    <string name="Install_Apk">安裝APK</string>
-    <string name="Search">搜尋</string>
-    <string name="Network_setting">網路設定</string>
-    <string name="Unknown_chat">未知聊天</string>
-    <string name="acra_toast_text">軟體遇到錯誤，已通報。請重新啟動軟體。</string>
-    <string name="author">作者</string>
-    <string name="Famous_Quotes">名言</string>
-    <string name="notice">注意</string>
-    <string name="notice_about_1">該軟體是開源且免費的。</string>
-    <string name="notice_about_2">如果您在任何地方購買了該軟體，請投訴並要求退款。</string>
-    <string name="DeleteMessage">刪除留言</string>
-    <string name="gohj99_description">主要開發者</string>
-    <string name="jelly_description">使用者介面設計</string>
-    <string name="Beta_title">測試版</string>
-    <string name="Beta_description">將版本變更為測試版本\n可能存在各種錯誤</string>
-    <string name="is_home_page_pin">是否取得首頁置頂訊息（可能有bug）</string>
-    <string name="show_unknown_message_type">顯示不支援的訊息類型</string>
-    <string name="GoToCheckUpdateActivity_title">檢查更新警告</string>
-    <string name="GoToCheckUpdateActivity_description">我們將從官方 GitHub 儲存庫檢查更新。\n如果您從 IzzyOnDroid/F-Droid 等安裝了應用程序，則不會運行它們的軟體附加檢查。</string>
-    <string name="don_remind_me_again">不要再提醒我</string>
-    <string name="announcement_title">公告</string>
-    <string name="No_app_to_handle_this_url">沒有應用程式可以處理此網址</string>
-    <string name="Global_Search">全球搜尋</string>
-    <string name="GoToAnnouncementActivity_title">公告查看提醒</string>
-    <string name="GoToAnnouncementActivity_description">此功能需要存取作者的 API 伺服器</string>
-    <string name="join_in">加入</string>
-    <string name="Unable_get_username">無法取得用戶名</string>
-    <string name="Chat_Info">聊天訊息</string>
-    <string name="Online">在線的</string>
-    <string name="Unknown">未知</string>
-    <string name="Lately">最近</string>
-    <string name="Last_week">上個星期</string>
-    <string name="Last_month">上個月</string>
-    <string name="Show_more">顯示更多</string>
-    <string name="Private_Chat">私人聊天</string>
-    <string name="Group_Chat">群聊</string>
-    <string name="Member">成員</string>
-    <string name="Supergroup_Chat">超級群聊</string>
-    <string name="Channel">頻道</string>
-    <string name="Subscribers">訂閱者</string>
-    <string name="username">使用者名稱</string>
-    <string name="Information">資訊</string>
-    <string name="phoneNumber">電話號碼</string>
-    <string name="Description">Description</string>
-    <string name="Invite_Link">Invite Link</string>
-    <string name="url">Url</string>
-    <string name="Same_Chat">同樣的聊天</string>
+<resources> 
+    <string name="title_activity_login" translatable="false">LoginActivity</string>  
+    <string name="title_activity_main" translatable="false">MainActivity</string>  
+    <string name="title_activity_setting" translatable="false">SettingActivity</string>  
+    <string name="title_activity_welcome" translatable="false">WelcomeActivity</string>  
+    <string name="chat_activity_main" translatable="false">chat_activity_main</string>  
+    <string name="about_activity_setting" translatable="false">about_activity_setting</string>  
+    <string name="img_activity_view" translatable="false">img_activity_view</string>  
+    <string name="chat_info_activity_main" translatable="false">chat_info_activity</string>  
+    <string name="app_name" translatable="false">Telewatch</string>  
+    <string name="Start_messaging">開始發送訊息</string>  
+    <string name="Welcome_to_app">歡迎使用Telewatch應用程式</string>  
+    <string name="Network">網路</string>  
+    <string name="Settings">環境</string>  
+    <string name="Clearing_cache">清除快取</string>  
+    <string name="Reset_self">自我重置（重新啟動）</string>  
+    <string name="Successful">成功的</string>  
+    <string name="Password">密碼</string>  
+    <string name="Password_Error">密碼錯誤</string>  
+    <string name="OK" translatable="false">OK</string>  
+    <string name="Done">完畢</string>  
+    <string name="scan_qr">掃描電報表格</string>  
+    <string name="loading">載入中…</string>  
+    <string name="Request_error">請求錯誤</string>  
+    <string name="HOME">家</string>  
+    <string name="Login_Successful">登入成功</string>  
+    <string name="Retry">重試</string>  
+    <string name="Error">發生錯誤\n請重試</string>  
+    <string name="Unknown_Message">不支援的消息</string>  
+    <string name="Contacts">聯絡方式</string>  
+    <string name="setting_all">所有設定</string>  
+    <string name="About">關於</string>  
+    <string name="little_jelly">小果凍</string>  
+    <string name="Version">版本</string>  
+    <string name="Build_Date">建造日期：</string>  
+    <string name="Photo">照片</string>  
+    <string name="Unknown_Photo">未知照片</string>  
+    <string name="Restart">重新啟動</string>  
+    <string name="No_thumbnail_available">沒有可用的縮圖</string>  
+    <string name="Video">影片</string>  
+    <string name="Voice">嗓音</string>  
+    <string name="Animation">動圖</string>  
+    <string name="Error_ImgView">這不是圖像，或者您無法下載圖像</string>  
+    <string name="edit">編輯</string>  
+    <string name="ReloadMessage">重新載入訊息</string>  
+    <string name="GetMessage">獲取訊息訊息</string>  
+    <string name="Same_name_image_exists">有同一張圖</string>  
+    <string name="failling">失敗</string>  
+    <string name="Read_failed">讀取失敗</string>  
+    <string name="Save_success">保存成功</string>  
+    <string name="Select_player">選擇玩家</string>  
+    <string name="No_player">沒有找到玩家</string>  
+    <string name="Save">節省</string>  
+    <string name="Download_first">先下載</string>  
+    <string name="Same_name_video_exists">有同一個視頻</string>  
+    <string name="No_need_to_save">無需保存</string>  
+    <string name="Download">下載</string>  
+    <string name="Play">玩</string>  
+    <string name="Clear_cache">清除快取</string>  
+    <string name="Clear_thumbnails">清除縮圖</string>  
+    <string name="Clear_photos">清晰的照片</string>  
+    <string name="Clear_videos">清晰的視頻</string>  
+    <string name="error_activity_view">錯誤頁面</string>  
+    <string name="allow_data_Collection">允許數據收集</string>  
+    <string name="data_collection_description">我們使用開源收集工具 ACRA 匿名收集崩潰報告、追蹤最常用的功能並收集使用模式數據，以使 Telewatch 更加用戶友好。您可以隨時在設定中停用此功能。</string>  
+    <string name="data_collection_title">匿名統計\n崩潰報告</string>  
+    <string name="disagree">不好</string>  
+    <string name="agree">好</string>  
+    <string name="data_Collection">數據收集</string>  
+    <string name="UI_Edit">使用者介面編輯</string>  
+    <string name="App_setting">應用程式設定</string>  
+    <string name="Add_Account">新增帳戶</string>  
+    <string name="Switch_Account">切換帳戶</string>  
+    <string name="switch_account_sure">您確定要切換到帳戶 %s 嗎？</string>  
+    <string name="title_medium_font_size">首頁聊天標題字體大小</string>  
+    <string name="body_medium_font_size">聊天頁面內容字體大小</string>  
+    <string name="body_small_font_size">首頁聊天內容字體大小</string>  
+    <string name="size">大小</string>  
+    <string name="pre_release">預發布</string>  
+    <string name="release">發布</string>  
+    <string name="Check_Update">檢查更新</string>  
+    <string name="already_latest">已經是最新版本了</string>  
+    <string name="New_version">新版本</string>  
+    <string name="version">版本</string>  
+    <string name="Release_type">版本類型</string>  
+    <string name="Release_time">發佈時間</string>  
+    <string name="downloads">下載</string>  
+    <string name="install">安裝</string>  
+    <string name="unknown_apps_install_permission_denied">您需要允許安裝未知來源的應用程式才能繼續安裝更新</string>  
+    <string name="Connecting">連接中</string>  
+    <string name="Update">更新中</string>  
+    <string name="Offline">離線</string>  
+    <string name="Reset_libtd">重設libtd（清除未登入的新帳戶或舊版本殘留）</string>  
+    <string name="Duplicate_account">重複帳戶</string>  
+    <string name="Log_out">登出</string>  
+    <string name="Confirm_Logout">確認登出</string>  
+    <string name="Confirm_logout_sure">您確定要登出登入嗎？</string>  
+    <string name="Update_tips">小提醒：下載後將存放於系統下載資料夾</string>  
+    <string name="Install_Apk">安裝APK</string>  
+    <string name="Search">搜尋</string>  
+    <string name="Network_setting">網路設定</string>  
+    <string name="Unknown_chat">未知聊天</string>  
+    <string name="acra_toast_text">軟體遇到錯誤，已通報。請重新啟動軟體。</string>  
+    <string name="author">作者</string>  
+    <string name="Famous_Quotes">名言</string>  
+    <string name="notice">注意</string>  
+    <string name="notice_about_1">該軟體是開源且免費的。</string>  
+    <string name="notice_about_2">如果您在任何地方購買了該軟體，請投訴並要求退款。</string>  
+    <string name="DeleteMessage">刪除留言</string>  
+    <string name="gohj99_description">主要開發者</string>  
+    <string name="jelly_description">使用者介面設計</string>  
+    <string name="Beta_title">測試版</string>  
+    <string name="Beta_description">將版本變更為測試版本\n可能存在各種錯誤</string>  
+    <string name="is_home_page_pin">是否取得首頁置頂訊息（可能有bug）</string>  
+    <string name="show_unknown_message_type">顯示不支援的訊息類型</string>  
+    <string name="GoToCheckUpdateActivity_title">檢查更新警告</string>  
+    <string name="GoToCheckUpdateActivity_description">我們將從官方 GitHub 儲存庫檢查更新。\n如果您從 IzzyOnDroid/F-Droid 等安裝了應用程序，則不會運行它們的軟體附加檢查。</string>  
+    <string name="don_remind_me_again">不要再提醒我</string>  
+    <string name="announcement_title">公告</string>  
+    <string name="No_app_to_handle_this_url">沒有應用程式可以處理此網址</string>  
+    <string name="Global_Search">全球搜尋</string>  
+    <string name="GoToAnnouncementActivity_title">公告查看提醒</string>  
+    <string name="GoToAnnouncementActivity_description">此功能需要存取作者的 API 伺服器</string>  
+    <string name="join_in">加入</string>  
+    <string name="Unable_get_username">無法取得用戶名</string>  
+    <string name="Chat_Info">聊天訊息</string>  
+    <string name="Online">在線的</string>  
+    <string name="Unknown">未知</string>  
+    <string name="Lately">最近</string>  
+    <string name="Last_week">上個星期</string>  
+    <string name="Last_month">上個月</string>  
+    <string name="Show_more">顯示更多</string>  
+    <string name="Private_Chat">私人聊天</string>  
+    <string name="Group_Chat">群聊</string>  
+    <string name="Member">成員</string>  
+    <string name="Supergroup_Chat">超級群聊</string>  
+    <string name="Channel">頻道</string>  
+    <string name="Subscribers">訂閱者</string>  
+    <string name="username">使用者名稱</string>  
+    <string name="Information">資訊</string>  
+    <string name="phoneNumber">電話號碼</string>  
+    <string name="Description">Description</string>  
+    <string name="Invite_Link">Invite Link</string>  
+    <string name="url">Url</string>  
+    <string name="Same_Chat">同樣的聊天</string>  
+    <string name="empty_message">空消息</string>  
+    <string name="notice_about_3">請不要使用本軟體從事違反任何法律的行為，否則您將承擔由此造成的一切後果</string>  
+    <string name="Audio_Error">音訊\n錯誤</string>  
+    <string name="remind_activity">提醒活動</string>  
+    <string name="Remind">提醒</string>  
+    <string name="Remind1">你好！ \n歡迎使用 Telewatch 應用程式！ \n首先，我們建議加入我們的官方 Telegram 群組以獲得支持。你可以點擊以下連結加入：\nhttps://t.me/teleAndroidwatch\n\n這裡有一個快速指南可以幫助你使用該應用程式：\n\n訊息邊框長按會顯示更多功能\n在聊天頁面上，點擊標題即可輸入聊天資訊以獲取更多詳細資訊。 \n長按並拖曳文字以選擇和複製。 \n在影像檢視器中，長按影像即可儲存到你的圖庫。 \n長按代理頁面上的項目即可刪除代理\n\nTelewatch 是開源且免費的。如果你想支持我們的開發，請考慮點擊下面的按鈕進行捐款。 \n\n我們希望你喜歡使用 Telewatch！</string>  
+    <string name="donate_activity">捐款活動</string>  
+    <string name="Donate">捐款</string>  
+    <string name="Telegram_not_connected">未連線（可能您還沒有登入）</string>  
+    <string name="DonateL">Telewatch 的持續發展需要您的捐款（點擊我展開）</string>  
+    <string name="Donate1">為了支持 Telewatch 的持續發展，我們懇請您慷慨捐贈。您的貢獻將幫助我們增強功能並改善每個人的整體體驗。感謝您的支持！</string>  
+    <string name="Donate2">azz: https://azz.ee/gohj99</string>  
+    <string name="Unable_open_url">無法開啟 URL</string>  
+    <string name="Clear_voice">清除語音</string>  
+    <string name="set_proxy_activity">設置代理活動</string>  
+    <string name="Proxy">代理設定</string>  
+    <string name="AddProxy">添加代理</string>  
+    <string name="add_proxy_activity">添加代理活動</string>  
+    <string name="Server">服務器主機</string>  
+    <string name="Port">連接埠</string>  
+    <string name="Add">添加</string>  
+    <string name="Key">鑰匙</string>  
+    <string name="password">密碼</string>  
+    <string name="Optional">可選</string>  
+    <string name="Connecting_Proxy">連接代理中</string>  
+    <string name="View_Tips">查看提示</string>  
+    <string name="Delete_Chat">刪除聊天</string>  
+    <string name="Deleted_User">刪除用戶</string>  
+    <string name="Add_Proxy">添加代理</string>  
+    <string name="Saved_Messages">收藏夾</string>  
+    <string name="last_seen">最後上線</string>  
+    <string name="Bot">機器人</string>  
+    <string name="Bio">介紹</string>  
+    <string name="Deleted_message">訊息已刪除</string>  
+    <string name="Write_message">輸入訊息…</string>  
+    <string name="Forward">轉發</string>  
+    <string name="Archived_Chats">已歸檔對話</string>  
+    <string name="Reply">回覆</string>  
+    <string name="Line_spacing">行間距</string>  
+    <string name="File">文件</string>  
+    <string name="copy_link">複製鏈接</string>  
+    <string name="copy_success_public">複製成功</string>  
+    <string name="copy_success_privacy">複製成功（需要有存取權限）</string>  
+    <string name="Failed_request">獲取失敗</string>
 </resources>
