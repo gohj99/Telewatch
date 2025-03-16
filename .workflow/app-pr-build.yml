@@ -1,0 +1,51 @@
+name: PR Test
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract repository name
+        id: repo-name
+        run: echo "REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2)" >> $GITHUB_ENV
+
+      - name: Extract version name
+        id: version_name
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' ./app/build.gradle.kts)
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android Build Tools
+        run: sdkmanager "build-tools;29.0.3"
+
+      - name: Extract formatted build date
+        run: echo "BUILD_DATE=$(date -u '+%Y%m%d%H')" >> $GITHUB_ENV
+
+      - name: Inject Secrets into config.properties
+        run: |
+          echo "api_id=${{ secrets.API_ID }}" > app/src/main/assets/config.properties
+          echo "api_hash=${{ secrets.API_HASH }}" >> app/src/main/assets/config.properties
+          echo "BUILD_DATE=${{ env.BUILD_DATE }}" >> app/src/main/assets/config.properties
+          echo "BETA=true" >> app/src/main/assets/config.properties
+
+      - uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.9
+          arguments: assembleRelease
