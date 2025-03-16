@@ -49,6 +49,7 @@ class TgApi(
 ) {
     var saveChatId = 0L
     var replyMessage = mutableStateOf<TdApi.Message?>(null)
+    private var updateFileCallBackList = mutableMapOf<Int, (Long) -> Unit>()
     private var saveChatMessagesList = mutableMapOf<Long, ChatMessagesSave>()
     private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
     private var saveChatIdList = mutableListOf<Long>()
@@ -134,11 +135,20 @@ class TgApi(
             TdApi.UpdateChatLastMessage.CONSTRUCTOR -> handleChatLastMessageUpdate(update as TdApi.UpdateChatLastMessage)
             TdApi.UpdateChatPosition.CONSTRUCTOR -> handleChatPositionUpdate(update as TdApi.UpdateChatPosition)
             TdApi.UpdateMessageSendSucceeded.CONSTRUCTOR -> handleMessageSendSucceededUpdate(update as TdApi.UpdateMessageSendSucceeded)
+            TdApi.UpdateFile.CONSTRUCTOR -> handleFileUpdate(update as TdApi.UpdateFile)
             // 其他更新
             else -> {
                 Log.d("TdApiUpdate","Received update: $update")
             }
         }
+    }
+
+    // 文件更新
+    private fun handleFileUpdate(update: TdApi.UpdateFile) {
+        val file = update.file
+        //println("${file.id} file\n isDownloadingCompleted: ${file.local.isDownloadingCompleted}\n downloadedSize: ${file.local.downloadedSize}")
+
+        updateFileCallBackList[file.id]?.invoke(file.local.downloadedSize)
     }
 
     // 消息发送成功
@@ -717,6 +727,14 @@ class TgApi(
                 val caption = content.caption.text
                 append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
+            is TdApi.MessageDocument -> buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.blue)))) {
+                    append(context.getString(R.string.File))
+                }
+                append(" ")
+                val caption = content.document.fileName + content.caption.text
+                append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
+            }
             is TdApi.MessageAnimatedEmoji -> buildAnnotatedString {
                 if (content.emoji.isEmpty()) append(context.getString(R.string.Unknown_Message))
                 else append(content.emoji)
@@ -752,6 +770,7 @@ class TgApi(
         }.toString()
     }
 
+    // 获取归档会话
     fun getArchiveChats() {
         client.send(TdApi.GetChats(TdApi.ChatListArchive(), 1000)) { response ->
             if (response is TdApi.Chats) {
@@ -787,25 +806,57 @@ class TgApi(
         }
     }
 
+    // 获取消息链接
+    fun getMessageLink(
+        messageId: Long,
+        chatId: Long = saveChatId,
+        callback: (TdApi.MessageLink?) -> Unit
+    ) {
+        client.send(TdApi.GetMessageLink(
+            chatId,
+            messageId,
+            0,
+            false,
+            false
+        )) { response ->
+            //println(response)
+            if (response is TdApi.MessageLink) {
+                println("Message link: ${response.link}")
+                callback.invoke(response)
+            } else if (response is TdApi.Error) {
+                if (response.code == 400) {
+                    println("Error message: ${response.message}")
+                    callback.invoke(null)
+                }
+            }
+        }
+    }
+
     // 下载文件
     fun downloadFile(
         file: TdApi.File,
-        schedule: (String) -> Unit,
-        completion: (Boolean, String?) -> Unit,
-        priority: Int = 1
+        schedule: (Long) -> Unit = {},
+        completion: (Boolean, String?) -> Unit = { _, _ -> },
+        priority: Int = 1,
+        synchronous: Boolean = true
     ) {
         // 判断文件是否已经下载完成
         if (file.local.isDownloadingCompleted) {
             // 文件已经下载完成，直接返回
             completion(true, file.local.path)
         } else {
+            // 添加进度更新
+            if (schedule != {}) {
+                updateFileCallBackList[file.id] = schedule
+            }
+
             // 开始下载文件
             client.send(TdApi.DownloadFile(
                 file.id, // fileId: 文件 ID，类型 int
                 priority, // priority: 下载优先级，1-32，类型 int
                 0, // offset: 下载起始位置，类型 long
                 0, // limit: 下载的字节数限制，0 表示无限制，类型 long
-                true // synchronous: 是否同步，类型 boolean
+                synchronous // synchronous: 是否异步，类型 boolean
             )) { response ->
                 when (response) {
                     is TdApi.Error -> {
@@ -815,16 +866,8 @@ class TgApi(
                     }
 
                     is TdApi.File -> {
-                        // 检查下载进度
-                        val downloadProgress =
-                            if (response.local.downloadedSize > 0 && response.expectedSize > 0) {
-                                (response.local.downloadedSize * 100 / response.expectedSize).toString() + "%"
-                            } else {
-                                "error"
-                            }
-
                         // 回调schedule以更新进度
-                        schedule(downloadProgress)
+                        schedule(response.local.downloadedSize)
 
                         // 检查是否下载完成
                         if (response.local.isDownloadingCompleted) {
@@ -841,7 +884,7 @@ class TgApi(
                                 }
                             }
                         } else {
-                            println("下载进行中: $downloadProgress")
+                            println("下载进行中: ${response.local.downloadedSize}")
                         }
                     }
 
@@ -850,6 +893,20 @@ class TgApi(
                         completion(false, null)
                     }
                 }
+            }
+        }
+    }
+
+    // 删除正在下载的文件
+    fun cancelDownloadFile(fileId: Int, callback: () -> Unit) {
+        //println("删除文件 $fileId")
+        client.send(TdApi.CancelDownloadFile(
+            fileId,
+            false
+        )) { response ->
+            //println(response)
+            if (response is TdApi.Ok) {
+                callback.invoke()
             }
         }
     }

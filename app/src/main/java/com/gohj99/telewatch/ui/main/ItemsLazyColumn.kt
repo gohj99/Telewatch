@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch.ui.main
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -141,6 +142,7 @@ fun ChatLazyColumn(
 
     LazyColumn(
         state = listState,
+        verticalArrangement = Arrangement.spacedBy(0.dp),
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp)

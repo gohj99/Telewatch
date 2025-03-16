@@ -105,6 +105,15 @@ fun LongPressBox(
                             }
                         )
                         LPMainCard(
+                            text = stringResource(id = R.string.copy_link),
+                            callback = {
+                                coroutineScope.launch {
+                                    callBack("CopyLink")
+                                    onDismiss()
+                                }
+                            }
+                        )
+                        LPMainCard(
                             text = stringResource(id = R.string.ReloadMessage),
                             callback = {
                                 coroutineScope.launch {

@@ -188,5 +188,11 @@
     <string name="Write_message">メッセージを書く…</string>  
     <string name="Forward">フォワード</string>  
     <string name="Archived_Chats">アーカイブされたチャット</string>  
-    <string name="Reply">返事</string>
+    <string name="Reply">返事</string>  
+    <string name="Line_spacing">ライン間隔</string>  
+    <string name="File">ファイル</string>  
+    <string name="copy_link">リンクをコピーします</string>  
+    <string name="copy_success_public">成功をコピーします</string>  
+    <string name="copy_success_privacy">成功をコピーする（アクセスに必要な許可）</string>  
+    <string name="Failed_request">要求に失敗しました</string>
 </resources>

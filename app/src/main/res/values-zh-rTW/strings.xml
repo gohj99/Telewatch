@@ -188,5 +188,11 @@
     <string name="Write_message">輸入訊息…</string>  
     <string name="Forward">轉發</string>  
     <string name="Archived_Chats">已歸檔對話</string>  
-    <string name="Reply">回覆</string>
+    <string name="Reply">回覆</string>  
+    <string name="Line_spacing">行間距</string>  
+    <string name="File">文件</string>  
+    <string name="copy_link">複製鏈接</string>  
+    <string name="copy_success_public">複製成功</string>  
+    <string name="copy_success_privacy">複製成功（需要有存取權限）</string>  
+    <string name="Failed_request">獲取失敗</string>
 </resources>

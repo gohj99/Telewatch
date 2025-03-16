@@ -9,6 +9,8 @@
 package com.gohj99.telewatch
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -250,6 +252,33 @@ class ChatActivity : ComponentActivity() {
                                         "DeleteMessage" -> {
                                             tgApi!!.deleteMessageById(message.id)
                                             Toast.makeText(this, "OK", Toast.LENGTH_SHORT).show()
+                                            return@SplashChatScreen "OK"
+                                        }
+
+                                        "CopyLink" -> {
+                                            tgApi!!.getMessageLink(
+                                                messageId = message.id,
+                                                chatId = message.chatId,
+                                                callback = { link ->
+                                                    if (link != null) {
+                                                        runOnUiThread {
+                                                            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                                                            val clip = ClipData.newPlainText("message_link", link.link)
+                                                            clipboard.setPrimaryClip(clip)
+
+                                                            if (link.isPublic) {
+                                                                Toast.makeText(this@ChatActivity, getString(R.string.copy_success_public), Toast.LENGTH_SHORT).show()
+                                                            } else {
+                                                                Toast.makeText(this@ChatActivity, getString(R.string.copy_success_privacy), Toast.LENGTH_SHORT).show()
+                                                            }
+                                                        }
+                                                    } else {
+                                                        runOnUiThread {
+                                                            Toast.makeText(this@ChatActivity, getString(R.string.Failed_request), Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    }
+                                                }
+                                            )
                                             return@SplashChatScreen "OK"
                                         }
 

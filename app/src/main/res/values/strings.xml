@@ -189,4 +189,10 @@
     <string name="Forward">Forward</string>
     <string name="Archived_Chats">Archived chats</string>
     <string name="Reply">Reply</string>
+    <string name="Line_spacing">Line spacing</string>
+    <string name="File">File</string>
+    <string name="copy_link">Copy link</string>
+    <string name="copy_success_public">Copy success</string>
+    <string name="copy_success_privacy">Copy success (Permission required to access)</string>
+    <string name="Failed_request">Failed to request</string>
 </resources>

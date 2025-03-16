@@ -35,7 +35,7 @@ class SettingActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val settingsSharedPref = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val settingsSharedPref = getSharedPreferences("app_settings", MODE_PRIVATE)
         //Log.d("SharedPreferences", "当前获取状态: " + settingsSharedPref.getBoolean("Data_Collection", false))
 
         val externalDir: File = getExternalFilesDir(null)
@@ -164,6 +164,19 @@ class SettingActivity : ComponentActivity() {
             1 -> {
                 title = getString(R.string.UI_Edit)
                 settingsList.value = listOf(
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.Line_spacing),
+                        progress = settingsSharedPref.getFloat("Line_spacing", 6f),
+                        maxValue = 10f,
+                        minValue = 1f,
+                        base = 0.1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("Line_spacing", size)
+                                apply()
+                            }
+                        }
+                    ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.title_medium_font_size),
                         progress = settingsSharedPref.getFloat("title_medium_font_size", 13f),

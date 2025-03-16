@@ -15,6 +15,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -179,10 +180,10 @@ fun InputBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .height(40.dp)
+            .defaultMinSize(minHeight = 40.dp) // 设置最小高度，允许根据内容自动增高
             .drawBehind {
                 val strokeWidth = 4.dp.toPx()
-                val cornerRadius = strokeWidth / 2 // 圆角半径，使用线宽的一半
+                val cornerRadius = strokeWidth / 2 // 使用线宽的一半作为圆角半径
                 drawRoundRect(
                     color = Color(0xFF2C323A),
                     topLeft = Offset(0f, size.height - strokeWidth),
@@ -197,32 +198,26 @@ fun InputBar(
             onValueChange = onQueryChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp) // 调整内边距，使文本框和图标之间有空间
-                .align(Alignment.CenterStart), // 文本垂直居中
-            singleLine = true,
+                .padding(horizontal = 16.dp, vertical = 8.dp), // 添加垂直内边距适配多行文本
+            singleLine = false,
             textStyle = LocalTextStyle.current.copy(
                 color = Color(0xFF4E5C67),
                 fontSize = MaterialTheme.typography.titleMedium.fontSize
             ),
             cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
             decorationBox = { innerTextField ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                // 使用Box使内容从上方开始显示，适合多行输入
+                Box(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        if (query.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                color = Color(0xFF4E5C67),
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize
-                            )
-                        }
-                        innerTextField() // 输入框内容
+                    if (query.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            color = Color(0xFF4E5C67),
+                            fontSize = MaterialTheme.typography.titleMedium.fontSize
+                        )
                     }
+                    innerTextField()
                 }
             }
         )

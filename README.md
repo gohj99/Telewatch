@@ -50,11 +50,13 @@ adb install Telewatch.apk
 ## Functions
 
 - Multi-account support
-- Interface font adjustment
+- Interface customization
+- All message grouping support
 - Unread/read indicator
 - Connection status indicator
 - Viewing or downloading text, images, and videos
 - Play Voice Message
+- Reply and forward messages
 - Saving images or videos
 - Text messaging
 - Message deletion

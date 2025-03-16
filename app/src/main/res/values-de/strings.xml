@@ -188,5 +188,11 @@
     <string name="Write_message">Nachricht schreiben…</string>  
     <string name="Forward">Nach vorne</string>  
     <string name="Archived_Chats">Archivierte Chats</string>  
-    <string name="Reply">Antwort</string>
+    <string name="Reply">Antwort</string>  
+    <string name="Line_spacing">Zeilenabstand</string>  
+    <string name="File">Datei</string>  
+    <string name="copy_link">Link kopieren</string>  
+    <string name="copy_success_public">Erfolg kopieren</string>  
+    <string name="copy_success_privacy">Erfolg kopieren (Genehmigung für den Zugriff)</string>  
+    <string name="Failed_request">Nicht anfordern</string>
 </resources>

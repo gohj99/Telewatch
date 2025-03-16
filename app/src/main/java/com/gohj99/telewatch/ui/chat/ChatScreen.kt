@@ -10,6 +10,7 @@ package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -91,6 +92,7 @@ import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.gohj99.telewatch.utils.formatDuration
+import com.gohj99.telewatch.utils.formatSize
 import com.gohj99.telewatch.utils.formatTimestampToDate
 import com.gohj99.telewatch.utils.formatTimestampToTime
 import kotlinx.coroutines.delay
@@ -98,6 +100,19 @@ import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
+
+object MessageCache {
+    private val cache = mutableMapOf<Int, TdApi.MessageContent>()
+    private var cacheSize = 0
+
+    fun put(content: TdApi.MessageContent) : Int {
+        cacheSize += 1
+        cache[cacheSize] = content
+        return cacheSize
+    }
+
+    fun get(cacheSize: Int): TdApi.MessageContent? = cache[cacheSize]
+}
 
 // 反射机制获取MessageContent的类信息
 fun getMessageContentTypeName(messageContent: TdApi.MessageContent): String {
@@ -138,29 +153,37 @@ fun SplashChatScreen(
 
     // 保存和恢复MessageContent
     val MessageContentSaver = Saver<TdApi.MessageContent, Any>(
-        save = { messageContent ->
-            when (messageContent) {
-                is TdApi.MessageText -> mapOf(
+        save = { content ->
+            when {
+                // 优先处理文本类型
+                content is TdApi.MessageText -> mapOf(
                     "type" to "MessageText",
-                    "text" to messageContent.text.text,
-                    "entities" to messageContent.text.entities.toList(),
-                    "linkPreview" to messageContent.linkPreview,
-                    "linkPreviewOptions" to messageContent.linkPreviewOptions
+                    "text" to content.text.text
                 )
-                else -> throw IllegalStateException("Unsupported type")
+                // 其他类型统一使用ID引用
+                else -> {
+                    val cache = MessageCache.put(content)
+                    mapOf("type" to "MessageReference", "cache" to cache)
+                }
             }
         },
         restore = { value ->
             when ((value as Map<String, *>)["type"]) {
                 "MessageText" -> TdApi.MessageText(
-                    TdApi.FormattedText(
-                        value["text"] as String,
-                        (value["entities"] as List<TdApi.TextEntity>).toTypedArray()
-                    ),
-                    value["linkPreview"] as? TdApi.LinkPreview,
-                    value["linkPreviewOptions"] as? TdApi.LinkPreviewOptions
+                    TdApi.FormattedText(value["text"] as String, emptyArray()),
+                    null, null
                 )
-                else -> throw IllegalStateException("Unsupported type")
+                "MessageReference" -> {
+                    val cache = value["cache"] as Int
+                    MessageCache.get(cache) ?: TdApi.MessageText(
+                        TdApi.FormattedText("error", emptyArray()),
+                        null, null
+                    )
+                }
+                else -> TdApi.MessageText(
+                    TdApi.FormattedText("error", emptyArray()),
+                    null, null
+                )
             }
         }
     )
@@ -261,14 +284,15 @@ fun SplashChatScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            //println("开始渲染")
+            // 标题
             Box(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp) // 调整垂直填充
             ) {
                 ClickableText(
                     text = AnnotatedString(if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle),
                     style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFFEFEFE), fontWeight = FontWeight.Bold),
-                    onClick = { chatTitleClick() }
+                    onClick = { chatTitleClick() },
+                    modifier = Modifier.verticalScroll(rememberScrollState())
                 )
             }
 
@@ -303,8 +327,8 @@ fun SplashChatScreen(
                                 val textColor = if (isCurrentUser) Color(0xFF66D3FE) else Color(0xFFFEFEFE)
                                 val alignment = if (isCurrentUser) Arrangement.End else Arrangement.Start
                                 val modifier = if (isCurrentUser) Modifier.align(Alignment.End) else Modifier
-                                var videoDownloadDone = rememberSaveable { mutableStateOf(false) }
-                                var videoDownload = rememberSaveable { mutableStateOf(false) }
+                                var stateDownloadDone = rememberSaveable { mutableStateOf(false) }
+                                var stateDownload = rememberSaveable { mutableStateOf(false) }
 
                                 tgApi?.markMessagesAsRead(message.id)
 
@@ -333,22 +357,19 @@ fun SplashChatScreen(
                                                     text = senderName,
                                                     modifier = Modifier
                                                         .pointerInput(Unit) {
-                                                            detectTapGestures(
-                                                                onTap = {
-                                                                    if (senderUser.userId != chatId) {
-                                                                        goToChat(
-                                                                            Chat(
-                                                                                id = senderUser.userId,
-                                                                                title = senderName
-                                                                            )
+                                                            detectTapGestures(onTap = {
+                                                                if (senderUser.userId != chatId) {
+                                                                    goToChat(
+                                                                        Chat(
+                                                                            id = senderUser.userId,
+                                                                            title = senderName
                                                                         )
-                                                                    }
-                                                                },
-                                                                onLongPress = {
-                                                                    selectMessage = message
-                                                                    isLongPressed = true
+                                                                    )
                                                                 }
-                                                            )
+                                                            }, onLongPress = {
+                                                                selectMessage = message
+                                                                isLongPressed = true
+                                                            })
                                                         }
                                                         .padding(start = 10.dp, end = 5.dp),
                                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
@@ -649,8 +670,8 @@ fun SplashChatScreen(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
                                                                             textColor = textColor,
-                                                                            videoDownload = videoDownload,
-                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            stateDownload = stateDownload,
+                                                                            stateDownloadDone = stateDownloadDone,
                                                                             showUnknownMessageType = showUnknownMessageType
                                                                         )
                                                                     }
@@ -675,8 +696,8 @@ fun SplashChatScreen(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
                                                                             textColor = textColor,
-                                                                            videoDownload = videoDownload,
-                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            stateDownload = stateDownload,
+                                                                            stateDownloadDone = stateDownloadDone,
                                                                             showUnknownMessageType = showUnknownMessageType
                                                                         )
                                                                     }
@@ -811,8 +832,8 @@ fun SplashChatScreen(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
                                                                             textColor = textColor,
-                                                                            videoDownload = videoDownload,
-                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            stateDownload = stateDownload,
+                                                                            stateDownloadDone = stateDownloadDone,
                                                                             showUnknownMessageType = showUnknownMessageType
                                                                         )
                                                                     }
@@ -836,8 +857,8 @@ fun SplashChatScreen(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
                                                                             textColor = textColor,
-                                                                            videoDownload = videoDownload,
-                                                                            videoDownloadDone = videoDownloadDone,
+                                                                            stateDownload = stateDownload,
+                                                                            stateDownloadDone = stateDownloadDone,
                                                                             showUnknownMessageType = showUnknownMessageType
                                                                         )
                                                                     }
@@ -876,7 +897,7 @@ fun SplashChatScreen(
                                                             isLongPressed = true
                                                         },
                                                         onTap = {
-                                                            if (!videoDownload.value) {
+                                                            if (!stateDownload.value) {
                                                                 if (message.content is TdApi.MessageVideo) {
                                                                     val videoFile =
                                                                         (message.content as TdApi.MessageVideo).video.video
@@ -889,13 +910,13 @@ fun SplashChatScreen(
                                                                             completion = { boolean, path ->
                                                                                 println("下载完成情况: $boolean")
                                                                                 println("下载路径: $path")
-                                                                                videoDownload.value =
+                                                                                stateDownload.value =
                                                                                     false
-                                                                                videoDownloadDone.value =
+                                                                                stateDownloadDone.value =
                                                                                     true
                                                                             }
                                                                         )
-                                                                        videoDownload.value = true
+                                                                        stateDownload.value = true
                                                                     }
                                                                 }
                                                                 press(message)
@@ -910,8 +931,8 @@ fun SplashChatScreen(
                                                     content = content,
                                                     onLinkClick = onLinkClick,
                                                     textColor = textColor,
-                                                    videoDownload = videoDownload,
-                                                    videoDownloadDone = videoDownloadDone,
+                                                    stateDownload = stateDownload,
+                                                    stateDownloadDone = stateDownloadDone,
                                                     showUnknownMessageType = showUnknownMessageType
                                                 )
 
@@ -1024,8 +1045,8 @@ fun SplashChatScreen(
                                         .fillMaxWidth()
                                 )
                                 var parentHeight by remember { mutableIntStateOf(0) }
-                                var videoDownloadDone = rememberSaveable { mutableStateOf(false) }
-                                var videoDownload = rememberSaveable { mutableStateOf(false) }
+                                var stateDownloadDone = rememberSaveable { mutableStateOf(false) }
+                                var stateDownload = rememberSaveable { mutableStateOf(false) }
 
                                 Row(
                                     modifier = Modifier
@@ -1073,8 +1094,8 @@ fun SplashChatScreen(
                                                         content = planReplyMessage!!.content,
                                                         onLinkClick = onLinkClick,
                                                         textColor = Color(0xFFFEFEFE),
-                                                        videoDownload = videoDownload,
-                                                        videoDownloadDone = videoDownloadDone,
+                                                        stateDownload = stateDownload,
+                                                        stateDownloadDone = stateDownloadDone,
                                                         showUnknownMessageType = showUnknownMessageType
                                                     )
                                                 } else {
@@ -1088,8 +1109,8 @@ fun SplashChatScreen(
                                                         content = planReplyMessage!!.content,
                                                         onLinkClick = onLinkClick,
                                                         textColor = Color(0xFFFEFEFE),
-                                                        videoDownload = videoDownload,
-                                                        videoDownloadDone = videoDownloadDone,
+                                                        stateDownload = stateDownload,
+                                                        stateDownloadDone = stateDownloadDone,
                                                         showUnknownMessageType = showUnknownMessageType
                                                     )
                                                 }
@@ -1391,8 +1412,8 @@ fun SplashChatScreen(
 fun messageDrawer(
     onLinkClick: (String) -> Unit,
     content: TdApi.MessageContent,
-    videoDownload: MutableState<Boolean>,
-    videoDownloadDone: MutableState<Boolean>,
+    stateDownload: MutableState<Boolean>,
+    stateDownloadDone: MutableState<Boolean>,
     textColor: Color,
     showUnknownMessageType: Boolean,
     modifier: Modifier = Modifier
@@ -1469,12 +1490,12 @@ fun messageDrawer(
                     )
                 }
 
-                if (videoDownload.value) SplashLoadingScreen()
+                if (stateDownload.value) SplashLoadingScreen()
                 val videoFile = content.video.video
                 if (videoFile.local.isDownloadingCompleted) {
-                    videoDownloadDone.value = true
+                    stateDownloadDone.value = true
                 }
-                if (videoDownloadDone.value) {
+                if (stateDownloadDone.value) {
                     Image(
                         painter = painterResource(id = R.drawable.play),
                         contentDescription = null,
@@ -1483,7 +1504,7 @@ fun messageDrawer(
                             .size(36.dp) // 设置图标大小为 24dp
                     )
                 } else {
-                    if (!videoDownload.value) {
+                    if (!stateDownload.value) {
                         Image(
                             painter = painterResource(id = R.drawable.download),
                             contentDescription = null,
@@ -1576,6 +1597,28 @@ fun messageDrawer(
                 modifier = modifier
             )
         }
+        // 文件消息
+        is TdApi.MessageDocument -> {
+            MessageFile(
+                content = content,
+                stateDownload = stateDownload,
+                stateDownloadDone = stateDownloadDone,
+                modifier = modifier
+            )
+
+            // 文件文字
+            content.caption?.text?.let {
+                SelectionContainer {
+                    LinkText(
+                        text = it,
+                        color = Color(0xFFFEFEFE),
+                        modifier = modifier.padding(top = 4.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        onLinkClick = onLinkClick
+                    )
+                }
+            }
+        }
         else -> {
             SelectionContainer {
                 Text(
@@ -1585,6 +1628,106 @@ fun messageDrawer(
                     modifier = modifier
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun MessageFile(
+    content: TdApi.MessageDocument,
+    stateDownload: MutableState<Boolean>,
+    stateDownloadDone: MutableState<Boolean>,
+    modifier: Modifier = Modifier
+){
+    val context = LocalContext.current
+    val document = content.document
+    val file = document.document
+    var fileUrl by remember { mutableStateOf(file.local.path) }
+    val fileName = document.fileName
+    val fileSize = file.size
+    var downloadSchedule by remember { mutableStateOf(file.local.downloadedSize) }
+
+    // 检查文件状态
+    LaunchedEffect(document) {
+        if (file.local.isDownloadingCompleted) {
+            stateDownloadDone.value = true
+        } else {
+            stateDownloadDone.value = false
+        }
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        if (stateDownloadDone.value) {
+            Image(
+                painter = painterResource(id = R.drawable.file_icon),
+                contentDescription = "downloaded_file",
+                modifier = Modifier
+                    .size(width = 32.dp, height = 32.dp)
+                    .clip(CircleShape)
+                    .clickable {
+                        Toast.makeText(context, fileUrl, Toast.LENGTH_SHORT).show()
+                    }
+            )
+        } else {
+            if (stateDownload.value) {
+                Image(
+                    painter = painterResource(id = R.drawable.remove_icon),
+                    contentDescription = "remove",
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 32.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            tgApi!!.cancelDownloadFile(file.id) {
+                                stateDownload.value = false
+                                stateDownloadDone.value = false
+                            }
+                        }
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.download_file),
+                    contentDescription = "download_file",
+                    modifier = Modifier
+                        .size(width = 32.dp, height = 32.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            stateDownload.value = true
+                            tgApi!!.downloadFile(
+                                file = file,
+                                schedule = { schedule ->
+                                    downloadSchedule = schedule
+                                },
+                                completion = { success, tdFleUrl ->
+                                    if (success) {
+                                        //println(tdFleUrl)
+                                        if (tdFleUrl != null) fileUrl = tdFleUrl
+                                        //println(fileUrl)
+                                        stateDownloadDone.value = true
+                                        stateDownload.value = false
+                                    }
+                                }
+                            )
+                        }
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = fileName,
+                color = Color(0xFFFEFEFE),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = modifier
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text =
+                    if (downloadSchedule == 0L || downloadSchedule == fileSize) formatSize(fileSize)
+                    else "${formatSize(downloadSchedule)} | ${formatSize(fileSize)}",
+                color = Color(0xFF6985A2),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = modifier
+            )
         }
     }
 }

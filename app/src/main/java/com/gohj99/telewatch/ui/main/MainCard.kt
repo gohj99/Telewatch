@@ -8,6 +8,7 @@
 
 package com.gohj99.telewatch.ui.main
 
+import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -127,10 +129,15 @@ fun <T> MainCard(
     onLongClick: (T) -> Unit = {},
     color: Color = Color(0xFF404953)
 ) {
+    // 获取context
+    val context = LocalContext.current
+    val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    val lineSpacing = settingsSharedPref.getFloat("Line_spacing", 6f)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
+            .padding(vertical = lineSpacing.dp)
             .combinedClickable(
                 onClick = { callback(item) }, // 处理点击
                 onLongClick = { onLongClick(item) } // 处理长按
