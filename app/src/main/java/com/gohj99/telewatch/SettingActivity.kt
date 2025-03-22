@@ -165,8 +165,21 @@ class SettingActivity : ComponentActivity() {
                 title = getString(R.string.UI_Edit)
                 settingsList.value = listOf(
                     SettingItem.ProgressBar(
+                        itemName = getString(R.string.Message_preload_quantity),
+                        progress = settingsSharedPref.getInt("Message_preload_quantity", 10).toFloat(),
+                        maxValue = 50f,
+                        minValue = 5f,
+                        base = 1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putInt("Message_preload_quantity", size.toInt())
+                                apply()
+                            }
+                        }
+                    ),
+                    SettingItem.ProgressBar(
                         itemName = getString(R.string.Line_spacing),
-                        progress = settingsSharedPref.getFloat("Line_spacing", 6f),
+                        progress = settingsSharedPref.getFloat("Line_spacing", 5.5f),
                         maxValue = 10f,
                         minValue = 1f,
                         base = 0.1f,
@@ -179,7 +192,7 @@ class SettingActivity : ComponentActivity() {
                     ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.title_medium_font_size),
-                        progress = settingsSharedPref.getFloat("title_medium_font_size", 13f),
+                        progress = settingsSharedPref.getFloat("title_medium_font_size", 14.3f),
                         maxValue = 25f,
                         minValue = 5f,
                         base = 0.1f,
@@ -192,7 +205,7 @@ class SettingActivity : ComponentActivity() {
                     ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.body_small_font_size),
-                        progress = settingsSharedPref.getFloat("body_small_font_size", 14f),
+                        progress = settingsSharedPref.getFloat("body_small_font_size", 13.3f),
                         maxValue = 25f,
                         minValue = 5f,
                         base = 0.1f,
@@ -205,7 +218,7 @@ class SettingActivity : ComponentActivity() {
                     ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.body_medium_font_size),
-                        progress = settingsSharedPref.getFloat("body_medium_font_size", 12f),
+                        progress = settingsSharedPref.getFloat("body_medium_font_size", 13.5f),
                         maxValue = 25f,
                         minValue = 5f,
                         base = 0.1f,

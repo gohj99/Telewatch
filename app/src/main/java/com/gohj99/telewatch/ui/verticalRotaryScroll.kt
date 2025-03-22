@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -16,7 +16,9 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
@@ -36,11 +38,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun <T> Modifier.verticalRotaryScroll(
     state: T,
-    reverse: Boolean = false
+    reverse: Boolean = false,
+    pagerState: PagerState? = null,
+    pageCurrent: Int = -1
 ): Modifier {
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    val focusRequester = rememberActiveFocusRequester()
+
+    if (pagerState != null) {
+
+        LaunchedEffect(pagerState.isScrollInProgress) {
+            if (!pagerState.isScrollInProgress && pagerState.currentPage == pageCurrent) focusRequester.requestFocus()
+        }
+    }
 
     return then(
         Modifier
@@ -83,7 +95,7 @@ fun <T> Modifier.verticalRotaryScroll(
                 }
                 true
             }
-            .focusRequester(rememberActiveFocusRequester()) // 请求焦点
+            .focusRequester(focusRequester) // 请求焦点
             .focusable() // 聚焦
     )
 }

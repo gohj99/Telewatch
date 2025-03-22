@@ -194,5 +194,6 @@
     <string name="copy_link">リンクをコピーします</string>  
     <string name="copy_success_public">成功をコピーします</string>  
     <string name="copy_success_privacy">成功をコピーする（アクセスに必要な許可）</string>  
-    <string name="Failed_request">要求に失敗しました</string>
+    <string name="Failed_request">要求に失敗しました</string>  
+    <string name="Message_preload_quantity">プリロードへのメッセージの数（この値は、メッセージを正常にロードできるように携帯電話で増やす必要があります）</string>
 </resources>

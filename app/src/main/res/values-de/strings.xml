@@ -194,5 +194,6 @@
     <string name="copy_link">Link kopieren</string>  
     <string name="copy_success_public">Erfolg kopieren</string>  
     <string name="copy_success_privacy">Erfolg kopieren (Genehmigung für den Zugriff)</string>  
-    <string name="Failed_request">Nicht anfordern</string>
+    <string name="Failed_request">Nicht anfordern</string>  
+    <string name="Message_preload_quantity">Anzahl der zu vorgeladenen Nachrichten (dieser Wert muss auf Mobiltelefonen erhöht werden, damit Nachrichten normal geladen werden können)</string>
 </resources>
