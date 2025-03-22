@@ -12,13 +12,19 @@ import android.annotation.SuppressLint
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.compose.ui.text.buildAnnotatedString
+import org.drinkless.tdlib.TdApi
 
 @SuppressLint("ParcelCreator")
 data class Chat(
     val id: Long,
     val title: String,
-    val message: androidx.compose.ui.text.AnnotatedString = buildAnnotatedString {},
+    val accentColorId: Int = 2, // 会话颜色
+    val unreadCount: Int = 0, // 未读会话
+    val lastMessage: androidx.compose.ui.text.AnnotatedString = buildAnnotatedString {},
+    val lastMessageTime: Int = -1, // 最后一条消息的时间,
+    val chatPhoto: TdApi.File? = null, // 会话头像
     val order: Long = -1, // 会话排序
+    val needNotification: Boolean = true, // 是否需要通知
     val isPinned: Boolean = false, // 是否在全部会话置顶
     val isRead: Boolean = false, // 聊天是否已读
     val isBot: Boolean = false, // 是否为机器人对话
@@ -34,6 +40,19 @@ data class Chat(
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeLong(id)
         dest.writeString(title)
+        // 添加其他属性的序列化
+        dest.writeInt(lastMessageTime)
+        dest.writeLong(order)
+        dest.writeByte(if (isPinned) 1 else 0)
+        dest.writeByte(if (isRead) 1 else 0)
+        dest.writeByte(if (isBot) 1 else 0)
+        dest.writeByte(if (isChannel) 1 else 0)
+        dest.writeByte(if (isGroup) 1 else 0)
+        dest.writeByte(if (isPrivateChat) 1 else 0)
+    }
+
+    override fun toString(): String {
+        return "Chat(...)"  // 避免打印ByteArray内容
     }
 
     companion object CREATOR : Parcelable.Creator<Chat> {
@@ -41,6 +60,7 @@ data class Chat(
             return Chat(
                 parcel.readLong(),
                 parcel.readString() ?: "",
+                parcel.readInt()
             )
         }
 

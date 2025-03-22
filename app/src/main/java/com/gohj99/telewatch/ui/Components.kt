@@ -10,7 +10,10 @@ package com.gohj99.telewatch.ui
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,8 +48,11 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
 
@@ -201,7 +208,7 @@ fun InputBar(
                 .padding(horizontal = 16.dp, vertical = 8.dp), // 添加垂直内边距适配多行文本
             singleLine = false,
             textStyle = LocalTextStyle.current.copy(
-                color = Color(0xFF4E5C67),
+                color = Color.White,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize
             ),
             cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
@@ -222,6 +229,32 @@ fun InputBar(
             }
         )
     }
+}
+
+@Composable
+fun AutoScrollingText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color.White,
+    fontWeight: FontWeight = FontWeight.Bold,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    widthInMax: Dp = 100.dp,
+    spacing: Dp = 50.dp
+) {
+    Text(
+        text = text,
+        modifier = modifier
+            .widthIn(max = widthInMax)
+            .basicMarquee(
+                iterations = Int.MAX_VALUE, // 无限次滚动
+                spacing = MarqueeSpacing(spacing), // 间隔
+                velocity = 30.dp, // 滚动速度
+                animationMode = MarqueeAnimationMode.Immediately // 立即开始动画
+            ),
+        color = color,
+        fontWeight = fontWeight,
+        style = style
+    )
 }
 
 @Preview(showBackground = true)

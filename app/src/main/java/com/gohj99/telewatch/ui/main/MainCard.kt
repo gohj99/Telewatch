@@ -127,12 +127,13 @@ fun <T> MainCard(
     item: T,
     callback: (T) -> Unit = {},
     onLongClick: (T) -> Unit = {},
-    color: Color = Color(0xFF404953)
+    color: Color = Color(0xFF404953),
+    modifier: Modifier = Modifier.padding(start = 12.dp, top = 9.dp, end = 14.dp, bottom = 9.dp)
 ) {
     // 获取context
     val context = LocalContext.current
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    val lineSpacing = settingsSharedPref.getFloat("Line_spacing", 6f)
+    val lineSpacing = settingsSharedPref.getFloat("Line_spacing", 5.5f)
 
     Card(
         modifier = Modifier
@@ -147,7 +148,7 @@ fun <T> MainCard(
             containerColor = color // 设置 Card 的背景颜色
         )
     ) {
-        Column(modifier = Modifier.padding(start = 12.dp, top = 9.dp, end = 14.dp, bottom = 9.dp)) {
+        Column(modifier = modifier) {
             column()
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -31,9 +31,9 @@ fun TelewatchTheme(
 ) {
     val context = LocalContext.current
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    val titleMediumFontSize = settingsSharedPref.getFloat("title_medium_font_size", 13f)
-    val bodySmallFontSize = settingsSharedPref.getFloat("body_small_font_size", 14f)
-    val bodyMediumFontSize = settingsSharedPref.getFloat("body_medium_font_size", 12f)
+    val titleMediumFontSize = settingsSharedPref.getFloat("title_medium_font_size", 14.3f)
+    val bodySmallFontSize = settingsSharedPref.getFloat("body_small_font_size", 13.3f)
+    val bodyMediumFontSize = settingsSharedPref.getFloat("body_medium_font_size", 13.5f)
 
     val customTypography = Typography(
         titleMedium = TextStyle(

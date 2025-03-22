@@ -8,15 +8,27 @@
 
 package com.gohj99.telewatch.ui.main
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,15 +40,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.SearchBar
+import com.gohj99.telewatch.ui.ThumbnailChatPhoto
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import com.gohj99.telewatch.utils.formatTimestampToDateAndTime
+import com.gohj99.telewatch.utils.getColorById
 import org.drinkless.tdlib.TdApi
 
 // 字符串匹配
@@ -359,36 +380,10 @@ fun ChatView(
     if (isMatchingSearchText) {
         if (chatFolderInfo == null) {
             if (pinnedView == null) {
-                MainCard(
-                    column = {
-                        Text(
-                            text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        if (chat.message.isNotEmpty()) {
-                            MessageView(message = chat.message)
-                        }
-                    },
-                    item = chat,
-                    callback = { callback(chat) }
-                )
+                ChatViewMainCard(chat, callback, currentUserId)
             } else {
                 if (chat.isPinned == pinnedView) {
-                    MainCard(
-                        column = {
-                            Text(
-                                text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            if (chat.message.isNotEmpty()) {
-                                MessageView(message = chat.message)
-                            }
-                        },
-                        item = chat,
-                        callback = { callback(chat) }
-                    )
+                    ChatViewMainCard(chat, callback, currentUserId)
                 }
             }
         } else {
@@ -414,24 +409,121 @@ fun ChatView(
                 }
 
                 if (isShow) {
-                    MainCard(
-                        column = {
-                            Text(
-                                text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
-                                color = Color.White,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            if (chat.message.isNotEmpty()) {
-                                MessageView(message = chat.message)
-                            }
-                        },
-                        item = chat,
-                        callback = { callback(chat) }
-                    )
+                    ChatViewMainCard(chat, callback, currentUserId)
                 }
             }
         }
     }
+}
+
+@Composable
+fun ChatViewMainCard(
+    chat: Chat,
+    callback: (Chat) -> Unit,
+    currentUserId: MutableState<Long> = mutableStateOf(-1)
+) {
+    MainCard(
+        column = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.Top
+            ) {
+                if (chat.id == currentUserId.value) {
+                    Box(
+                        modifier = Modifier
+                            .size(35.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                // 在这里处理点击事件
+                                //println("Box clicked!")
+                                callback(chat)
+                            }
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.saved_messages_icon),
+                            contentDescription = "Thumbnail",
+                            modifier = Modifier.clip(CircleShape)
+                        )
+                    }
+                    Spacer(Modifier.width(6.dp))
+                } else {
+                    if (chat.chatPhoto != null) {
+                        ThumbnailChatPhoto(chat.chatPhoto, 35, if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title) { callback(chat) }
+                        Spacer(Modifier.width(6.dp))
+                    } else {
+                        Surface(
+                            modifier = Modifier
+                                .size(35.dp), // 固定宽高为60dp
+                            color = getColorById(chat.accentColorId),
+                            shape = CircleShape
+                        ) {
+                            Box(contentAlignment = Alignment.Center) { // 居中显示文本
+                                Text(
+                                    text = (if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title)[0].toString().uppercase(),
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(6.dp))
+                    }
+                }
+                Column {
+                    Spacer(Modifier.height(1.5.dp))
+                    Text(
+                        text = if (chat.id == currentUserId.value) stringResource(R.string.Saved_Messages) else chat.title,
+                        color = Color.White,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis // 过长省略号
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // 时间
+                        Text(
+                            text = formatTimestampToDateAndTime(chat.lastMessageTime),
+                            color = Color(0xFF728AA5),
+                            fontSize = 10.5.sp,
+                            lineHeight = 10.5.sp
+                        )
+                        // 未读指示器
+                        if (chat.unreadCount > 0) {
+                            Surface(
+                                modifier = Modifier
+                                    .wrapContentSize(),
+                                color = if (chat.needNotification) Color(0xFF3F81BB) else Color(
+                                    0xFF49617A
+                                ),
+                                shape = RoundedCornerShape(50) // 数字较小时为圆形，较多时变为椭圆
+                            ) {
+                                Text(
+                                    text = chat.unreadCount.toString(),
+                                    modifier = Modifier.padding(horizontal = 4.6.dp, vertical = 1.3.dp),
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    lineHeight = 10.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            if (chat.lastMessage.isNotEmpty()) {
+                MessageView(message = chat.lastMessage)
+            }
+
+        },
+        item = chat,
+        callback = { callback(chat) },
+        modifier = Modifier.padding(start = 10.dp, top = 6.dp, end = 14.dp, bottom = 6.dp)
+    )
 }
 
 @Composable
@@ -447,7 +539,9 @@ fun MessageView(message: androidx.compose.ui.text.AnnotatedString) {
         Text(
             text = currentMessage,
             color = Color(0xFF728AA5),
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis // 过长省略号
         )
     }
 }

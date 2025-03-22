@@ -194,5 +194,6 @@
     <string name="copy_link">Kopia ligo</string>  
     <string name="copy_success_public">Kopiu Sukceson</string>  
     <string name="copy_success_privacy">Kopiu Sukceson (permeso bezonata por aliri)</string>  
-    <string name="Failed_request">Malsukcesis peti</string>
+    <string name="Failed_request">Malsukcesis peti</string>  
+    <string name="Message_preload_quantity">Nombro de mesaĝoj por antaŭŝargi (ĉi tiu valoro devas esti pliigita ĉe poŝtelefonoj por ke mesaĝoj kutime ŝarĝu)</string>
 </resources>

@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -45,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,11 +58,10 @@ import com.gohj99.telewatch.formatJson
 import com.gohj99.telewatch.model.tgFile
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
+import com.gohj99.telewatch.utils.getColorById
 import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.Gson
-import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
-import java.io.IOException
 
 @Composable
 fun SplashChatInfoScreen(
@@ -125,7 +126,7 @@ deleteChat: (() -> Unit)? = null
                                     .fillMaxWidth(),
                                 verticalAlignment = Alignment.Top //  或 Alignment.Bottom，或者移除此行使用默认的 Top 对齐
                             ) {
-                                if (chatObject.photo != null) ThumbnailChatPhoto(chatObject.photo!!.small) {
+                                if (chatObject.photo != null) ThumbnailChatPhoto(thumbnail = chatObject.photo!!.small, title = chatObject.title) {
                                     context.startActivity(
                                         Intent(
                                             context,
@@ -135,6 +136,22 @@ deleteChat: (() -> Unit)? = null
                                             putExtra("file", bigPhotoFile)
                                         }
                                     )
+                                } else {
+                                    Surface(
+                                        modifier = Modifier
+                                            .size(45.dp), // 固定宽高为60dp
+                                        color = getColorById(chatObject.accentColorId),
+                                        shape = CircleShape
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) { // 居中显示文本
+                                            Text(
+                                                text = chatObject.title[0].toString().uppercase(),
+                                                color = Color.White,
+                                                fontSize = 18.sp,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
                                 }
                                 Spacer(Modifier.width(12.dp))
                                 Column {
@@ -276,45 +293,31 @@ deleteChat: (() -> Unit)? = null
 }
 
 @Composable
-fun ThumbnailChatPhoto(thumbnail: TdApi.File, callback: () -> Unit) {
+fun ThumbnailChatPhoto(thumbnail: TdApi.File, size: Int = 45, title: String = "", callback: () -> Unit) {
     var imagePath by remember { mutableStateOf<String?>(null) }
     val painter = rememberAsyncImagePainter(model = imagePath) // 在Composable作用域
 
     LaunchedEffect(thumbnail.id) {
-        while (true) {
-            if (thumbnail.local.isDownloadingCompleted) {
-                try {
-                    imagePath = thumbnail.local.path // 更新状态触发重组
-                    break
-                } catch (e: IOException) {
-                    println("Image load failed: ${e.message}")
-                    // 处理错误，例如显示占位符
-                    break
-                }
-            } else {
-                //println("本地没图片，正在下载图片")
-                try {
-                    TgApiManager.tgApi!!.downloadPhoto(thumbnail) { success, path ->
-                        if (success) {
-                            thumbnail.local.isDownloadingCompleted = true
-                            thumbnail.local.path = path
-                        } else {
-                            println("Download failed")
-
-                        }
+        if (thumbnail.local.isDownloadingCompleted) {
+            imagePath = thumbnail.local.path // 显示头像
+        } else {
+            //println("本地没图片，正在下载图片")
+            try {
+                TgApiManager.tgApi!!.downloadFile(file = thumbnail, completion = { success, tdFleUrl ->
+                    if (success) {
+                        imagePath = tdFleUrl
                     }
-                } catch (e: Exception) {
-                    println("Download error: ${e.message}")
+                })
+            } catch (e: Exception) {
+                println("Download error: ${e.message}")
 
-                }
-                delay(1000)
             }
         }
     }
 
     Box(
         modifier = Modifier
-            .size(45.dp)
+            .size(size.dp)
             .clip(CircleShape)
             .clickable {
                 // 在这里处理点击事件
@@ -328,15 +331,25 @@ fun ThumbnailChatPhoto(thumbnail: TdApi.File, callback: () -> Unit) {
                 contentDescription = "Thumbnail",
                 modifier = Modifier.clip(CircleShape)
             )
-        }
-        /*else {
-            // 根据 painterResource 的状态显示占位符
-            when (painterResource) {
-                is AsyncImagePainter.State.Loading -> {/* 显示加载指示器 */}
-                is AsyncImagePainter.State.Error -> {/* 显示错误指示器 */}
-                else -> {/* 显示默认占位符 */}
+        } else {
+            if (title != "") {
+                Surface(
+                    modifier = Modifier
+                        .size(35.dp), // 固定宽高为60dp
+                    color = Color(0xFF55A6EE),
+                    shape = CircleShape
+                ) {
+                    Box(contentAlignment = Alignment.Center) { // 居中显示文本
+                        Text(
+                            text = title[0].toString().uppercase(),
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
-        }*/
+        }
     }
 }
 

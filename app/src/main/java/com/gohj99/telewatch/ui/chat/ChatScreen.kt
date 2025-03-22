@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +43,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -59,7 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -72,6 +73,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -131,6 +133,7 @@ fun SplashChatScreen(
     chatObject: TdApi.Chat,
     lastReadOutboxMessageId: MutableState<Long>,
     lastReadInboxMessageId: MutableState<Long>,
+    inputText: MutableState<String>,
     listState: LazyListState = rememberLazyListState(),
     onLinkClick: (String) -> Unit,
     chatTitleClick: () -> Unit,
@@ -140,16 +143,16 @@ fun SplashChatScreen(
     val context = LocalContext.current
 
     var isFloatingVisible by remember { mutableStateOf(true) }
-    var inputText by rememberSaveable { mutableStateOf(("")) }
     var isLongPressed by remember { mutableStateOf(false) }
     var selectMessage by remember { mutableStateOf(TdApi.Message()) }
     val senderNameMap by remember { mutableStateOf(mutableMapOf<Long, String?>()) }
     val pagerState = rememberPagerState(pageCount = { 2 }, initialPage = 0)
-    var notJoin = false
+    var notJoin by remember { mutableStateOf(chatObject.positions.isEmpty()) }
     val coroutineScope = rememberCoroutineScope()
     var planReplyMessage by remember { mutableStateOf(tgApi!!.replyMessage.value) }
     var planReplyMessageSenderName by rememberSaveable { mutableStateOf("") }
     val scrollState = rememberScrollState()
+    var chatReadList = tgApi?.chatReadList!!
 
     // 保存和恢复MessageContent
     val MessageContentSaver = Saver<TdApi.MessageContent, Any>(
@@ -192,15 +195,10 @@ fun SplashChatScreen(
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val showUnknownMessageType = settingsSharedPref.getBoolean("show_unknown_message_type", false)
 
+    val messagePreloadQuantity = settingsSharedPref.getInt("Message_preload_quantity", 10)
+
     //println(chatsListManager.chatsList.value)
     val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
-    if (chatPermissions != null) {
-        if (!chatPermissions.canSendBasicMessages) {
-            if (chatObject.positions.isEmpty()) notJoin = true
-        }
-    } else {
-        if (chatObject.positions.isEmpty()) notJoin = true
-    }
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -265,10 +263,11 @@ fun SplashChatScreen(
         }
     }
 
+    // 向后加载消息
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { index ->
-                if (index >= chatList.value.size - 5) {
+                if (index >= chatList.value.size - messagePreloadQuantity) {
                     tgApi?.fetchMessages()
                 }
             }
@@ -310,13 +309,37 @@ fun SplashChatScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
-                                .verticalRotaryScroll(listState, true)
+                                .verticalRotaryScroll(listState, true, pagerState, 0)
                                 .weight(1f),
                             reverseLayout = true, // 反转布局
-                            verticalArrangement = Arrangement.Top
+                            verticalArrangement = Arrangement.Top,
                         ) {
                             item {
-                                Spacer(modifier = Modifier.height(70.dp)) // 添加一个高度为 70dp 的 Spacer
+                                if (notJoin) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 28.dp),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        CustomButton(
+                                            onClick = {
+                                                println("按钮点击")
+                                                tgApi?.joinChat(
+                                                    chatId = chatId,
+                                                    reInit = { }
+                                                )
+                                                notJoin = false
+                                            },
+                                            text = stringResource(id = R.string.join_in)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                } else {
+                                    Spacer(modifier = Modifier.height(55.dp))
+                                }
                             }
                             itemsIndexed(
                                 chatList.value,
@@ -372,7 +395,7 @@ fun SplashChatScreen(
                                                             })
                                                         }
                                                         .padding(start = 10.dp, end = 5.dp),
-                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                    style = MaterialTheme.typography.bodySmall
                                                 )
                                                 LaunchedEffect(message.senderId) {
                                                     if (it in senderNameMap) {
@@ -401,7 +424,7 @@ fun SplashChatScreen(
                                                                 }
                                                             )
                                                         },
-                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                    style = MaterialTheme.typography.bodySmall
                                                 )
                                                 LaunchedEffect(message.senderId) {
                                                     if (senderId.chatId == chatId) {
@@ -1016,7 +1039,7 @@ fun SplashChatScreen(
                                 .fillMaxWidth()
                                 .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
                                 .verticalScroll(scrollState)
-                                .verticalRotaryScroll(scrollState),
+                                .verticalRotaryScroll(state = scrollState, pagerState = pagerState, pageCurrent = 1),
                             verticalArrangement = Arrangement.Top
                         ) {
                             if (planReplyMessage != null) {
@@ -1121,8 +1144,8 @@ fun SplashChatScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                             InputBar(
-                                query = inputText,
-                                onQueryChange = { inputText = it },
+                                query = inputText.value,
+                                onQueryChange = { inputText.value = it },
                                 placeholder = stringResource(id = R.string.Write_message),
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -1140,7 +1163,7 @@ fun SplashChatScreen(
                                                 chatId = chatId,
                                                 message = TdApi.InputMessageText().apply {  // 参数名改为message
                                                     text = TdApi.FormattedText().apply {
-                                                        this.text = inputText  // 正确设置text字段
+                                                        this.text = inputText.value  // 正确设置text字段
                                                     }
                                                 }
                                             )
@@ -1150,7 +1173,7 @@ fun SplashChatScreen(
                                                     chatId = chatId,
                                                     message = TdApi.InputMessageText().apply {
                                                         text = TdApi.FormattedText().apply {
-                                                            this.text = inputText
+                                                            this.text = inputText.value
                                                         }
                                                     },
                                                     replyTo = TdApi.InputMessageReplyToExternalMessage(
@@ -1162,7 +1185,7 @@ fun SplashChatScreen(
                                                     chatId = chatId,
                                                     message = TdApi.InputMessageText().apply {
                                                         text = TdApi.FormattedText().apply {
-                                                            this.text = inputText
+                                                            this.text = inputText.value
                                                         }
                                                     },
                                                     replyTo = TdApi.InputMessageReplyToMessage(
@@ -1172,7 +1195,11 @@ fun SplashChatScreen(
                                             planReplyMessage = null
                                             tgApi!!.replyMessage.value = null
                                         }
-                                        inputText = ""
+                                        inputText.value = ""
+                                        coroutineScope.launch {
+                                            pagerState.animateScrollToPage(0)
+                                            listState.animateScrollToItem(0)
+                                        }
                                     },
                                     modifier = Modifier
                                         .size(45.dp)
@@ -1230,7 +1257,11 @@ fun SplashChatScreen(
                                                     messageId = forwardMessage.value!!.id
                                                 }
                                             )
-                                            inputText = ""
+                                            inputText.value = ""
+                                            coroutineScope.launch {
+                                                pagerState.animateScrollToPage(0)
+                                                listState.animateScrollToItem(0)
+                                            }
                                         },
                                         modifier = Modifier
                                             .size(45.dp)
@@ -1255,10 +1286,14 @@ fun SplashChatScreen(
             LongPressBox(
                 callBack = { select ->
                     when (select) {
+                        // 回复特殊处理
                         "Reply" -> {
                             // 返回空字符串同时执行操作
                             planReplyMessage = selectMessage
                             tgApi!!.replyMessage.value = selectMessage
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(1)
+                            }
                             ""
                         }
                         else -> return@LongPressBox longPress(select, selectMessage)
@@ -1293,9 +1328,8 @@ fun SplashChatScreen(
         )
          */
 
-        // 消息发送部分
+        // 0页下方功能区
         if (pagerState.currentPage == 0) {
-            var showKeyboard by remember { mutableStateOf(true) }
             /*
             if (notJoin) {
                 showKeyboard = true
@@ -1309,102 +1343,64 @@ fun SplashChatScreen(
                 }
             }
              */
-            if (showKeyboard) {
-                if (isFloatingVisible) {
-                    if (notJoin) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 28.dp),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            CustomButton(
-                                onClick = {
-                                    tgApi?.joinChat(
-                                        chatId = chatId,
-                                        reInit = {
-                                            notJoin = false
-                                            //reInit("joined")
-                                        }
-                                    )
-                                },
-                                text = stringResource(id = R.string.join_in)
+            if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset > 10240) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // 滑动最下面
+                    IconButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd) // 定位到右下角
+                            .offset(x = (-27).dp, y = (-27).dp) // 向左上偏移，避免紧贴屏幕边缘
+                    ) {
+                        Box(modifier = Modifier.size(60.dp)) {
+                            Image(
+                                painter = painterResource(id = R.drawable.bottom),
+                                contentDescription = null,
+                                modifier = Modifier.size(45.dp)
                             )
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 4.dp)
-                                .alpha(1f),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        pagerState.animateScrollToPage(1)
-                                    }
-                                },
-                                modifier = Modifier
-                                    .size(84.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_custom_keyboard),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(82.dp)
-                                )
-                            }
-
-                            // 滑动最下面按钮
-                            IconButton(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        listState.animateScrollToItem(0)
-                                    }
-                                },
-                                modifier = Modifier
-                                    .size(45.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.bottom),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(45.dp)
-                                )
-                            }
                         }
                     }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight() // 使 Box 填满整个屏幕高度
-                            .fillMaxWidth(), // 使 Box 填满整个屏幕宽度
-                        contentAlignment = Alignment.BottomCenter // 将内容对齐到 Box 的底部中心
-                    ) {
-                        IconButton(
-                            onClick = {
-                                isFloatingVisible = true
-                            },
+                    // 未读消息指示器
+                    chatReadList.get(chatId)?.takeIf { it > 0 }?.let { unreadCount ->
+                        Box(
                             modifier = Modifier
-                                .padding(3.dp) // 可选的内边距
-                                .size(20.dp) // 设置 IconButton 的大小
+                                .fillMaxSize()
+                                .offset(x = (62).dp, y = (40).dp)
+                                .align(Alignment.BottomEnd)
+                                .clickable (
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            listState.animateScrollToItem(unreadCount)
+                                        }
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.up), // 替换为你自己的向上箭头图标资源ID
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(20.dp) // 设置 Image 的大小
-                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                            )
+                            Surface(
+                                color = Color(0xFF3F81BB),
+                                shape = RoundedCornerShape(50)
+                            ) {
+                                Text(
+                                    text = unreadCount.toString(),
+                                    modifier = Modifier
+                                        .padding(horizontal = 4.6.dp, vertical = 1.3.dp),
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    lineHeight = 10.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
             }
         }
-
     }
 }
 
@@ -1695,7 +1691,7 @@ fun MessageFile(
                             tgApi!!.downloadFile(
                                 file = file,
                                 schedule = { schedule ->
-                                    downloadSchedule = schedule
+                                    downloadSchedule = schedule.local.downloadedSize
                                 },
                                 completion = { success, tdFleUrl ->
                                     if (success) {
@@ -2046,6 +2042,7 @@ fun SplashChatScreenPreview() {
             chatObject = TdApi.Chat(),
             lastReadOutboxMessageId = mutableLongStateOf(0L),
             lastReadInboxMessageId = mutableLongStateOf(0L),
+            inputText = mutableStateOf(""),
             onLinkClick = {},
             chatTitleClick = {},
             currentUserId = mutableStateOf(-1L)

@@ -59,13 +59,29 @@ class ChatActivity : ComponentActivity() {
     private var lastReadInboxMessageId = mutableStateOf(0L)
     private var goToChat = mutableStateOf(false)
     private val listState = LazyListState()
+    private var inputText = mutableStateOf("")
 
     @SuppressLint("AutoboxingStateCreation")
     private var currentUserId = mutableStateOf(-1L) // 使用 MutableState 来持有当前用户 ID
 
     override fun onDestroy() {
         super.onDestroy()
-        TgApiManager.tgApi?.exitChatPage()
+        if (inputText.value != "") {
+            TgApiManager.tgApi?.exitChatPage(
+                TdApi.DraftMessage(
+                    null,
+                    (System.currentTimeMillis() / 1000).toInt(),
+                    TdApi.InputMessageText(
+                        TdApi.FormattedText(inputText.value, null),
+                        TdApi.LinkPreviewOptions(),
+                        false
+                    ),
+                    0L
+                )
+            )
+        } else {
+            TgApiManager.tgApi?.exitChatPage()
+        }
     }
 
     override fun onResume() {
@@ -168,6 +184,14 @@ class ChatActivity : ComponentActivity() {
                 lastReadInboxMessageId.value = itChatObject.lastReadInboxMessageId
 
                 TgApiManager.tgApi!!.saveChatId = itChatObject.id
+
+                // 获取聊天草稿
+                val draftMessage = itChatObject.draftMessage?.inputMessageText
+                if (draftMessage is TdApi.InputMessageText) {
+                    draftMessage.text?.let {
+                        inputText.value = it.text
+                    }
+                }
                 runOnUiThread {
                     setContent {
                         TelewatchTheme {
@@ -179,7 +203,22 @@ class ChatActivity : ComponentActivity() {
                                     goToChat.value = true
                                     runBlocking {
                                         lifecycleScope.launch {
-                                            TgApiManager.tgApi?.exitChatPage()
+                                            if (inputText.value != "") {
+                                                TgApiManager.tgApi?.exitChatPage(
+                                                    TdApi.DraftMessage(
+                                                        null,
+                                                        (System.currentTimeMillis() / 1000).toInt(),
+                                                        TdApi.InputMessageText(
+                                                            TdApi.FormattedText(inputText.value, null),
+                                                            TdApi.LinkPreviewOptions(),
+                                                            false
+                                                        ),
+                                                        0L
+                                                    )
+                                                )
+                                            } else {
+                                                TgApiManager.tgApi?.exitChatPage()
+                                            }
                                         }.join() // 等待协程执行完毕
                                     }
                                     startActivity(
@@ -386,6 +425,7 @@ class ChatActivity : ComponentActivity() {
                                 chatObject = itChatObject,
                                 lastReadOutboxMessageId = lastReadOutboxMessageId,
                                 lastReadInboxMessageId = lastReadInboxMessageId,
+                                inputText = inputText,
                                 listState = listState,
                                 onLinkClick = { url ->
                                     urlHandle(url, this) {

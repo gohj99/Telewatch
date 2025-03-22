@@ -194,5 +194,6 @@
     <string name="copy_link">Ссылка копирования</string>  
     <string name="copy_success_public">Копировать успех</string>  
     <string name="copy_success_privacy">Скопировать успех (разрешение, необходимое для доступа)</string>  
-    <string name="Failed_request">Не удалось запросить</string>
+    <string name="Failed_request">Не удалось запросить</string>  
+    <string name="Message_preload_quantity">Количество сообщений в предварительную нагрузку (это значение должно быть увеличено на мобильных телефонах, чтобы сообщения могли нормально загружаться)</string>
 </resources>

@@ -195,4 +195,5 @@
     <string name="copy_success_public">Copy success</string>
     <string name="copy_success_privacy">Copy success (Permission required to access)</string>
     <string name="Failed_request">Failed to request</string>
+    <string name="Message_preload_quantity">Number of messages to preload (this value needs to be increased on mobile phones so that messages can load normally)</string>
 </resources>

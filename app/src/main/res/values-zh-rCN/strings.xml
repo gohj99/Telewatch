@@ -194,5 +194,6 @@
     <string name="copy_link">复制链接</string>  
     <string name="copy_success_public">复制成功</string>  
     <string name="copy_success_privacy">复制成功（需要有访问权限）</string>  
-    <string name="Failed_request">获取失败</string>
+    <string name="Failed_request">获取失败</string>  
+    <string name="Message_preload_quantity">消息预加载数量（在手机上这个值需要增大以便消息正常加载）</string>
 </resources>
