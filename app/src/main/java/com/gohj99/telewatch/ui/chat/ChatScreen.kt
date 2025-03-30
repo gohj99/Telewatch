@@ -151,6 +151,8 @@ fun SplashChatScreen(
     val coroutineScope = rememberCoroutineScope()
     var planReplyMessage by remember { mutableStateOf(tgApi!!.replyMessage.value) }
     var planReplyMessageSenderName by rememberSaveable { mutableStateOf("") }
+    var planEditMessage by remember { mutableStateOf<TdApi.Message?>((null)) }
+    var planEditMessageText = remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     var chatReadList = tgApi?.chatReadList!!
 
@@ -195,7 +197,11 @@ fun SplashChatScreen(
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val showUnknownMessageType = settingsSharedPref.getBoolean("show_unknown_message_type", false)
 
+    // 获取加载内容数量
     val messagePreloadQuantity = settingsSharedPref.getInt("Message_preload_quantity", 10)
+
+    // 获取下滑按钮显示偏移量
+    val downButtonOffset = settingsSharedPref.getInt("Down_Button_Offset", 25)
 
     //println(chatsListManager.chatsList.value)
     val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
@@ -1042,7 +1048,36 @@ fun SplashChatScreen(
                                 .verticalRotaryScroll(state = scrollState, pagerState = pagerState, pageCurrent = 1),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            if (planReplyMessage != null) {
+                            if (planEditMessage != null) {
+                                Box (
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            onClick = {
+                                                planReplyMessage = null
+                                                tgApi!!.replyMessage.value = null
+                                            }
+                                        )
+                                )
+                                Text(
+                                    text = stringResource(R.string.Edit),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 5.dp,
+                                            top = 5.dp
+                                        )
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            onClick = {
+                                                planEditMessage = null
+                                            }
+                                        )
+                                )
+                            } else if (planReplyMessage != null) {
                                 // 将回复消息显示
                                 Box (
                                     modifier = Modifier
@@ -1143,72 +1178,117 @@ fun SplashChatScreen(
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
-                            InputBar(
-                                query = inputText.value,
-                                onQueryChange = { inputText.value = it },
-                                placeholder = stringResource(id = R.string.Write_message),
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            // 发送消息按钮
-                            Column(
-                                horizontalAlignment = Alignment.End,
-                                modifier = Modifier
-                                    .padding(end = 10.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        if (planReplyMessage == null) {
-                                            tgApi?.sendMessage(
-                                                chatId = chatId,
-                                                message = TdApi.InputMessageText().apply {  // 参数名改为message
-                                                    text = TdApi.FormattedText().apply {
-                                                        this.text = inputText.value  // 正确设置text字段
+                            if (planEditMessage != null) {
+                                InputBar(
+                                    query = planEditMessageText.value,
+                                    onQueryChange = { planEditMessageText.value = it },
+                                    placeholder = stringResource(id = R.string.Write_message),
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                // 完成编辑消息按钮
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                    modifier = Modifier
+                                        .padding(end = 10.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            if (planEditMessage != null) {
+                                                tgApi?.editMessageText(
+                                                    chatId = chatId,
+                                                    messageId = planEditMessage!!.id,
+                                                    message = TdApi.InputMessageText().apply {
+                                                        text = TdApi.FormattedText().apply {
+                                                            this.text = planEditMessageText.value
+                                                        }
                                                     }
-                                                }
-                                            )
-                                        } else {
-                                            if (planReplyMessage!!.chatId != chatId) {
-                                                tgApi?.sendMessage(
-                                                    chatId = chatId,
-                                                    message = TdApi.InputMessageText().apply {
-                                                        text = TdApi.FormattedText().apply {
-                                                            this.text = inputText.value
-                                                        }
-                                                    },
-                                                    replyTo = TdApi.InputMessageReplyToExternalMessage(
-                                                        planReplyMessage!!.chatId,
-                                                        planReplyMessage!!.id, null)
-                                                )
-                                            } else {
-                                                tgApi?.sendMessage(
-                                                    chatId = chatId,
-                                                    message = TdApi.InputMessageText().apply {
-                                                        text = TdApi.FormattedText().apply {
-                                                            this.text = inputText.value
-                                                        }
-                                                    },
-                                                    replyTo = TdApi.InputMessageReplyToMessage(
-                                                        planReplyMessage!!.id, null)
                                                 )
                                             }
-                                            planReplyMessage = null
-                                            tgApi!!.replyMessage.value = null
-                                        }
-                                        inputText.value = ""
-                                        coroutineScope.launch {
-                                            pagerState.animateScrollToPage(0)
-                                            listState.animateScrollToItem(0)
-                                        }
-                                    },
+                                            planEditMessage = null
+                                            coroutineScope.launch {
+                                                pagerState.animateScrollToPage(0)
+                                                listState.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .size(45.dp)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.done_icon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(45.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                InputBar(
+                                    query = inputText.value,
+                                    onQueryChange = { inputText.value = it },
+                                    placeholder = stringResource(id = R.string.Write_message),
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                // 发送消息按钮
+                                Column(
+                                    horizontalAlignment = Alignment.End,
                                     modifier = Modifier
-                                        .size(45.dp)
+                                        .padding(end = 10.dp)
+                                        .fillMaxWidth()
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_custom_send),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(45.dp)
-                                    )
+                                    IconButton(
+                                        onClick = {
+                                            if (planReplyMessage == null) {
+                                                tgApi?.sendMessage(
+                                                    chatId = chatId,
+                                                    message = TdApi.InputMessageText().apply {  // 参数名改为message
+                                                        text = TdApi.FormattedText().apply {
+                                                            this.text = inputText.value  // 正确设置text字段
+                                                        }
+                                                    }
+                                                )
+                                            } else {
+                                                if (planReplyMessage!!.chatId != chatId) {
+                                                    tgApi?.sendMessage(
+                                                        chatId = chatId,
+                                                        message = TdApi.InputMessageText().apply {
+                                                            text = TdApi.FormattedText().apply {
+                                                                this.text = inputText.value
+                                                            }
+                                                        },
+                                                        replyTo = TdApi.InputMessageReplyToExternalMessage(
+                                                            planReplyMessage!!.chatId,
+                                                            planReplyMessage!!.id, null)
+                                                    )
+                                                } else {
+                                                    tgApi?.sendMessage(
+                                                        chatId = chatId,
+                                                        message = TdApi.InputMessageText().apply {
+                                                            text = TdApi.FormattedText().apply {
+                                                                this.text = inputText.value
+                                                            }
+                                                        },
+                                                        replyTo = TdApi.InputMessageReplyToMessage(
+                                                            planReplyMessage!!.id, null)
+                                                    )
+                                                }
+                                                planReplyMessage = null
+                                                tgApi!!.replyMessage.value = null
+                                            }
+                                            inputText.value = ""
+                                            coroutineScope.launch {
+                                                pagerState.animateScrollToPage(0)
+                                                listState.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .size(45.dp)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.ic_custom_send),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(45.dp)
+                                        )
+                                    }
                                 }
                             }
                             Spacer(modifier = Modifier.height(12.dp))
@@ -1226,7 +1306,12 @@ fun SplashChatScreen(
                                     text = stringResource(R.string.Forward),
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.clickable(
+                                        onClick = {
+                                            tgApi!!.forwardMessage.value = null
+                                        }
+                                    )
                                 )
                                 MainCard(
                                     column = {
@@ -1257,7 +1342,6 @@ fun SplashChatScreen(
                                                     messageId = forwardMessage.value!!.id
                                                 }
                                             )
-                                            inputText.value = ""
                                             coroutineScope.launch {
                                                 pagerState.animateScrollToPage(0)
                                                 listState.animateScrollToItem(0)
@@ -1286,7 +1370,20 @@ fun SplashChatScreen(
             LongPressBox(
                 callBack = { select ->
                     when (select) {
-                        // 回复特殊处理
+                        // 特殊处理
+                        "Edit" -> {
+                            val content = selectMessage.content
+                            if (content is TdApi.MessageText) {
+                                planEditMessage = selectMessage
+                                planEditMessageText.value = content.text.text
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(1)
+                                }
+                            } else {
+                                longPress(select, selectMessage)
+                            }
+                            ""
+                        }
                         "Reply" -> {
                             // 返回空字符串同时执行操作
                             planReplyMessage = selectMessage
@@ -1345,7 +1442,9 @@ fun SplashChatScreen(
              */
             if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset > 10240) {
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd) // 定位到右下角
+                        .offset(x = (-downButtonOffset).dp, y = (-downButtonOffset).dp) // 向左上偏移，避免紧贴屏幕边缘
                 ) {
                     // 滑动最下面
                     IconButton(
@@ -1355,8 +1454,7 @@ fun SplashChatScreen(
                             }
                         },
                         modifier = Modifier
-                            .align(Alignment.BottomEnd) // 定位到右下角
-                            .offset(x = (-27).dp, y = (-27).dp) // 向左上偏移，避免紧贴屏幕边缘
+
                     ) {
                         Box(modifier = Modifier.size(60.dp)) {
                             Image(
@@ -1369,17 +1467,7 @@ fun SplashChatScreen(
                     // 未读消息指示器
                     chatReadList.get(chatId)?.takeIf { it > 0 }?.let { unreadCount ->
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .offset(x = (62).dp, y = (40).dp)
-                                .align(Alignment.BottomEnd)
-                                .clickable (
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            listState.animateScrollToItem(unreadCount)
-                                        }
-                                    }
-                                ),
+                            modifier = Modifier.offset(x = (15.7).dp, y = (-3).dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Surface(

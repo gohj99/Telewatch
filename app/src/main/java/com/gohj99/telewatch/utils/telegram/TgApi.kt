@@ -143,9 +143,67 @@ class TgApi(
             TdApi.UpdateChatUnreadMentionCount.CONSTRUCTOR -> handleChatUnreadMentionCountUpdate(update as TdApi.UpdateChatUnreadMentionCount)
             TdApi.UpdateUnreadChatCount.CONSTRUCTOR -> handleUnreadChatCountUpdate(update as TdApi.UpdateUnreadChatCount)
             TdApi.UpdateChatNotificationSettings.CONSTRUCTOR -> handleChatNotificationSettingsUpdate(update as TdApi.UpdateChatNotificationSettings)
+            TdApi.UpdateChatDraftMessage.CONSTRUCTOR -> handleChatDraftMessageUpdate(update as TdApi.UpdateChatDraftMessage)
             // 其他更新
             else -> {
                 Log.d("TdApiUpdate","Received update: $update")
+            }
+        }
+    }
+
+    // 更新欲输入
+    private fun handleChatDraftMessageUpdate(update: TdApi.UpdateChatDraftMessage) {
+        val chatId = update.chatId
+        val draftMessage = update.draftMessage
+        println("Chat draft message updated in chat ID $chatId: $draftMessage")
+        val inputMessageText = draftMessage?.inputMessageText
+        if (inputMessageText is TdApi.InputMessageText) {
+            val lastMessageText = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color(context.getColor(R.color.red)))) {
+                    append(context.getString(R.string.Draft))
+                }
+                append(" ")
+                val caption = inputMessageText.text.text
+                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+            }
+
+            val date = draftMessage.date
+            val order = update.positions.find { it.list is TdApi.ChatListMain }?.order
+
+            // 更新聊天列表
+            chatsList.value = chatsList.value.toMutableList().apply {
+                // 查找现有的聊天并更新
+                val existingChatIndex = indexOfFirst { it.id == chatId }
+                if (existingChatIndex >= 0) {
+                    var updatedChat = get(existingChatIndex)
+                    if (order != null) {
+                        updatedChat = get(existingChatIndex).copy(
+                            lastMessageDraft = updatedChat.lastMessage,
+                            lastMessageTimeDraft = updatedChat.lastMessageTime,
+                            orderDraft = updatedChat.order,
+                            lastMessage = lastMessageText,
+                            lastMessageTime = date,
+                            order = order
+                        )
+                    }
+                    removeAt(existingChatIndex)
+                    add(0, updatedChat)
+                }
+            }
+        } else if (draftMessage == null) {
+            chatsList.value = chatsList.value.toMutableList().apply {
+                // 查找现有的聊天并更新
+                val existingChatIndex = indexOfFirst { it.id == chatId }
+                if (existingChatIndex >= 0) {
+                    var updatedChat = get(existingChatIndex)
+                    updatedChat = get(existingChatIndex).copy(
+                        lastMessage = updatedChat.lastMessageDraft,
+                        lastMessageTime = updatedChat.lastMessageTimeDraft,
+                        order = updatedChat.orderDraft
+                    )
+                    removeAt(existingChatIndex)
+                    add(0, updatedChat)
+                }
             }
         }
     }
@@ -471,8 +529,7 @@ class TgApi(
             val existingChatIndex = indexOfFirst { it.id == chatId }
             if (existingChatIndex >= 0) {
                 val updatedChat = get(existingChatIndex).copy(
-                    lastMessage = handleAllMessages(messageContext = message),
-                    lastMessageTime = System.currentTimeMillis().toInt()
+                    lastMessage = handleAllMessages(messageContext = message)
                 )
                 removeAt(existingChatIndex)
                 add(0, updatedChat)
@@ -511,6 +568,40 @@ class TgApi(
                 }
             }
         }*/
+    }
+
+    // 更新最后一条消息内容
+    private fun handleChatLastMessageUpdate(update: TdApi.UpdateChatLastMessage) {
+        val chatId = update.chatId
+        val lastMessage = update.lastMessage
+        val lastMessageText = handleAllMessages(lastMessage)
+        val position = update.positions.find { it.list is TdApi.ChatListMain }
+
+        // 更新聊天列表
+        chatsList.value = chatsList.value.toMutableList().apply {
+            // 查找现有的聊天并更新
+            val existingChatIndex = indexOfFirst { it.id == chatId }
+            val order = position?.order
+            if (existingChatIndex >= 0) {
+                val updatedChat =
+                    if (order != null) {
+                        get(existingChatIndex).copy(
+                            order = order,
+                            isPinned = position?.isPinned ?: false,
+                            lastMessage = lastMessageText,
+                            lastMessageTime = lastMessage?.date ?: -1
+                        )
+                    } else {
+                        get(existingChatIndex).copy(
+                            lastMessage = lastMessageText,
+                            lastMessageTime = lastMessage?.date ?: -1
+                        )
+                    }
+                removeAt(existingChatIndex)
+                add(0, updatedChat)
+            }
+        }
+
     }
 
     // 处理消息编辑
@@ -585,7 +676,7 @@ class TgApi(
         //println(newChat)
         //println(newChat.positions.firstOrNull()?.isPinned ?: false)
 
-        var isPinned = newChat.positions.firstOrNull()?.isPinned ?: false
+        var isPinned = newChat.positions.find { it.list is TdApi.ChatListMain }?.isPinned ?: false
         var isRead = newChat.isMarkedAsUnread
         var isBot = false
         var isChannel = false
@@ -694,40 +785,6 @@ class TgApi(
         }
     }
 
-    // 更新消息内容
-    private fun handleChatLastMessageUpdate(update: TdApi.UpdateChatLastMessage) {
-        val chatId = update.chatId
-        val lastMessage = update.lastMessage
-        val lastMessageText = handleAllMessages(lastMessage)
-        val positions = update.positions
-
-        // 更新聊天列表
-        chatsList.value = chatsList.value.toMutableList().apply {
-            // 查找现有的聊天并更新
-            val existingChatIndex = indexOfFirst { it.id == chatId }
-            val order = positions.firstOrNull()?.order
-            if (existingChatIndex >= 0) {
-                val updatedChat =
-                    if (order != null) {
-                        get(existingChatIndex).copy(
-                            order = order,
-                            isPinned = positions.firstOrNull()?.isPinned ?: false,
-                            lastMessage = lastMessageText,
-                            lastMessageTime = lastMessage?.date ?: -1
-                        )
-                    } else {
-                        get(existingChatIndex).copy(
-                            isPinned = positions.firstOrNull()?.isPinned ?: false,
-                            lastMessage = lastMessageText,
-                            lastMessageTime = lastMessage?.date ?: -1
-                        )
-                    }
-                removeAt(existingChatIndex)
-                add(0, updatedChat)
-            }
-        }
-    }
-
     // 强制加载消息
     private fun addNewChat(chatId: Long){
         // 异步获取聊天标题
@@ -745,7 +802,7 @@ class TgApi(
                     val needNotification = chatResult.notificationSettings.muteFor == 0
 
                     if (chatResult.positions.isEmpty()) havePositions = false
-                    val isPinned = chatResult.positions.firstOrNull()?.isPinned ?: false
+                    val isPinned = chatResult.positions.find { it.list is TdApi.ChatListMain }?.isPinned ?: false
                     val chatTitle = chatResult.title
                     val lastMessageTime = chatResult.lastMessage?.date ?: -1
                     val lastMessage = handleAllMessages(chatResult.lastMessage)
@@ -1510,6 +1567,23 @@ class TgApi(
         }
     }
 
+    // 修改消息文本
+    fun editMessageText(chatId: Long, messageId: Long, message: InputMessageContent) {
+        client.send(TdApi.EditMessageText(
+            chatId,
+            messageId,
+            null,
+            message
+        )) { result ->
+            if (result.constructor == TdApi.Error.CONSTRUCTOR) {
+                val error = result as TdApi.Error
+                println("Edit Message Error: ${error.message}")
+            } else {
+                println("Message edited successfully")
+            }
+        }
+    }
+
     // 加载聊天列表
     suspend fun loadChats(limit: Int = 15){
         val loadChats = TdApi.LoadChats(TdApi.ChatListFolder(0), limit)
@@ -1710,7 +1784,7 @@ class TgApi(
         if (fromMessageId != -1L) {
             val getChatMessages = TdApi.GetChatHistory().apply {
                 this.chatId = nowChatId
-                this.limit = limit // 每次获取 10 条消息
+                this.limit = limit // 每次获取 limit 条消息
                 this.fromMessageId = fromMessageId
             }
 

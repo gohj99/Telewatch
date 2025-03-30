@@ -22,8 +22,11 @@ data class Chat(
     val unreadCount: Int = 0, // 未读会话
     val lastMessage: androidx.compose.ui.text.AnnotatedString = buildAnnotatedString {},
     val lastMessageTime: Int = -1, // 最后一条消息的时间,
+    val lastMessageDraft: androidx.compose.ui.text.AnnotatedString = buildAnnotatedString {}, // 最后一条“非”草稿消息
+    val lastMessageTimeDraft: Int = -1, // 最后一条“非”草稿消息的时间,
     val chatPhoto: TdApi.File? = null, // 会话头像
     val order: Long = -1, // 会话排序
+    val orderDraft: Long = -1, // 最后一条“非”草稿消息的会话排序
     val needNotification: Boolean = true, // 是否需要通知
     val isPinned: Boolean = false, // 是否在全部会话置顶
     val isRead: Boolean = false, // 聊天是否已读

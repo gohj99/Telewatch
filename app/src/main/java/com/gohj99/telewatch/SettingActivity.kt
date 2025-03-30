@@ -165,14 +165,14 @@ class SettingActivity : ComponentActivity() {
                 title = getString(R.string.UI_Edit)
                 settingsList.value = listOf(
                     SettingItem.ProgressBar(
-                        itemName = getString(R.string.Message_preload_quantity),
-                        progress = settingsSharedPref.getInt("Message_preload_quantity", 10).toFloat(),
-                        maxValue = 50f,
-                        minValue = 5f,
+                        itemName = getString(R.string.Down_Button_Offset),
+                        progress = settingsSharedPref.getInt("Down_Button_Offset", 25).toFloat(),
+                        maxValue = 80f,
+                        minValue = 0f,
                         base = 1f,
                         onProgressChange = { size ->
                             with(settingsSharedPref.edit()) {
-                                putInt("Message_preload_quantity", size.toInt())
+                                putInt("Down_Button_Offset", size.toInt())
                                 apply()
                             }
                         }
@@ -235,6 +235,19 @@ class SettingActivity : ComponentActivity() {
             2 -> {
                 title = getString(R.string.App_setting)
                 settingsList.value = listOf(
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.Message_preload_quantity),
+                        progress = settingsSharedPref.getInt("Message_preload_quantity", 10).toFloat(),
+                        maxValue = 50f,
+                        minValue = 5f,
+                        base = 1f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putInt("Message_preload_quantity", size.toInt())
+                                apply()
+                            }
+                        }
+                    ),
                     SettingItem.Switch(
                         itemName = getString(R.string.show_unknown_message_type),
                         isSelected = settingsSharedPref.getBoolean("show_unknown_message_type", false),

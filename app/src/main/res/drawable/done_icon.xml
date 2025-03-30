@@ -1,0 +1,23 @@
+<!--
+  ~ Copyright (c) 2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+  ~ Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+  ~ Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+  ~ Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+  ~ Vestibulum commodo. Ut rhoncus gravida arcu.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="78.52dp"
+    android:height="78.52dp"
+    android:viewportWidth="78.52"
+    android:viewportHeight="78.52">
+  <path
+      android:pathData="M39.26,39.26m-39.26,0a39.26,39.26 0,1 1,78.52 0a39.26,39.26 0,1 1,-78.52 0"
+      android:fillColor="#3e4e59"/>
+  <path
+      android:pathData="M18.002,35.881L18.009,35.874A4.14,4.14 0,0 1,23.864 35.874L36.387,48.397A4.14,4.14 90,0 1,36.387 54.251L36.38,54.258A4.14,4.14 90,0 1,30.525 54.258L18.002,41.736A4.14,4.14 0,0 1,18.002 35.881z"
+      android:fillColor="#3a80bf"/>
+  <path
+      android:pathData="M30.526,48.406L54.673,24.258A4.14,4.14 0,0 1,60.528 24.258L60.535,24.265A4.14,4.14 0,0 1,60.535 30.12L36.388,54.268A4.14,4.14 90,0 1,30.533 54.268L30.526,54.261A4.14,4.14 90,0 1,30.526 48.406z"
+      android:fillColor="#3a80bf"/>
+</vector>

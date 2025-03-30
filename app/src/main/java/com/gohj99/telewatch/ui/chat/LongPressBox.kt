@@ -78,6 +78,15 @@ fun LongPressBox(
                             .verticalRotaryScroll(scrollState)
                     ) {
                         LPMainCard(
+                            text = stringResource(id = R.string.Edit),
+                            callback = {
+                                coroutineScope.launch {
+                                    callBack("Edit")
+                                    onDismiss()
+                                }
+                            }
+                        )
+                        LPMainCard(
                             text = stringResource(id = R.string.Reply),
                             callback = {
                                 coroutineScope.launch {
