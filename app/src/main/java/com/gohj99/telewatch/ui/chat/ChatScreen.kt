@@ -86,6 +86,7 @@ import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.InputBar
+import com.gohj99.telewatch.ui.animateScrollToItemCentered
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.main.MessageView
@@ -665,8 +666,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -708,7 +709,6 @@ fun SplashChatScreen(
                                                                             fontWeight = FontWeight.Bold,
                                                                             style = MaterialTheme.typography.bodySmall,
                                                                             modifier = Modifier
-                                                                                .fillMaxWidth()
                                                                         )
 
                                                                         // 回复消息内容
@@ -756,8 +756,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -818,8 +818,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -836,8 +836,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -849,7 +849,7 @@ fun SplashChatScreen(
                                                                             size.height // 获取父容器的高度
                                                                     }
                                                             ) {
-                                                                // 回复正文
+                                                                // 回复正文部分
                                                                 if (senderName != "") {
                                                                     Column(
                                                                         modifier = Modifier
@@ -877,7 +877,6 @@ fun SplashChatScreen(
                                                                             fontWeight = FontWeight.Bold,
                                                                             style = MaterialTheme.typography.bodySmall,
                                                                             modifier = Modifier
-                                                                                .fillMaxWidth()
                                                                         )
 
                                                                         // 回复消息内容
