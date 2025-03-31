@@ -163,8 +163,8 @@ class TgApi(
                     append(context.getString(R.string.Draft))
                 }
                 append(" ")
-                val caption = inputMessageText.text.text
-                append(if (caption.length > 20) caption.take(20) + "..." else caption)
+                val caption = inputMessageText.text.text.replace('\n', ' ')
+                append(if (caption.length > 64) caption.take(20) + "..." else caption)
             }
 
             val date = draftMessage.date
@@ -877,14 +877,14 @@ class TgApi(
     fun handleAllMessages(
         message: TdApi.Message? = null,
         messageContext: TdApi.MessageContent? = null,
-        maxText: Int = 20
+        maxText: Int = 64
     ): AnnotatedString {
         val content: TdApi.MessageContent = messageContext ?: message?.content
         ?: return buildAnnotatedString { append(context.getString(R.string.Unknown_Message)) }
 
         return when (content) {
             is TdApi.MessageText -> buildAnnotatedString {
-                val text = content.text.text
+                val text = content.text.text.replace('\n', ' ')
                 append(if (text.length > maxText) text.take(maxText) + "..." else text)
             }
             is TdApi.MessagePhoto -> buildAnnotatedString {
@@ -893,7 +893,7 @@ class TgApi(
                     append(context.getString(R.string.Photo))
                 }
                 append(" ")
-                val caption = content.caption.text
+                val caption = content.caption.text.replace('\n', ' ')
                 append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageVideo -> buildAnnotatedString {
@@ -901,7 +901,7 @@ class TgApi(
                     append(context.getString(R.string.Video))
                 }
                 append(" ")
-                val caption = content.caption.text
+                val caption = content.caption.text.replace('\n', ' ')
                 append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageVoiceNote -> buildAnnotatedString {
@@ -909,7 +909,7 @@ class TgApi(
                     append(context.getString(R.string.Voice))
                 }
                 append(" ")
-                val caption = content.caption.text
+                val caption = content.caption.text.replace('\n', ' ')
                 append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageAnimation -> buildAnnotatedString {
@@ -917,7 +917,7 @@ class TgApi(
                     append(context.getString(R.string.Animation))
                 }
                 append(" ")
-                val caption = content.caption.text
+                val caption = content.caption.text.replace('\n', ' ')
                 append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageDocument -> buildAnnotatedString {
@@ -925,7 +925,7 @@ class TgApi(
                     append(context.getString(R.string.File))
                 }
                 append(" ")
-                val caption = content.document.fileName + content.caption.text
+                val caption = content.document.fileName.replace('\n', ' ') + content.caption.text.replace('\n', ' ')
                 append(if (caption.length > maxText) caption.take(maxText) + "..." else caption)
             }
             is TdApi.MessageAnimatedEmoji -> buildAnnotatedString {
