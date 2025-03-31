@@ -16,4 +16,5 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="blue">#64B8F3</color>
+    <color name="red">#FD525D</color>
 </resources>

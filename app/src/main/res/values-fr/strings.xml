@@ -195,5 +195,9 @@
     <string name="copy_success_public">Copier le succès</string>  
     <string name="copy_success_privacy">Copiez le succès (autorisation requise pour accéder)</string>  
     <string name="Failed_request">Échec de la demande</string>  
-    <string name="Message_preload_quantity">Nombre de messages à précharge (cette valeur doit être augmentée sur les téléphones mobiles afin que les messages puissent se charger normalement)</string>
+    <string name="Message_preload_quantity">Nombre de messages à précharge (cette valeur doit être augmentée sur les téléphones mobiles afin que les messages puissent se charger normalement)</string>  
+    <string name="Edit">Modifier</string>
+    <string name="Unable_edit">Impossible de modifier le message</string>
+    <string name="Draft">Brouillon</string>
+    <string name="Down_Button_Offset">Bouton en bas du décalage gauche</string>
 </resources>

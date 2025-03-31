@@ -283,6 +283,10 @@ class ChatActivity : ComponentActivity() {
                                     //println("长按触发")
                                     //println(message)
                                     when (select) {
+                                        "Edit" -> {
+                                            Toast.makeText(this, getString(R.string.Unable_edit), Toast.LENGTH_SHORT).show()
+                                            return@SplashChatScreen "OK"
+                                        }
                                         "Forward" -> {
                                             tgApi!!.forwardMessage = mutableStateOf(message)
                                             return@SplashChatScreen "OK"

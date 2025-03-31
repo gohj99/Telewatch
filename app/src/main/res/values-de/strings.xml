@@ -195,5 +195,9 @@
     <string name="copy_success_public">Erfolg kopieren</string>  
     <string name="copy_success_privacy">Erfolg kopieren (Genehmigung für den Zugriff)</string>  
     <string name="Failed_request">Nicht anfordern</string>  
-    <string name="Message_preload_quantity">Anzahl der zu vorgeladenen Nachrichten (dieser Wert muss auf Mobiltelefonen erhöht werden, damit Nachrichten normal geladen werden können)</string>
+    <string name="Message_preload_quantity">Anzahl der zu vorgeladenen Nachrichten (dieser Wert muss auf Mobiltelefonen erhöht werden, damit Nachrichten normal geladen werden können)</string>  
+    <string name="Edit">Bearbeiten</string>
+    <string name="Unable_edit">Meldung kann nicht bearbeitet werden</string>
+    <string name="Draft">Entwurf</string>
+    <string name="Down_Button_Offset">Down -Taste oben links Offset</string>
 </resources>

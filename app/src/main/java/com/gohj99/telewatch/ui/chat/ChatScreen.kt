@@ -38,7 +38,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
@@ -71,7 +70,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -85,6 +83,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.model.Chat
+import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.InputBar
 import com.gohj99.telewatch.ui.main.LinkText
@@ -151,6 +150,8 @@ fun SplashChatScreen(
     val coroutineScope = rememberCoroutineScope()
     var planReplyMessage by remember { mutableStateOf(tgApi!!.replyMessage.value) }
     var planReplyMessageSenderName by rememberSaveable { mutableStateOf("") }
+    var planEditMessage by remember { mutableStateOf<TdApi.Message?>((null)) }
+    var planEditMessageText = remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     var chatReadList = tgApi?.chatReadList!!
 
@@ -195,7 +196,11 @@ fun SplashChatScreen(
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val showUnknownMessageType = settingsSharedPref.getBoolean("show_unknown_message_type", false)
 
+    // 获取加载内容数量
     val messagePreloadQuantity = settingsSharedPref.getInt("Message_preload_quantity", 10)
+
+    // 获取下滑按钮显示偏移量
+    val downButtonOffset = settingsSharedPref.getInt("Down_Button_Offset", 25)
 
     //println(chatsListManager.chatsList.value)
     val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
@@ -285,13 +290,17 @@ fun SplashChatScreen(
         ) {
             // 标题
             Box(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp) // 调整垂直填充
+                modifier = Modifier
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp) // 调整垂直填充
+                    .clickable(
+                        onClick = { chatTitleClick() }
+                    )
             ) {
-                ClickableText(
-                    text = AnnotatedString(if (chatTitle.length > 15) chatTitle.take(15) + "..." else chatTitle),
-                    style = MaterialTheme.typography.titleMedium.copy(color = Color(0xFFFEFEFE), fontWeight = FontWeight.Bold),
-                    onClick = { chatTitleClick() },
-                    modifier = Modifier.verticalScroll(rememberScrollState())
+                AutoScrollingText(
+                    text = chatTitle,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
 
@@ -343,7 +352,8 @@ fun SplashChatScreen(
                             }
                             itemsIndexed(
                                 chatList.value,
-                                key = { _, message -> message.id.toString() + message.date.toString() }) { index, message ->
+                                key = { _, message -> message.id.toString() + message.date.toString() }
+                            ) { index, message ->
                                 val isCurrentUser = message.isOutgoing
                                 val backgroundColor =
                                     if (isCurrentUser) Color(0xFF003C68) else Color(0xFF2C323A)
@@ -376,9 +386,13 @@ fun SplashChatScreen(
                                             val senderUser = senderId as TdApi.MessageSenderUser
                                             //println("senderUser: $senderUser")
                                             senderUser.userId.let {
-                                                Text(
+                                                AutoScrollingText(
                                                     text = senderName,
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold,
+                                                    style = MaterialTheme.typography.bodySmall,
                                                     modifier = Modifier
+                                                        .fillMaxWidth()
                                                         .pointerInput(Unit) {
                                                             detectTapGestures(onTap = {
                                                                 if (senderUser.userId != chatId) {
@@ -394,9 +408,8 @@ fun SplashChatScreen(
                                                                 isLongPressed = true
                                                             })
                                                         }
-                                                        .padding(start = 10.dp, end = 5.dp),
-                                                    style = MaterialTheme.typography.bodySmall
                                                 )
+
                                                 LaunchedEffect(message.senderId) {
                                                     if (it in senderNameMap) {
                                                         senderName = senderNameMap[it]!!
@@ -412,10 +425,14 @@ fun SplashChatScreen(
                                             val senderChat = senderId as TdApi.MessageSenderChat
                                             //println("senderChat: $senderChat")
                                             senderChat.chatId.let { itChatId ->
-                                                Text(
+                                                AutoScrollingText(
                                                     text = senderName,
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.Bold,
+                                                    style = MaterialTheme.typography.bodySmall,
                                                     modifier = Modifier
                                                         .padding(start = 10.dp, end = 5.dp)
+                                                        .fillMaxWidth()
                                                         .pointerInput(Unit) {
                                                             detectTapGestures(
                                                                 onLongPress = {
@@ -423,9 +440,9 @@ fun SplashChatScreen(
                                                                     isLongPressed = true
                                                                 }
                                                             )
-                                                        },
-                                                    style = MaterialTheme.typography.bodySmall
+                                                        }
                                                 )
+
                                                 LaunchedEffect(message.senderId) {
                                                     if (senderId.chatId == chatId) {
                                                         senderName = chatTitle
@@ -662,6 +679,7 @@ fun SplashChatScreen(
                                                                             size.height // 获取父容器的高度
                                                                     },
                                                             ) {
+                                                                // 回复正文部分
                                                                 if (senderName != "") {
                                                                     Column(
                                                                         modifier = Modifier
@@ -683,12 +701,17 @@ fun SplashChatScreen(
                                                                             ),
                                                                         horizontalAlignment = Alignment.End // 文字右对齐
                                                                     ) {
-                                                                        Text(
+                                                                        // 用户名
+                                                                        AutoScrollingText(
                                                                             text = senderName,
                                                                             color = Color(0xFF66D3FE),
-                                                                            fontSize = 10.sp,
                                                                             fontWeight = FontWeight.Bold,
+                                                                            style = MaterialTheme.typography.bodySmall,
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
                                                                         )
+
+                                                                        // 回复消息内容
                                                                         messageDrawer(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
@@ -715,6 +738,7 @@ fun SplashChatScreen(
                                                                             .padding(5.dp),
                                                                         horizontalAlignment = Alignment.End // 文字右对齐
                                                                     ) {
+                                                                        // 消息内容
                                                                         messageDrawer(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
@@ -825,6 +849,7 @@ fun SplashChatScreen(
                                                                             size.height // 获取父容器的高度
                                                                     }
                                                             ) {
+                                                                // 回复正文
                                                                 if (senderName != "") {
                                                                     Column(
                                                                         modifier = Modifier
@@ -845,12 +870,17 @@ fun SplashChatScreen(
                                                                                 end = 5.dp
                                                                             )
                                                                     ) {
-                                                                        Text(
+                                                                        // 用户名
+                                                                        AutoScrollingText(
                                                                             text = senderName,
                                                                             color = Color(0xFF66D3FE),
-                                                                            fontSize = 10.sp,
                                                                             fontWeight = FontWeight.Bold,
+                                                                            style = MaterialTheme.typography.bodySmall,
+                                                                            modifier = Modifier
+                                                                                .fillMaxWidth()
                                                                         )
+
+                                                                        // 回复消息内容
                                                                         messageDrawer(
                                                                             content = content,
                                                                             onLinkClick = onLinkClick,
@@ -1042,7 +1072,36 @@ fun SplashChatScreen(
                                 .verticalRotaryScroll(state = scrollState, pagerState = pagerState, pageCurrent = 1),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            if (planReplyMessage != null) {
+                            if (planEditMessage != null) {
+                                Box (
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            onClick = {
+                                                planReplyMessage = null
+                                                tgApi!!.replyMessage.value = null
+                                            }
+                                        )
+                                )
+                                Text(
+                                    text = stringResource(R.string.Edit),
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 5.dp,
+                                            top = 5.dp
+                                        )
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            onClick = {
+                                                planEditMessage = null
+                                            }
+                                        )
+                                )
+                            } else if (planReplyMessage != null) {
                                 // 将回复消息显示
                                 Box (
                                     modifier = Modifier
@@ -1143,72 +1202,140 @@ fun SplashChatScreen(
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
-                            InputBar(
-                                query = inputText.value,
-                                onQueryChange = { inputText.value = it },
-                                placeholder = stringResource(id = R.string.Write_message),
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            // 发送消息按钮
-                            Column(
-                                horizontalAlignment = Alignment.End,
-                                modifier = Modifier
-                                    .padding(end = 10.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        if (planReplyMessage == null) {
-                                            tgApi?.sendMessage(
-                                                chatId = chatId,
-                                                message = TdApi.InputMessageText().apply {  // 参数名改为message
-                                                    text = TdApi.FormattedText().apply {
-                                                        this.text = inputText.value  // 正确设置text字段
+                            if (planEditMessage != null) {
+                                InputBar(
+                                    query = planEditMessageText.value,
+                                    onQueryChange = { planEditMessageText.value = it },
+                                    placeholder = stringResource(id = R.string.Write_message),
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                // 完成编辑消息按钮
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                    modifier = Modifier
+                                        .padding(end = 10.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    IconButton(
+                                        onClick = {
+                                            if (planEditMessage != null) {
+                                                tgApi?.editMessageText(
+                                                    chatId = chatId,
+                                                    messageId = planEditMessage!!.id,
+                                                    message = TdApi.InputMessageText().apply {
+                                                        text = TdApi.FormattedText().apply {
+                                                            this.text = planEditMessageText.value
+                                                        }
                                                     }
-                                                }
-                                            )
-                                        } else {
-                                            if (planReplyMessage!!.chatId != chatId) {
-                                                tgApi?.sendMessage(
-                                                    chatId = chatId,
-                                                    message = TdApi.InputMessageText().apply {
-                                                        text = TdApi.FormattedText().apply {
-                                                            this.text = inputText.value
-                                                        }
-                                                    },
-                                                    replyTo = TdApi.InputMessageReplyToExternalMessage(
-                                                        planReplyMessage!!.chatId,
-                                                        planReplyMessage!!.id, null)
-                                                )
-                                            } else {
-                                                tgApi?.sendMessage(
-                                                    chatId = chatId,
-                                                    message = TdApi.InputMessageText().apply {
-                                                        text = TdApi.FormattedText().apply {
-                                                            this.text = inputText.value
-                                                        }
-                                                    },
-                                                    replyTo = TdApi.InputMessageReplyToMessage(
-                                                        planReplyMessage!!.id, null)
                                                 )
                                             }
-                                            planReplyMessage = null
-                                            tgApi!!.replyMessage.value = null
-                                        }
-                                        inputText.value = ""
-                                        coroutineScope.launch {
-                                            pagerState.animateScrollToPage(0)
-                                            listState.animateScrollToItem(0)
-                                        }
-                                    },
+                                            planEditMessage = null
+                                            coroutineScope.launch {
+                                                pagerState.animateScrollToPage(0)
+                                                listState.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .size(45.dp)
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.done_icon),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(45.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                InputBar(
+                                    query = inputText.value,
+                                    onQueryChange = { inputText.value = it },
+                                    placeholder = stringResource(id = R.string.Write_message),
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                // 换行和发送消息按钮
+                                Column(
+                                    horizontalAlignment = Alignment.End,
                                     modifier = Modifier
-                                        .size(45.dp)
+                                        .padding(end = 10.dp)
+                                        .fillMaxWidth()
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_custom_send),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(45.dp)
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween // 左右对齐
+                                    ) {
+                                        // 换行按钮
+                                        IconButton(
+                                            onClick = {
+                                                inputText.value += "\n"
+                                            },
+                                            modifier = Modifier
+                                                .padding(start = 10.dp)
+                                                .size(45.dp)
+                                        ) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.enter_icon),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(45.dp)
+                                            )
+                                        }
+
+                                        // 发送按钮
+                                        IconButton(
+                                            onClick = {
+                                                if (planReplyMessage == null) {
+                                                    tgApi?.sendMessage(
+                                                        chatId = chatId,
+                                                        message = TdApi.InputMessageText().apply {
+                                                            text = TdApi.FormattedText().apply {
+                                                                this.text = inputText.value
+                                                            }
+                                                        }
+                                                    )
+                                                } else {
+                                                    if (planReplyMessage!!.chatId != chatId) {
+                                                        tgApi?.sendMessage(
+                                                            chatId = chatId,
+                                                            message = TdApi.InputMessageText().apply {
+                                                                text = TdApi.FormattedText().apply {
+                                                                    this.text = inputText.value
+                                                                }
+                                                            },
+                                                            replyTo = TdApi.InputMessageReplyToExternalMessage(
+                                                                planReplyMessage!!.chatId,
+                                                                planReplyMessage!!.id, null
+                                                            )
+                                                        )
+                                                    } else {
+                                                        tgApi?.sendMessage(
+                                                            chatId = chatId,
+                                                            message = TdApi.InputMessageText().apply {
+                                                                text = TdApi.FormattedText().apply {
+                                                                    this.text = inputText.value
+                                                                }
+                                                            },
+                                                            replyTo = TdApi.InputMessageReplyToMessage(
+                                                                planReplyMessage!!.id, null
+                                                            )
+                                                        )
+                                                    }
+                                                    planReplyMessage = null
+                                                    tgApi!!.replyMessage.value = null
+                                                }
+                                                inputText.value = ""
+                                                coroutineScope.launch {
+                                                    pagerState.animateScrollToPage(0)
+                                                    listState.animateScrollToItem(0)
+                                                }
+                                            },
+                                            modifier = Modifier.size(45.dp)
+                                        ) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.ic_custom_send),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(45.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                             Spacer(modifier = Modifier.height(12.dp))
@@ -1226,7 +1353,12 @@ fun SplashChatScreen(
                                     text = stringResource(R.string.Forward),
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
+                                    fontSize = 18.sp,
+                                    modifier = Modifier.clickable(
+                                        onClick = {
+                                            tgApi!!.forwardMessage.value = null
+                                        }
+                                    )
                                 )
                                 MainCard(
                                     column = {
@@ -1257,7 +1389,6 @@ fun SplashChatScreen(
                                                     messageId = forwardMessage.value!!.id
                                                 }
                                             )
-                                            inputText.value = ""
                                             coroutineScope.launch {
                                                 pagerState.animateScrollToPage(0)
                                                 listState.animateScrollToItem(0)
@@ -1286,7 +1417,20 @@ fun SplashChatScreen(
             LongPressBox(
                 callBack = { select ->
                     when (select) {
-                        // 回复特殊处理
+                        // 特殊处理
+                        "Edit" -> {
+                            val content = selectMessage.content
+                            if (content is TdApi.MessageText) {
+                                planEditMessage = selectMessage
+                                planEditMessageText.value = content.text.text
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(1)
+                                }
+                            } else {
+                                longPress(select, selectMessage)
+                            }
+                            ""
+                        }
                         "Reply" -> {
                             // 返回空字符串同时执行操作
                             planReplyMessage = selectMessage
@@ -1345,7 +1489,9 @@ fun SplashChatScreen(
              */
             if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset > 10240) {
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd) // 定位到右下角
+                        .offset(x = (-downButtonOffset).dp, y = (-downButtonOffset).dp) // 向左上偏移，避免紧贴屏幕边缘
                 ) {
                     // 滑动最下面
                     IconButton(
@@ -1355,8 +1501,7 @@ fun SplashChatScreen(
                             }
                         },
                         modifier = Modifier
-                            .align(Alignment.BottomEnd) // 定位到右下角
-                            .offset(x = (-27).dp, y = (-27).dp) // 向左上偏移，避免紧贴屏幕边缘
+
                     ) {
                         Box(modifier = Modifier.size(60.dp)) {
                             Image(
@@ -1369,17 +1514,7 @@ fun SplashChatScreen(
                     // 未读消息指示器
                     chatReadList.get(chatId)?.takeIf { it > 0 }?.let { unreadCount ->
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .offset(x = (62).dp, y = (40).dp)
-                                .align(Alignment.BottomEnd)
-                                .clickable (
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            listState.animateScrollToItem(unreadCount)
-                                        }
-                                    }
-                                ),
+                            modifier = Modifier.offset(x = (15.7).dp, y = (-3).dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Surface(

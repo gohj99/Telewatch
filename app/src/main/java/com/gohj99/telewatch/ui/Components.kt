@@ -206,7 +206,7 @@ fun InputBar(
             onValueChange = onQueryChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp), // 添加垂直内边距适配多行文本
+                .padding(horizontal = 8.dp, vertical = 8.dp), // 添加垂直内边距适配多行文本
             singleLine = false,
             textStyle = LocalTextStyle.current.copy(
                 color = Color.White,

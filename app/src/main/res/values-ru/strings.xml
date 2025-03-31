@@ -186,7 +186,7 @@
     <string name="Deleted_message">Сообщение было удалено</string>  
     <string name="Remind1">Привет! \nwelcome в приложение Telewatch! \nfirst, мы рекомендуем присоединиться к нашей официальной Telegram Group для поддержки. Вы можете присоединиться, нажав на ссылку ниже: \nhttps: //t.me/teleandroidwatch \n \nhere \ \ \'s affect hiled, которое поможет вам использовать приложение: \n \nlong-press на границе с сообщением, чтобы раскрыть больше функций \non the Chat-страница, введите сообщение в чате, нажав на заголовок, чтобы получить более подробную информацию. \nlong-press и перетащите текст, чтобы выбрать и копировать. \ Nin Viewer, Long-Press на изображении, чтобы сохранить его в вашей галерее. \nlong-press на элементе на странице прокси, чтобы удалить прокси \n \ntelewatch, открыт и бесплатный. Если вы хотите поддержать нашу разработку, пожалуйста, рассмотрите возможность пожертвования, нажав кнопку ниже. \n \nwe надеюсь, что вам понравится использовать Telewatch!</string>  
     <string name="Write_message">Напишите сообщение …</string>  
-    <string name="Forward">Вперед</string>  
+    <string name="Forward">переслать</string>  
     <string name="Archived_Chats">Архивированные чаты</string>  
     <string name="Reply">Отвечать</string>  
     <string name="Line_spacing">Интернет -интервал</string>  
@@ -195,5 +195,9 @@
     <string name="copy_success_public">Копировать успех</string>  
     <string name="copy_success_privacy">Скопировать успех (разрешение, необходимое для доступа)</string>  
     <string name="Failed_request">Не удалось запросить</string>  
-    <string name="Message_preload_quantity">Количество сообщений в предварительную нагрузку (это значение должно быть увеличено на мобильных телефонах, чтобы сообщения могли нормально загружаться)</string>
+    <string name="Message_preload_quantity">Количество сообщений в предварительную нагрузку (это значение должно быть увеличено на мобильных телефонах, чтобы сообщения могли нормально загружаться)</string>  
+    <string name="Edit">Редактировать</string>
+    <string name="Unable_edit">Невозможно редактировать сообщение</string>
+    <string name="Draft">Черновик</string>
+    <string name="Down_Button_Offset">Кнопка вниз кнопку верхнего смещения</string>
 </resources>

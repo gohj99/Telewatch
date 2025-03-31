@@ -196,4 +196,8 @@
     <string name="copy_success_privacy">Copy success (Permission required to access)</string>
     <string name="Failed_request">Failed to request</string>
     <string name="Message_preload_quantity">Number of messages to preload (this value needs to be increased on mobile phones so that messages can load normally)</string>
+    <string name="Edit">Edit</string>
+    <string name="Unable_edit">Unable to edit message</string>
+    <string name="Draft">Draft</string>
+    <string name="Down_Button_Offset">Down button top left offset</string>
 </resources>

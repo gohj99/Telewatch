@@ -292,6 +292,7 @@ fun SplashAboutScreen(appVersion: String, buildDate: String) {
 
                     Text(
                         text = "\nLife is dear, love is dearer. Both can be given up for freedom.\n\n" +
+                                "The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion.\n\n" +
                                 "宁鸣而死，不默而生\n\n" +
                                 "总有地上的生灵 敢于直面雷霆的威光\n\n" +
                                 "Liberté, Égalité, Fraternité\n\n" +

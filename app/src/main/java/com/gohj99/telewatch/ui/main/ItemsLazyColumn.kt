@@ -480,27 +480,26 @@ fun ChatViewMainCard(
                         overflow = TextOverflow.Ellipsis // 过长省略号
                     )
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // 时间
+                        // 时间：使用 weight 占据剩余空间，允许换行显示
                         Text(
                             text = formatTimestampToDateAndTime(chat.lastMessageTime),
                             color = Color(0xFF728AA5),
                             fontSize = 10.5.sp,
-                            lineHeight = 10.5.sp
+                            lineHeight = 10.5.sp,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp)
                         )
-                        // 未读指示器
+                        // 未读指示器：始终完整显示，不受时间文本影响
                         if (chat.unreadCount > 0) {
                             Surface(
-                                modifier = Modifier
-                                    .wrapContentSize(),
-                                color = if (chat.needNotification) Color(0xFF3F81BB) else Color(
-                                    0xFF49617A
-                                ),
-                                shape = RoundedCornerShape(50) // 数字较小时为圆形，较多时变为椭圆
+                                modifier = Modifier.wrapContentSize(),
+                                color = if (chat.needNotification) Color(0xFF3F81BB) else Color(0xFF49617A),
+                                shape = RoundedCornerShape(50)
                             ) {
                                 Text(
                                     text = chat.unreadCount.toString(),
