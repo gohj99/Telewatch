@@ -196,8 +196,11 @@
     <string name="copy_success_privacy">Kopiu Sukceson (permeso bezonata por aliri)</string>  
     <string name="Failed_request">Malsukcesis peti</string>  
     <string name="Message_preload_quantity">Nombro de mesaĝoj por antaŭŝargi (ĉi tiu valoro devas esti pliigita ĉe poŝtelefonoj por ke mesaĝoj kutime ŝarĝu)</string>  
-    <string name="Edit">Redakti</string>
-    <string name="Unable_edit">Ne eblas redakti mesaĝon</string>
-    <string name="Draft">Skizo</string>
-    <string name="Down_Button_Offset">Malsupren butono supre maldekstre kompensita</string>
+    <string name="Edit">Redakti</string>  
+    <string name="Unable_edit">Ne eblas redakti mesaĝon</string>  
+    <string name="Draft">Skizo</string>  
+    <string name="Down_Button_Offset">Malsupren butono supre maldekstre kompensita</string>  
+    <string name="Notification">Sciigo</string>
+    <string name="already_agreed">Jam konsentite</string>
+    <string name="Apply_notification_permissions">Petu sciigajn permesojn</string>
 </resources>

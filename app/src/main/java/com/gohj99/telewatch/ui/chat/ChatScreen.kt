@@ -1180,11 +1180,13 @@ fun SplashChatScreen(
                                                         showUnknownMessageType = showUnknownMessageType
                                                     )
                                                 } else {
-                                                    Text(
+                                                    // 用户名
+                                                    AutoScrollingText(
                                                         text = planReplyMessageSenderName,
                                                         color = Color(0xFF66D3FE),
-                                                        fontSize = 10.sp,
                                                         fontWeight = FontWeight.Bold,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        modifier = Modifier
                                                     )
                                                     messageDrawer(
                                                         content = planReplyMessage!!.content,

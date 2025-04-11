@@ -196,8 +196,11 @@
     <string name="copy_success_privacy">Скопировать успех (разрешение, необходимое для доступа)</string>  
     <string name="Failed_request">Не удалось запросить</string>  
     <string name="Message_preload_quantity">Количество сообщений в предварительную нагрузку (это значение должно быть увеличено на мобильных телефонах, чтобы сообщения могли нормально загружаться)</string>  
-    <string name="Edit">Редактировать</string>
-    <string name="Unable_edit">Невозможно редактировать сообщение</string>
-    <string name="Draft">Черновик</string>
-    <string name="Down_Button_Offset">Кнопка вниз кнопку верхнего смещения</string>
+    <string name="Edit">Редактировать</string>  
+    <string name="Unable_edit">Невозможно редактировать сообщение</string>  
+    <string name="Draft">Черновик</string>  
+    <string name="Down_Button_Offset">Кнопка вниз кнопку верхнего смещения</string>  
+    <string name="Notification">Уведомление</string>
+    <string name="already_agreed">Уже согласился</string>
+    <string name="Apply_notification_permissions">Подать заявку на разрешения уведомления</string>
 </resources>

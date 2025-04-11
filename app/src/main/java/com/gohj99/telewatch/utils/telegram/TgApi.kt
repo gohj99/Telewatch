@@ -9,6 +9,7 @@
 package com.gohj99.telewatch.utils.telegram
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.MutableState
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.core.content.edit
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.model.ChatMessagesSave
@@ -51,11 +53,11 @@ class TgApi(
     var saveChatId = 0L
     var replyMessage = mutableStateOf<TdApi.Message?>(null)
     var updateFileCallBackList = mutableMapOf<Int, (TdApi.File) -> Unit>()
-    private var saveChatMessagesList = mutableMapOf<Long, ChatMessagesSave>()
-    private var saveChatList = mutableStateOf(emptyList<TdApi.Message>())
-    private var saveChatIdList = mutableListOf<Long>()
+    private var saveChatMessagesList = mutableMapOf<Long, ChatMessagesSave>() //聊天在后台时更新
+    private var saveChatList = mutableStateOf(emptyList<TdApi.Message>()) // 保存的聊天列表，前台更新
+    private var saveChatIdList = mutableMapOf<Long, MutableList<Long>>()
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
-    private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+    private val sharedPref = context.getSharedPreferences("LoginPref", MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
     private val authLatch = CountDownLatch(1)
     private var isExitChatPage = true
@@ -231,7 +233,7 @@ class TgApi(
     // 更新未读聊天数量
     private fun handleUnreadChatCountUpdate(update: TdApi.UpdateUnreadChatCount) {
         val unreadCount = update.unreadCount
-        println("Unread count updated in unreadCount $unreadCount: $unreadCount")
+        //println("Unread count updated in unreadCount $unreadCount: $unreadCount")
 
         // 更新聊天列表
         /*
@@ -305,6 +307,7 @@ class TgApi(
     private fun handleMessageSendSucceededUpdate(update: TdApi.UpdateMessageSendSucceeded) {
         val chatId = update.message.chatId
         val oldMessageId = update.oldMessageId
+        val newMessageId = update.message.id
         if (chatId == saveChatId) {
             saveChatList.value = saveChatList.value.toMutableList().apply {
                 val messageIndex = indexOfFirst { it.id == oldMessageId }
@@ -312,8 +315,18 @@ class TgApi(
                     set(messageIndex, update.message)
                 }
             }
-            saveChatIdList.remove(oldMessageId)
-            saveChatIdList.add(oldMessageId)
+            saveChatIdList[chatId]?.remove(oldMessageId)
+            saveChatIdList[chatId]?.add(newMessageId)
+        } else if (chatId in saveChatMessagesList) {
+            saveChatMessagesList[chatId]?.messages?.replaceAll {
+                if (it.id == oldMessageId) {
+                    update.message
+                } else {
+                    it
+                }
+            }
+            saveChatIdList[chatId]?.remove(oldMessageId)
+            saveChatIdList[chatId]?.add(newMessageId)
         }
     }
 
@@ -323,8 +336,9 @@ class TgApi(
         val unreadCount = update.unreadCount
         if (chatId == saveChatId) {
             lastReadInboxMessageId.value = update.lastReadInboxMessageId
+        } else if (chatId in saveChatMessagesList) {
+            saveChatMessagesList[chatId]?.lastReadInboxMessageId = update.lastReadInboxMessageId
         }
-
         // 更新聊天列表
         chatsList.value = chatsList.value.toMutableList().apply {
             // 查找现有的聊天并更新
@@ -346,6 +360,8 @@ class TgApi(
         val chatId = update.chatId
         if (chatId == saveChatId) {
             lastReadOutboxMessageId.value = update.lastReadOutboxMessageId
+        } else if (chatId in saveChatMessagesList) {
+            saveChatMessagesList[chatId]?.lastReadOutboxMessageId = update.lastReadOutboxMessageId
         }
     }
 
@@ -494,11 +510,20 @@ class TgApi(
                 if (message != null) {
                     // 更新保存的聊天列表
                     mutableChatList.remove(message)
-                    saveChatIdList.remove(message.id)
+                    saveChatIdList[chatId]?.remove(message.id)
                 }
             }
             saveChatList.value = mutableChatList
             //reloadMessageById(messageIds[0])
+        } else if (chatId in saveChatMessagesList) {
+            messageIds.forEach { messageId ->
+                val message = saveChatMessagesList[chatId]?.messages?.find { it.id == messageId }
+                if (message != null) {
+                    // 更新保存的聊天列表
+                    saveChatMessagesList[chatId]?.messages?.remove(message)
+                    saveChatIdList[chatId]?.remove(message.id)
+                }
+            }
         }
     }
 
@@ -508,12 +533,18 @@ class TgApi(
         //println("New message received in chat ID ${message.chatId}\nmessageId ${message.id}")
         val chatId = message.chatId
 
-        if (chatId == saveChatId) {
-            // 将新消息添加到保存的聊天列表的前面
-            saveChatList.value = saveChatList.value.toMutableList().apply {
-                add(0, message) // 新消息存储在最前面
+        if (chatId !in saveChatIdList || message.id !in (saveChatIdList[chatId] ?: emptyList())) {
+            if (chatId == saveChatId) {
+                // 将新消息添加到保存的聊天列表的前面
+                saveChatList.value = saveChatList.value.toMutableList().apply {
+                    add(0, message) // 新消息存储在最前面
+                }
+                saveChatIdList[chatId]?.add(message.id)
+            } else if (chatId in saveChatMessagesList) {
+                // 将新消息添加到保存的聊天列表的前面
+                saveChatMessagesList[chatId]?.messages?.add(message)
+                saveChatIdList[chatId]?.add(message.id)
             }
-            saveChatIdList.add(message.id)
         }
     }
 
@@ -524,6 +555,7 @@ class TgApi(
         val messageId = update.messageId
 
         // 更新聊天列表
+        /*
         chatsList.value = chatsList.value.toMutableList().apply {
             // 查找现有的聊天并更新
             val existingChatIndex = indexOfFirst { it.id == chatId }
@@ -536,6 +568,8 @@ class TgApi(
             }
         }
 
+         */
+
         if (chatId == saveChatId) {
             saveChatList.value = saveChatList.value.toMutableList().apply {
                 val messageIndex = indexOfFirst { it.id == messageId }
@@ -545,6 +579,16 @@ class TgApi(
                         content = message
                     }
                     set(messageIndex, updatedMessage)
+                }
+            }
+        } else if (chatId in saveChatMessagesList) {
+            saveChatMessagesList[chatId]?.messages?.replaceAll {
+                if (it.id == messageId) {
+                    it.apply {
+                        content = message
+                    }
+                } else {
+                    it
                 }
             }
         }
@@ -587,7 +631,7 @@ class TgApi(
                     if (order != null) {
                         get(existingChatIndex).copy(
                             order = order,
-                            isPinned = position?.isPinned ?: false,
+                            isPinned = position.isPinned,
                             lastMessage = lastMessageText,
                             lastMessageTime = lastMessage?.date ?: -1
                         )
@@ -620,6 +664,16 @@ class TgApi(
                         date = editDate
                     }
                     set(messageIndex, updatedMessage)
+                }
+            }
+        } else if (chatId in saveChatMessagesList) {
+            saveChatMessagesList[chatId]?.messages?.replaceAll {
+                if (it.id == messageId) {
+                    it.apply {
+                        date = editDate
+                    }
+                } else {
+                    it
                 }
             }
         }
@@ -954,7 +1008,7 @@ class TgApi(
     }
 
     // 获取应用版本
-    private fun getAppVersion(context: Context): String {
+    fun getAppVersion(context: Context): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             pInfo.versionName
@@ -1584,6 +1638,28 @@ class TgApi(
         }
     }
 
+    fun setFCMToken(token: String = "", callback: (Long) -> Unit = {}) {
+        client.send(
+            TdApi.RegisterDevice(
+                TdApi.DeviceTokenFirebaseCloudMessaging(
+                    token,
+                    true
+                ),
+                null
+            )
+        ) { result ->
+            if (result is TdApi.PushReceiverId) {
+                println("FCM token set successfully")
+                sharedPref.edit(commit = false) {
+                    putLong("userPushReceiverId", result.id)
+                }
+                callback(result.id)
+            } else {
+                println("Failed to set FCM token: $result")
+            }
+        }
+    }
+
     // 加载聊天列表
     suspend fun loadChats(limit: Int = 15){
         val loadChats = TdApi.LoadChats(TdApi.ChatListFolder(0), limit)
@@ -1637,7 +1713,7 @@ class TgApi(
                             } else {
                                 // 如果列表中没有此消息，则将其添加到列表的开头
                                 add(0, message)
-                                saveChatIdList.add(message.id)
+                                saveChatIdList[saveChatId]?.add(0, messageId)
                             }
                         }
                     }
@@ -1729,17 +1805,23 @@ class TgApi(
         }
         if (saveChatId != 0L && saveChatId != -1L && saveChatId != openChatId){
             saveChatMessagesList = saveChatMessagesList.toMutableMap().apply {
-                put(saveChatId, ChatMessagesSave(saveChatList, saveChatIdList))
+                put(saveChatId, ChatMessagesSave(
+                    saveChatList.value.toMutableList(),
+                    lastReadInboxMessageId.value,
+                    lastReadOutboxMessageId.value
+                ))
             }
         }
         saveChatId = openChatId
         val oldChatList = saveChatMessagesList[openChatId]
         if (oldChatList == null) {
             saveChatList = chatList
-            saveChatIdList = mutableListOf()
+            lastReadInboxMessageId.value = 0L
+            lastReadOutboxMessageId.value = 0L
         } else {
-            saveChatList = oldChatList.messages
-            saveChatIdList = oldChatList.messagesIdList
+            saveChatList.value = oldChatList.messages
+            lastReadInboxMessageId.value = oldChatList.lastReadInboxMessageId
+            lastReadOutboxMessageId.value = oldChatList.lastReadOutboxMessageId
         }
         isExitChatPage = false
     }
@@ -1768,7 +1850,6 @@ class TgApi(
         }
         isExitChatPage = true
         saveChatId = 0L
-        saveChatIdList = mutableListOf()
     }
 
     // 删除聊天

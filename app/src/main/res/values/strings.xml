@@ -200,4 +200,7 @@
     <string name="Unable_edit">Unable to edit message</string>
     <string name="Draft">Draft</string>
     <string name="Down_Button_Offset">Down button top left offset</string>
+    <string name="Notification">Notification</string>
+    <string name="already_agreed">Already agreed</string>
+    <string name="Apply_notification_permissions">Apply for notification permissions</string>
 </resources>

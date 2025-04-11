@@ -8,10 +8,10 @@
 
 package com.gohj99.telewatch.model
 
-import androidx.compose.runtime.MutableState
 import org.drinkless.tdlib.TdApi
 
 data class ChatMessagesSave (
-    val messages: MutableState<List<TdApi.Message>>,
-    val messagesIdList: MutableList<Long>
+    val messages: MutableList<TdApi.Message>,
+    var lastReadInboxMessageId: Long,
+    var lastReadOutboxMessageId: Long
 )

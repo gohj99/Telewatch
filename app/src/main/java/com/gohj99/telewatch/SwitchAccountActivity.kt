@@ -66,8 +66,11 @@ class SwitchAccountActivity : ComponentActivity() {
             TelewatchTheme {
                 SplashSettingLazyColumnScreen(accountName) { isSwitch ->
                     if (isSwitch) {
+                        TgApiManager.tgApi?.setFCMToken()
+
                         with(sharedPref.edit()) {
                             putString("userList", userList)
+                            putBoolean("Change_account", true)
                             commit()
                             Handler(Looper.getMainLooper()).postDelayed({
                                 val intent = packageManager.getLaunchIntentForPackage(packageName)
