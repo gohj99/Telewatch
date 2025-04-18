@@ -9,6 +9,7 @@
 package com.gohj99.telewatch.utils.telegram
 
 import android.Manifest
+import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ContentResolver
 import android.content.Context
@@ -16,17 +17,26 @@ import android.content.Context.NOTIFICATION_SERVICE
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
+import androidx.core.content.edit
 import androidx.core.graphics.drawable.IconCompat
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.getAppVersion
 import com.gohj99.telewatch.loadConfig
+import com.gohj99.telewatch.model.NotificationMessage
+import com.gohj99.telewatch.utils.getColorById
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CompletableDeferred
@@ -50,6 +60,8 @@ class TgApiForPushNotification(private val context: Context) {
     private val authLatch = CountDownLatch(1)
     private var currentUser: List<String> = emptyList()
     private var userId = ""
+    private val PREFS_NAME = "ChatNotificationHistory"
+    private val MAX_HISTORY_SIZE = 10 // 保留最近的消息数量
 
     init {
         // 获取用户ID
@@ -154,6 +166,9 @@ class TgApiForPushNotification(private val context: Context) {
         val message = update.message
         val chatId = message.chatId
 
+        if ((message.senderId as TdApi.MessageSenderUser).userId == userId.toLong()) {
+            return // 如果消息是自己发送的，则不处理
+        }
         // 异步获取聊天标题和聊天信息
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -161,30 +176,74 @@ class TgApiForPushNotification(private val context: Context) {
                 if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
 
                     var isGroup = false
-                    when (val messageType = chatResult.type) {
+                    when (chatResult.type) {
                         is TdApi.ChatTypeSupergroup -> {
-                            if (!messageType.isChannel) {
-                                isGroup = true
-                            }
+                            isGroup = true
                         }
                         is TdApi.ChatTypeBasicGroup -> {
                             isGroup = true
                         }
                     }
 
+                    // 获取聊天图片
+                    var bmp = BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
+                    val photoFile = chatResult.photo?.small
+                    if (photoFile?.local?.isDownloadingCompleted == true) {
+                        val filePath = photoFile.local.path
+                        val file = File(filePath)
+                        if (file.exists()) {
+                            // 这里可以处理图片文件，例如显示或使用
+                            loadBitmapFromUri(context.contentResolver, Uri.fromFile(file))?.let {
+                                bmp = it
+                            }
+                        }
+                    } else {
+                        // 使用默认图标
+                        bmp = generateChatTitleIconBitmap(
+                            context,
+                            chatResult.title,
+                            chatResult.accentColorId
+                        )
+                    }
+
                     //val accentColorId = chatResult.accentColorId
                     val needNotification = chatResult.notificationSettings.muteFor == 0
                     val chatTitle = chatResult.title
+
+                    // 获取发送者名称
+                    var senderName = chatTitle
+                    if (isGroup) {
+                        when (val senderId = message.senderId) {
+                            is TdApi.MessageSenderUser -> {
+                                val userId = senderId.userId
+                                val userResult = sendRequest(TdApi.GetUser(userId))
+                                if (userResult is TdApi.User) {
+                                    senderName = "${userResult.firstName} ${userResult.lastName}"
+                                }
+                            }
+                            is TdApi.MessageSenderChat -> {
+                                // 处理群组消息的发送者
+                                if (senderId.chatId == chatId) {
+                                    senderName = chatTitle
+                                } else {
+                                    val itChat = tgApi?.getChat(senderId.chatId)
+                                    itChat.let {
+                                        senderName = it!!.title
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     if (needNotification) {
                         context.sendChatMessageNotification(
                             title = chatTitle,
                             message = handleAllMessages(message),
-                            senderName = currentUser[1],
+                            senderName = senderName,
                             conversationId = chatId.toString(),
                             messageId = message.id,
                             isGroupChat = isGroup,
-                            chatIconUri = null // 这里可以传入群组图标的 Uri
+                            chatIconBitmap = bmp // 这里可以传入群组图标的 Uri
                         )
                     }
                 }
@@ -199,47 +258,71 @@ class TgApiForPushNotification(private val context: Context) {
         message: String, // 消息内容
         senderName: String, // 发送者名称
         conversationId: String, // 用于区分不同的聊天会话
-        messageId: Long = System.currentTimeMillis(), // 唯一的消息 ID
+        messageId: Long, // 唯一的消息 ID
         isGroupChat: Boolean = false,
-        chatIconUri: Uri? = null // 会话的通知图标 Uri
+        chatIconBitmap: Bitmap // 会话的通知图标 Bitmap
     ) {
-        val channelId = "chat_notifications" // 为聊天通知创建一个特定的 channelId
+        val channelId = "chat_notifications"
+        val channelName = "Chat Messages"
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = "Used to display instant chat messages"
+                enableLights(true)
+                enableVibration(true)
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val gson = Gson()
+        val type = object : TypeToken<MutableList<NotificationMessage>>() {}.type
 
-        // 构建发送者 Person 对象 (仅包含名称)
-        val sender = Person.Builder()
-            .setName(senderName)
-            .build()
+        // 从 SharedPreferences 加载历史消息
+        val historyJson = prefs.getString(conversationId, null)
+        val messageHistory = historyJson?.let { gson.fromJson<MutableList<NotificationMessage>>(it, type) } ?: mutableListOf()
 
-        val messagingStyle = NotificationCompat.MessagingStyle(sender)
-            .addMessage(message, System.currentTimeMillis(), sender)
+        // 添加新消息到历史记录
+        messageHistory.add(NotificationMessage(message, senderName, System.currentTimeMillis()))
+
+        // 限制历史记录大小
+        while (messageHistory.size > MAX_HISTORY_SIZE) {
+            messageHistory.removeAt(0)
+        }
+
+        // 将更新后的历史记录保存到 SharedPreferences
+        prefs.edit { putString(conversationId, gson.toJson(messageHistory)) }
+
+        val messagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName(title).build())
             .setGroupConversation(isGroupChat)
-            .setConversationTitle(if (isGroupChat) title else null) // 群聊时显示群组名称
+            .setConversationTitle(if (isGroupChat) title else null)
+
+        for (notificationMessage in messageHistory) {
+            val person = Person.Builder().setName(notificationMessage.senderName).build()
+            messagingStyle.addMessage(notificationMessage.text, notificationMessage.timestamp, person)
+        }
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher) // 默认图标
+            .setSmallIcon(R.mipmap.ic_launcher)
             .apply {
-                chatIconUri?.let { uri ->
-                    try {
-                        val iconBitmap = loadBitmapFromUri(contentResolver, uri)
-                        iconBitmap?.let { setSmallIcon(IconCompat.createWithBitmap(it)) }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        // 加载失败，使用默认图标
-                    }
+                chatIconBitmap?.let { bitmap ->
+                    setSmallIcon(IconCompat.createWithBitmap(bitmap))
                 }
             }
             .setStyle(messagingStyle)
-            .setContentTitle(if (isGroupChat) title else senderName) // 群聊显示群组名，单聊显示发送者
-            .setContentText(message) // 仍然保留 contentText，作为低版本或不支持扩展样式的 fallback
+            .setContentTitle(if (isGroupChat) title else senderName)
+            .setContentText(message)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // 设置高优先级，尝试在屏幕顶部显示
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // 标记为消息类型
-            .setGroup(conversationId) // 将属于同一会话的消息分组
-            .setSortKey(messageId.toString()) // 确保消息按时间顺序排列
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setGroup(conversationId)
+            .setSortKey(messageId.toString())
+            .setGroupSummary(true)
+            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
 
         if (ActivityCompat.checkSelfPermission(
                 this@sendChatMessageNotification,
@@ -264,6 +347,78 @@ class TgApiForPushNotification(private val context: Context) {
             e.printStackTrace()
             null
         }
+    }
+
+    /**
+     * 根据聊天标题的第一个字母和颜色 ID 生成一个默认聊天图标的 Bitmap
+     *
+     * @param context 用于访问资源和显示指标
+     * @param title 聊天标题，用于获取第一个字母
+     * @param accentColorId 用于获取背景颜色
+     * @return 生成的 Bitmap
+     */
+    fun generateChatTitleIconBitmap(
+        context: Context,
+        title: String,
+        accentColorId: Int
+    ): Bitmap {
+        val density = context.resources.displayMetrics.density
+
+        // 转换为像素
+        val sizeDp = 35f // 从 35.dp 获取值
+        val textSizeSp = 18f // 从 18.sp 获取值
+
+        val sizePx = (sizeDp * density).toInt()
+        val textSizePx = (textSizeSp * density).toInt()
+
+        // 创建一个可变的 Bitmap
+        val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888) // ARGB_8888 也可以
+        val canvas = Canvas(bitmap)
+
+        // --- 绘制圆形背景 ---
+        val circlePaint = Paint().apply {
+            color = getColorById(accentColorId).toArgb() // 使用 getColorById 获取颜色并转换为 ARGB
+            style = Paint.Style.FILL
+            isAntiAlias = true // 启用抗锯齿
+        }
+
+        val centerX = sizePx / 2f
+        val centerY = sizePx / 2f
+        val radius = sizePx / 2f // 半径就是一半的尺寸
+
+        canvas.drawCircle(centerX, centerY, radius, circlePaint)
+
+        // --- 绘制文本 ---
+        val textPaint = Paint().apply {
+            color = Color.White.toArgb() // 文字颜色为白色
+            textSize = textSizePx.toFloat() // 文字大小
+            textAlign = Paint.Align.CENTER // 设置文本对齐方式为中心
+            isAntiAlias = true
+            // 您可能还需要设置字体，Compose 默认使用系统字体
+            // typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        }
+
+        // 确定要显示的文本（第一个大写字母），处理空字符串情况
+        val text = title
+            .takeIf { it.isNotEmpty() } // 如果标题不为空
+            ?.get(0) // 获取第一个字符
+            ?.uppercaseChar() // 转换为大写字符
+            ?.toString() // 转换为字符串
+            ?: "?" // 如果标题为空，使用 "?" 作为默认文本
+
+        // 计算文本的基线位置，使其在垂直方向上居中
+        // 对于 Paint.Align.CENTER，drawText 的 x 坐标是水平中心，y 坐标是基线位置
+        // 文本高度 = ascent + descent (ascent 是负数)
+        // 文本的半高 = (descent - ascent) / 2
+        // 垂直居中的 y 坐标（基于中心）= (文本的半高) - descent
+        // 基线 y 坐标 = centerY + 垂直居中的 y 坐标（基于中心）
+        val fontMetrics = textPaint.fontMetrics
+        val textBaseLineY = centerY - (fontMetrics.descent + fontMetrics.ascent) / 2f
+
+
+        canvas.drawText(text, centerX, textBaseLineY, textPaint)
+
+        return bitmap
     }
 
     // 处理和简化消息

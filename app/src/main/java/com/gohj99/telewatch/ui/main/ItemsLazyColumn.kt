@@ -454,7 +454,7 @@ fun ChatViewMainCard(
                     } else {
                         Surface(
                             modifier = Modifier
-                                .size(35.dp), // 固定宽高为60dp
+                                .size(35.dp), // 固定宽高为35dp
                             color = getColorById(chat.accentColorId),
                             shape = CircleShape
                         ) {

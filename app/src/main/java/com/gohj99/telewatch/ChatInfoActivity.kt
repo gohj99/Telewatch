@@ -99,6 +99,9 @@ class ChatInfoActivity : ComponentActivity() {
                     if (userInfo != null) {
                         if (userInfo.type is TdApi.UserTypeBot) {
                             subtitle = getString(R.string.Bot)
+                            if (userInfo.usernames != null) {
+                                info += "\n**${getString(R.string.username)}**\n@${userInfo.usernames!!.activeUsernames[0]}"
+                            }
                         } else {
                             when(val status = userInfo.status) {
                                 is TdApi.UserStatusOnline ->
