@@ -8,14 +8,22 @@
 
 package com.gohj99.telewatch.utils.telegram
 
-import android.app.NotificationChannel
+import android.Manifest
 import android.app.NotificationManager
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.Person
+import androidx.core.graphics.drawable.IconCompat
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.getAppVersion
 import com.gohj99.telewatch.loadConfig
@@ -30,6 +38,7 @@ import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.CountDownLatch
 
 class TgApiForPushNotification(private val context: Context) {
@@ -145,17 +154,38 @@ class TgApiForPushNotification(private val context: Context) {
         val message = update.message
         val chatId = message.chatId
 
-        // 异步获取聊天标题
+        // 异步获取聊天标题和聊天信息
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val chatResult = sendRequest(TdApi.GetChat(chatId))
                 if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
+
+                    var isGroup = false
+                    when (val messageType = chatResult.type) {
+                        is TdApi.ChatTypeSupergroup -> {
+                            if (!messageType.isChannel) {
+                                isGroup = true
+                            }
+                        }
+                        is TdApi.ChatTypeBasicGroup -> {
+                            isGroup = true
+                        }
+                    }
+
                     //val accentColorId = chatResult.accentColorId
                     val needNotification = chatResult.notificationSettings.muteFor == 0
                     val chatTitle = chatResult.title
 
                     if (needNotification) {
-                        sendNotification(chatTitle, handleAllMessages(message))
+                        context.sendChatMessageNotification(
+                            title = chatTitle,
+                            message = handleAllMessages(message),
+                            senderName = currentUser[1],
+                            conversationId = chatId.toString(),
+                            messageId = message.id,
+                            isGroupChat = isGroup,
+                            chatIconUri = null // 这里可以传入群组图标的 Uri
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -164,38 +194,76 @@ class TgApiForPushNotification(private val context: Context) {
         }
     }
 
-    fun sendNotification(title: String, message: String) {
-        // 定义通知渠道的唯一标识符（用于 Android Oreo 及以上版本）
-        val channelId = "default_channel_id"
+    fun Context.sendChatMessageNotification(
+        title: String, // 会话标题
+        message: String, // 消息内容
+        senderName: String, // 发送者名称
+        conversationId: String, // 用于区分不同的聊天会话
+        messageId: Long = System.currentTimeMillis(), // 唯一的消息 ID
+        isGroupChat: Boolean = false,
+        chatIconUri: Uri? = null // 会话的通知图标 Uri
+    ) {
+        val channelId = "chat_notifications" // 为聊天通知创建一个特定的 channelId
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        // 获取系统默认的通知声音 URI
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        // 创建 NotificationCompat.Builder 构建器
-        // 传入当前上下文（this）和通知渠道ID
-        val notificationBuilder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher) // 设置通知图标，确保该图标资源存在
-            .setContentTitle(title)                     // 设置通知标题
-            .setContentText(message)                    // 设置通知内容
-            .setAutoCancel(true)                        // 设置点击后自动取消通知
-            .setSound(defaultSoundUri)                  // 设置通知声音
+        // 构建发送者 Person 对象 (仅包含名称)
+        val sender = Person.Builder()
+            .setName(senderName)
+            .build()
 
-        // 获取系统的 NotificationManager 服务，用于管理通知
-        val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val messagingStyle = NotificationCompat.MessagingStyle(sender)
+            .addMessage(message, System.currentTimeMillis(), sender)
+            .setGroupConversation(isGroupChat)
+            .setConversationTitle(if (isGroupChat) title else null) // 群聊时显示群组名称
 
-        // 针对 Android Oreo（API 26）及以上版本创建通知渠道
-        // 设置通知渠道的名称
-        val channelName = "默认通知渠道"
-        // 创建一个 NotificationChannel 对象，传入渠道ID、渠道名称和重要性等级
-        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-        // 可选：为通知渠道设置描述信息
-        channel.description = "这是默认通知渠道，用于展示推送通知"
-        // 将通知渠道注册到系统 NotificationManager 中
-        notificationManager.createNotificationChannel(channel)
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.mipmap.ic_launcher) // 默认图标
+            .apply {
+                chatIconUri?.let { uri ->
+                    try {
+                        val iconBitmap = loadBitmapFromUri(contentResolver, uri)
+                        iconBitmap?.let { setSmallIcon(IconCompat.createWithBitmap(it)) }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        // 加载失败，使用默认图标
+                    }
+                }
+            }
+            .setStyle(messagingStyle)
+            .setContentTitle(if (isGroupChat) title else senderName) // 群聊显示群组名，单聊显示发送者
+            .setContentText(message) // 仍然保留 contentText，作为低版本或不支持扩展样式的 fallback
+            .setAutoCancel(true)
+            .setSound(defaultSoundUri)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // 设置高优先级，尝试在屏幕顶部显示
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // 标记为消息类型
+            .setGroup(conversationId) // 将属于同一会话的消息分组
+            .setSortKey(messageId.toString()) // 确保消息按时间顺序排列
 
-        // 使用 NotificationManager 发送通知
-        // 第一个参数为通知的唯一ID，通知ID可以用来更新或取消通知（此处使用 0，实际开发中可使用随机数或自定义逻辑生成唯一ID）
-        notificationManager.notify(0, notificationBuilder.build())
+        if (ActivityCompat.checkSelfPermission(
+                this@sendChatMessageNotification,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationManager.notify(conversationId.hashCode(), notificationBuilder.build())
+        }
+    }
+
+    private fun loadBitmapFromUri(contentResolver: ContentResolver, uri: Uri): Bitmap? {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = android.graphics.ImageDecoder.createSource(contentResolver, uri)
+                android.graphics.ImageDecoder.decodeBitmap(source)
+            } else {
+                contentResolver.openInputStream(uri)?.use { inputStream ->
+                    BitmapFactory.decodeStream(inputStream)
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
     }
 
     // 处理和简化消息

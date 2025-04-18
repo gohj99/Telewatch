@@ -203,4 +203,5 @@
     <string name="Notification">Notification</string>
     <string name="already_agreed">Already agreed</string>
     <string name="Apply_notification_permissions">Apply for notification permissions</string>
+    <string name="Beta" translatable="false">Beta</string>
 </resources>

@@ -459,7 +459,7 @@ class SettingActivity : ComponentActivity() {
             }
 
             3 -> {
-                title = getString(R.string.Notification)
+                title = "${getString(R.string.Notification)} (${getString(R.string.Beta)})"
                 settingsList.value = listOf(
                     SettingItem.Switch(
                         itemName = getString(R.string.Notification),
