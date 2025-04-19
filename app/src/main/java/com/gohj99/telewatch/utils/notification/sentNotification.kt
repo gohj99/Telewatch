@@ -8,7 +8,6 @@
 
 package com.gohj99.telewatch.utils.notification
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -19,15 +18,15 @@ import android.graphics.Canvas
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.BitmapDrawable
 import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
+import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.gohj99.telewatch.MainActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.model.NotificationMessage
-import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 
 private const val ACTION_CLEAR_CHAT_HISTORY = "com.gohj99.telewatch.ACTION_CLEAR_CHAT_HISTORY"
@@ -36,6 +35,11 @@ private const val MAX_HISTORY_SIZE = 10 // 保留最近的消息数量
 private const val PREFS_NAME = "chat_prefs"
 private const val CHANNEL_ID = "chat_notifications"
 private const val CHANNEL_NAME = "Chat Messages"
+
+// 用于 Intent Action 和 Extra
+const val ACTION_MARK_AS_READ = "com.gohj99.telewatch.ACTION_MARK_AS_READ"
+const val ACTION_REPLY = "com.gohj99.telewatch.ACTION_REPLY"
+const val KEY_TEXT_REPLY = "key_text_reply" // RemoteInput 的 Key
 
 fun Context.sendChatMessageNotification(
     title: String,
@@ -47,6 +51,7 @@ fun Context.sendChatMessageNotification(
     chatIconBitmap: Bitmap
 ) {
     val nm = getSystemService(NotificationManager::class.java)!!
+    val notificationId = conversationId.hashCode() // 使用 conversationId 的哈希值作为通知 ID
 
     // —— 1. 创建或确认 Channel ——
     val ch = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH).apply {
@@ -56,15 +61,14 @@ fun Context.sendChatMessageNotification(
     }
     nm.createNotificationChannel(ch)
 
-    // —— 2. 读写 SharedPreferences ——
+
+    // —— 2. 读写 SharedPreferences (消息历史) ——
     val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val gson = Gson()
-    val type = object : TypeToken<MutableList<NotificationMessage>>() {}.type
     val historyJson = prefs.getString(conversationId, null)
-    val messageHistory: MutableList<NotificationMessage> =
-        historyJson?.let { gson.fromJson(it, type) } ?: mutableListOf()
+    val array = gson.fromJson(historyJson, Array<NotificationMessage>::class.java)
+    val messageHistory = array?.toMutableList() ?: mutableListOf()
 
-    // 添加新消息、按时间排序、截断
     messageHistory.add(NotificationMessage(message, senderName, timestamp))
     messageHistory.sortBy { it.timestamp }
     while (messageHistory.size > MAX_HISTORY_SIZE) {
@@ -72,127 +76,131 @@ fun Context.sendChatMessageNotification(
     }
     prefs.edit { putString(conversationId, gson.toJson(messageHistory)) }
 
+
     // —— 3. 构造 MessagingStyle ——
-    val style = NotificationCompat.MessagingStyle(
-        Person.Builder().setName(title).build()
-    ).also { s ->
+    // 注意: Person 的 Key 最好是唯一的标识符，如果 senderName 可能重复，考虑使用 senderId
+    val userPerson = Person.Builder().setName("You").setKey("user_self").build() // 定义当前用户
+    val style = NotificationCompat.MessagingStyle(userPerson).also { s -> // 使用当前用户作为 MessagingStyle 的 user
         s.setGroupConversation(isGroupChat)
-        if (isGroupChat) s.setConversationTitle(title)
+        if (isGroupChat) {
+            s.setConversationTitle(title)
+        }
         messageHistory.forEach { msg ->
-            val person = Person.Builder().setName(msg.senderName).build()
+            // 假设有一个方法可以根据 senderName 获取唯一的 senderId
+            val senderId = msg.senderName // 理想情况下这里用 senderId
+            val person = Person.Builder().setName(msg.senderName).setKey(senderId).build()
             s.addMessage(msg.text, msg.timestamp, person)
         }
     }
 
-    // —— 4. 构造 DeleteIntent ——
+    // --- 4. 创建 PendingIntents for Actions ---
+
+    // 标记已读 Intent
+    val markReadIntent = Intent(this, NotificationActionReceiver::class.java).apply {
+        action = ACTION_MARK_AS_READ
+        putExtra(EXTRA_CONVERSATION_ID, conversationId)
+    }
+    // 使用不同的 request code 区分 PendingIntent
+    val markReadPendingIntent = PendingIntent.getBroadcast(
+        this,
+        notificationId + 1, // Request Code 1
+        markReadIntent,
+        // FLAG_IMMUTABLE 是推荐的，如果不需要修改 Intent 中的 extra
+        // FLAG_UPDATE_CURRENT 确保如果通知更新，PendingIntent 也更新
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    // 回复 Intent
+    val replyIntent = Intent(this, NotificationActionReceiver::class.java).apply {
+        action = ACTION_REPLY
+        putExtra(EXTRA_CONVERSATION_ID, conversationId)
+    }
+    val replyPendingIntent = PendingIntent.getBroadcast(
+        this,
+        notificationId + 2, // Request Code 2
+        replyIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE // 需要 Mutable 因为 RemoteInput 会添加数据
+        // 或者 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE (如果目标 SDK >= 31 且 Receiver 不需要修改 Intent)
+        // 对于 RemoteInput, 通常需要 FLAG_MUTABLE 或者在 Receiver 中处理
+    )
+
+    // --- 5. 创建 RemoteInput for Reply Action ---
+    val remoteInput = RemoteInput.Builder(KEY_TEXT_REPLY).run {
+        setLabel("Reply") // 输入框提示文字
+        build()
+    }
+
+    // --- 6. 创建 Notification Actions ---
+    val markReadAction = NotificationCompat.Action.Builder(
+        android.R.drawable.ic_menu_view,
+        getString(R.string.mark_as_read),
+        markReadPendingIntent
+    ).build()
+
+    val replyAction = NotificationCompat.Action.Builder(
+        // R.drawable.ic_reply, // 替换为你的回复图标
+        android.R.drawable.ic_menu_send,
+        getString(R.string.Reply),
+        replyPendingIntent
+    )
+        .addRemoteInput(remoteInput) // 添加 RemoteInput 到 Action
+        .setAllowGeneratedReplies(true) // 允许系统建议快速回复 (可选)
+        .build()
+
+
+    // —— 7. 构造 DeleteIntent (滑动清除时) ——
     val deleteIntent = Intent(this, NotificationDismissReceiver::class.java).apply {
-        action = ACTION_CLEAR_CHAT_HISTORY
+        action = ACTION_CLEAR_CHAT_HISTORY // 使用 Receiver 中的常量
         putExtra(EXTRA_CONVERSATION_ID, conversationId)
     }
     val deletePending = PendingIntent.getBroadcast(
         this,
-        conversationId.hashCode(),
+        notificationId, // Request Code 0 (与 action 的区分开)
         deleteIntent,
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
 
-    // —— 5. 发通知 ——
-    val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setSmallIcon(R.mipmap.ic_launcher)
+    // —— 8. 发通知 (添加了 Actions) ——
+    // 点击通知主体的 Intent (通常是打开对应的聊天界面)
+    val openChatIntent = Intent(this, MainActivity::class.java).apply {
+        putExtra(EXTRA_CONVERSATION_ID, conversationId)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    val openChatPendingIntent = PendingIntent.getActivity(this, notificationId + 3, openChatIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+    val notifBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+        // .setSmallIcon(R.mipmap.ic_launcher) // 替换为你的应用小图标
+        .setSmallIcon(android.R.drawable.sym_def_app_icon) // 示例图标
         .setLargeIcon(chatIconBitmap)
         .setStyle(style)
-        .setContentTitle(if (isGroupChat) title else senderName)
-        .setContentText(messageHistory.last().text)
-        .setGroup(conversationId)
-        .setGroupSummary(false)
-        .setAutoCancel(true)
-        .setDeleteIntent(deletePending)           // ← 用户滑动删除时触发
+        .setWhen(timestamp) // 显示消息时间戳
+        // .setContentTitle(if (isGroupChat) title else senderName) // MessagingStyle 会处理标题，这里可以不设置或用作备用
+        // .setContentText(messageHistory.lastOrNull()?.text ?: "") // MessagingStyle 会处理内容，这里可以不设置或用作备用
+        .setGroup(conversationId) // 用于通知分组
+        .setGroupSummary(false) // 此通知不是分组摘要
+        .setAutoCancel(true) // 点击通知主体时自动取消
+        .setDeleteIntent(deletePending) // 用户滑动删除时触发
         .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .build()
+        .setColor(getColor(android.R.color.holo_blue_bright)) // 设置强调颜色 (可选)
+        .setOnlyAlertOnce(true) // 同一个会话的新消息只响铃/震动一次 (直到通知被取消)
+        .setContentIntent(openChatPendingIntent) // 设置点击通知的操作
 
-    nm.notify(conversationId.hashCode(), notif)
-}
+        // 添加 Actions
+        .addAction(markReadAction)
+        .addAction(replyAction)
 
-@RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-fun Context.sendCompatChatNotification(
-    title: String,
-    message: String,
-    senderName: String,
-    conversationId: String,
-    timestamp: Long,
-    isGroupChat: Boolean = false,
-    chatIconBitmap: Bitmap? = null,
-    fallbackIconRes: Int = R.mipmap.ic_launcher
-) {
-    // 1. 创建/确认 Channel
-    val mgr = getSystemService(NotificationManager::class.java)!!
-    mgr.createNotificationChannel(
-        NotificationChannel(
-            CHANNEL_ID,
-            CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Compatibility chat message notifications"
-            enableLights(true)
-            enableVibration(true)
-        }
-    )
 
-    // 2. 存取历史消息
-    val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val gson = Gson()
-    val listType = object : TypeToken<MutableList<NotificationMessage>>() {}.type
-    val historyJson = prefs.getString(conversationId, null)
-    val history: MutableList<NotificationMessage> =
-        historyJson?.let { gson.fromJson(it, listType) } ?: mutableListOf()
+    // 没有设置 ContentTitle/ContentText 时，需要设置 Ticker 或确保 Style 不为 null
+    notifBuilder.setContentTitle(if (isGroupChat) title else senderName)
+    notifBuilder.setContentText(messageHistory.lastOrNull()?.text ?: "")
+    notifBuilder.setTicker("$senderName: ${messageHistory.lastOrNull()?.text ?: ""}") // 旧版本状态栏滚动提示
 
-    history.add(NotificationMessage(message, senderName, timestamp))
-    history.sortBy { it.timestamp }
-    while (history.size > MAX_HISTORY_SIZE) history.removeAt(0)
-    prefs.edit { putString(conversationId, gson.toJson(history)) }
-
-    // 3. 构造 MessagingStyle
-    val style = NotificationCompat.MessagingStyle(
-        Person.Builder().setName(title).build()
-    ).also { s ->
-        s.setGroupConversation(isGroupChat)
-        if (isGroupChat) s.setConversationTitle(title)
-        history.forEach { msg ->
-            val person = Person.Builder().setName(msg.senderName).build()
-            s.addMessage(msg.text, msg.timestamp, person)
-        }
+    // 发送通知
+    val notificationManager = NotificationManagerCompat.from(this)
+    if (notificationManager.areNotificationsEnabled()) {
+        notificationManager.notify(notificationId, notifBuilder.build())
     }
-
-    // 4. 构建滑动删除广播 Intent
-    val delIntent = Intent(this, NotificationDismissReceiver::class.java).apply {
-        action = ACTION_CLEAR_CHAT_HISTORY
-        putExtra(EXTRA_CONVERSATION_ID, conversationId)
-    }
-    val delPI = PendingIntent.getBroadcast(
-        this,
-        conversationId.hashCode(),
-        delIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
-
-    // 5. 构造并发通知
-    val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setSmallIcon(fallbackIconRes)
-        .setContentTitle(if (isGroupChat) title else senderName)
-        .setContentText(history.lastOrNull()?.text ?: message)
-        .setAutoCancel(true)
-        .setDeleteIntent(delPI)
-        .setPriority(NotificationCompat.PRIORITY_HIGH)
-        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-        .setStyle(style)
-        .setGroup(conversationId)
-        .setGroupSummary(false)
-
-    chatIconBitmap?.let { builder.setLargeIcon(it) }
-
-    NotificationManagerCompat.from(this)
-        .notify(conversationId.hashCode(), builder.build())
 }
 
 fun drawableToBitmap(context: Context, @DrawableRes resId: Int): Bitmap? {

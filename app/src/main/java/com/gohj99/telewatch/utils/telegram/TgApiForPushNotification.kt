@@ -37,6 +37,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
+import org.drinkless.tdlib.TdApi.InputMessageContent
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
@@ -327,6 +328,59 @@ class TgApiForPushNotification(private val context: Context) {
         canvas.drawText(text, centerX, textBaseLineY, textPaint)
 
         return bitmap
+    }
+
+    // 标记已读
+    fun markMessagesAsRead(chatId: Long, forceRead: Boolean = true) {
+        // 异步执行
+        CoroutineScope(Dispatchers.IO).launch {
+            // 获取消息 ID
+            try {
+                val chatResult = sendRequest(TdApi.GetChat(chatId))
+                val messageId = chatResult.lastMessage?.id
+
+                if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
+                    // 创建 ViewMessages 请求
+                    val viewMessagesRequest = messageId?.let {
+                        TdApi.ViewMessages(
+                            chatId,
+                            longArrayOf(it),
+                            null,
+                            forceRead
+                        )
+                    }
+
+                    // 发送 ViewMessages 请求
+                    client.send(viewMessagesRequest) { response ->
+                        if (response is TdApi.Ok) {
+                            println("Messages successfully marked as read in chat ID $chatId")
+                        } else {
+                            println("Failed to mark messages as read: $response")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("HandleNewChat failed: ${e.message}")
+            }
+        }
+    }
+
+    // 发送消息
+    fun sendMessage(chatId: Long, message: InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null) {
+        val message = TdApi.SendMessage().apply {
+            this.chatId = chatId
+            this.replyTo = replyTo
+            inputMessageContent = message
+        }
+        client.send(message) { result ->
+            //println("SendMessage result: $result")
+            if (result.constructor == TdApi.Error.CONSTRUCTOR) {
+                val error = result as TdApi.Error
+                println("Send Message Error: ${error.message}")
+            } else {
+                println("Message sent successfully")
+            }
+        }
     }
 
     // 处理和简化消息

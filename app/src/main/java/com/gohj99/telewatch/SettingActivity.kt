@@ -10,7 +10,6 @@ package com.gohj99.telewatch
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -30,7 +29,6 @@ import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.notification.drawableToBitmap
 import com.gohj99.telewatch.utils.notification.sendChatMessageNotification
-import com.gohj99.telewatch.utils.notification.sendCompatChatNotification
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -465,9 +463,9 @@ class SettingActivity : ComponentActivity() {
                             }
                             cacheDir.deleteRecursively()
                             // 清空 SharedPreferences
-                            getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear()
+                            getSharedPreferences("LoginPref", MODE_PRIVATE).edit().clear()
                                 .apply()
-                            getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit()
+                            getSharedPreferences("app_settings", MODE_PRIVATE).edit()
                                 .clear().apply()
                             // Toast提醒
                             Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT)
@@ -543,6 +541,7 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                    /*
                     SettingItem.Click(
                         itemName = getString(R.string.test_notification) + " (Compat)",
                         onClick = {
@@ -557,6 +556,7 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),
+                     */
                     SettingItem.Click(
                         itemName = getString(R.string.FCM_state),
                         onClick = {

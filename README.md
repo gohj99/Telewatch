@@ -49,7 +49,7 @@ adb install Telewatch.apk
 
 ## Functions
 
-- FCM message notification
+- FCM message notification, quick viewing, marking as read and replying
 - Multi-account support
 - Interface customization
 - All message grouping support

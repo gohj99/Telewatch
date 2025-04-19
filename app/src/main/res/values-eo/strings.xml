@@ -206,6 +206,7 @@
     <string name="global_scale_factor">Tutmonda Skala Faktoro</string>  
     <string name="ui_test">UI -testo</string>  
     <string name="Remind2">Saluton! \nwelcome al la Telewatch -programo! \n \nwe rekomendas ke vi legu la instrukciojn plene por eviti nenecesan helpon \n \nfirst, ni rekomendas ke vi aliĝu al nia oficiala telegrama grupo por subteno. Vi povas aliĝi alklakante la jenan ligon: \nhttps: //t.me/teleandroidwatch \n \nhere estas rapida gvidilo por helpi vin uzi la aplikon: \n \nwhen uzante ĝin por la unua fojo, bonvolu permane ĝustigi al la plej bona ekrano zoom en la UI -agordo por pli dati la mesaĝon. \nlong Premu kaj trenu tekston sur iuj paĝoj por elekti kaj kopii. \ Nin La Bildo -Vidilo, longe premu bildon por konservi ĝin en via galerio. \nlong Premu eron sur la agento -paĝo por forigi la agenton \n \ntelewatch estas malferma fonto kaj senpaga. Se vi volas subteni nian disvolviĝon, bonvolu konsideri alklaki la suban butonon por donaci. \n \nwe esperas, ke vi ĝuos uzi Telewatch!</string>  
-    <string name="test_notification">Test -sciigo</string>
-    <string name="FCM_state">FCM -ŝtato</string>
+    <string name="test_notification">Test -sciigo</string>  
+    <string name="FCM_state">FCM -ŝtato</string>  
+    <string name="mark_as_read">Marko kiel legita</string>
 </resources>

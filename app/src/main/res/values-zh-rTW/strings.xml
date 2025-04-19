@@ -206,6 +206,7 @@
     <string name="global_scale_factor">全域縮放係數</string>  
     <string name="ui_test">UI測試</string>  
     <string name="Remind2">你好！ \n歡迎使用 Telewatch 應用程式！ \n\n我們建議你完整閱讀說明，以避免不必要的幫助\n\n首先，我們建議您加入我們的官方 Telegram 群組以獲得支持。您可以點擊以下連結加入:\nhttps://t.me/teleAndroidwatch\n\n以下是幫助您使用該應用程式的快速指南：\n\n在初次使用的時候，請你在UI設定手動調整到最佳顯示縮放\n長按訊息邊框以顯示更多功能\n在聊天頁面，向左滑動畫面以進入訊息發送頁面，點擊標題進入聊天訊息以獲取更多詳細資訊。 \n在某些頁面長按並拖曳文字以選擇和複製。 \n在影像檢視器中，長按影像可將其儲存到您的圖庫。 \n長按代理頁面上的某個項目可刪除代理\n\nTelewatch 是開源且免費的。如果您想支持我們的開發，請考慮點擊下面的按鈕進行捐款。 \n\n我們希望您喜歡使用 Telewatch！</string>  
-    <string name="test_notification">測試通知</string>
-    <string name="FCM_state">FCM狀態</string>
+    <string name="test_notification">測試通知</string>  
+    <string name="FCM_state">FCM狀態</string>  
+    <string name="mark_as_read">標記為閱讀</string>
 </resources>

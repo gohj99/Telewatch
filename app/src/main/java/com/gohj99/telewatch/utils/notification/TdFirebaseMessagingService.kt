@@ -8,18 +8,19 @@
 
 package com.gohj99.telewatch.utils.notification
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.annotation.SuppressLint
 import android.content.SharedPreferences
-import android.media.RingtoneManager
-import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
-import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.utils.telegram.TgApiForPushNotification
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import org.json.JSONObject
+
+object TgApiForPushNotificationManager {
+    @SuppressLint("StaticFieldLeak")
+    var tgApi: TgApiForPushNotification? = null
+}
 
 class TdFirebaseMessagingService : FirebaseMessagingService() {
     private val settingsSharedPref: SharedPreferences by lazy {
@@ -65,20 +66,30 @@ class TdFirebaseMessagingService : FirebaseMessagingService() {
                 }
 
                 if (TgApiManager.tgApi == null) {
-                    //println("执行测试1")
-                    try {
-                        val tgApi = TgApiForPushNotification(this)
-                        tgApi.getPushReceiverId(JSONObject(remoteMessage.data).toString()) { id->
+                    if (TgApiForPushNotificationManager.tgApi == null) {
+                        try {
+                            val tgApi = TgApiForPushNotification(this)
+                            TgApiForPushNotificationManager.tgApi = tgApi
+                            tgApi.getPushReceiverId(JSONObject(remoteMessage.data).toString()) { id->
+                                if (id == settingsSharedPref.getLong("userPushReceiverId", 0L)) {
+                                    tgApi.processPushNotification(JSONObject(remoteMessage.data).toString())
+                                }
+                                //sendNotification("测试通知2", id.toString())
+                            }
+                            Thread.sleep(10 * 1000)
+                            TgApiForPushNotificationManager.tgApi = null
+                            tgApi.close()
+                        } catch (e: Exception) {
+                            println(e)
+                            e.printStackTrace()
+                        }
+                    } else {
+                        TgApiForPushNotificationManager.tgApi?.getPushReceiverId(JSONObject(remoteMessage.data).toString()) { id->
                             if (id == settingsSharedPref.getLong("userPushReceiverId", 0L)) {
-                                tgApi.processPushNotification(JSONObject(remoteMessage.data).toString())
+                                TgApiForPushNotificationManager.tgApi?.processPushNotification(JSONObject(remoteMessage.data).toString())
                             }
                             //sendNotification("测试通知2", id.toString())
                         }
-                        Thread.sleep(10 * 1000)
-                        tgApi.close()
-                    } catch (e: Exception) {
-                        println(e)
-                        e.printStackTrace()
                     }
                 }
 
@@ -105,6 +116,7 @@ class TdFirebaseMessagingService : FirebaseMessagingService() {
         // message, here is where that should be initiated. See sendNotification method below.
     }
 
+    /*
     fun sendNotification(title: String, message: String) {
         // 定义通知渠道的唯一标识符（用于 Android Oreo 及以上版本）
         val channelId = "default_channel_id"
@@ -139,4 +151,5 @@ class TdFirebaseMessagingService : FirebaseMessagingService() {
         // 第一个参数为通知的唯一ID，通知ID可以用来更新或取消通知（此处使用 0，实际开发中可使用随机数或自定义逻辑生成唯一ID）
         notificationManager.notify(0, notificationBuilder.build())
     }
+     */
 }

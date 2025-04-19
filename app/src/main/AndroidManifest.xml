@@ -150,6 +150,10 @@
         </activity>
 
         <receiver
+            android:name=".utils.notification.NotificationActionReceiver"
+            android:exported="true" />
+
+        <receiver
             android:name=".utils.notification.NotificationDismissReceiver"
             android:exported="true" />
 
