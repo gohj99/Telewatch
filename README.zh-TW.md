@@ -49,6 +49,7 @@ adb install Telewatch.apk
 
 ## 功能
 
+- FCM訊息通知
 - 多帳號支持
 - 介面自訂
 - 訊息分組支持

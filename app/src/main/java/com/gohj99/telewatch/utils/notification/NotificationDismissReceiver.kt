@@ -6,7 +6,7 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.gohj99.telewatch.utils
+package com.gohj99.telewatch.utils.notification
 
 import android.content.BroadcastReceiver
 import android.content.Context

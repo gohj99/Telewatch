@@ -150,7 +150,7 @@
         </activity>
 
         <receiver
-            android:name=".utils.NotificationDismissReceiver"
+            android:name=".utils.notification.NotificationDismissReceiver"
             android:exported="true" />
 
         <provider
@@ -164,7 +164,7 @@
         </provider>
 
         <service
-            android:name=".utils.TdFirebaseMessagingService"
+            android:name=".utils.notification.TdFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
