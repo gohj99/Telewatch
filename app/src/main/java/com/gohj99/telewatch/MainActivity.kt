@@ -40,6 +40,7 @@ import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.notification.TgApiForPushNotificationManager
 import com.gohj99.telewatch.utils.telegram.TgApi
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
@@ -162,6 +163,10 @@ class MainActivity : ComponentActivity() {
                     IsBetaActivity::class.java
                 )
             )
+        }
+        if (TgApiForPushNotificationManager.tgApi != null) {
+            TgApiForPushNotificationManager.tgApi?.close()
+            TgApiForPushNotificationManager.tgApi = null
         }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
