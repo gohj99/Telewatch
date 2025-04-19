@@ -205,4 +205,8 @@
     <string name="Apply_notification_permissions">通知許可を申請します</string>  
     <string name="global_scale_factor">グローバルスケーリング係数</string>  
     <string name="ui_test">UIテスト</string>  
+    <string name="Remind2">こんにちは！ \nwelcome to telewatchアプリ！ \n \nwe不必要なヘルプを避けるために指示を完全に読むことをお勧めします\n \nfirst、サポートのために公式のTelegramグループに参加することをお勧めします。次のリンクをクリックして参加できます。ページ、タイトルをクリックしてチャットメッセージを入力して詳細を確認してください。 \nlongページでテキストを押してドラッグして、選択してコピーします。画像ビューアーに、画像を長い間押してギャラリーに保存します。 \nlongエージェントページにアイテムを押して、エージェントを削除してください\n \ntelwatchはオープンソースで無料です。開発をサポートしたい場合は、下のボタンをクリックして寄付してください。 \n \nwe TeleWatchの使用を楽しんでいただければ幸いです。</string>  
+    <string name="test_notification">テスト通知</string>  
+    <string name="FCM_state">FCM状態</string>  
+    <string name="mark_as_read">読んだことをマークします</string>
 </resources>

@@ -10,7 +10,6 @@ package com.gohj99.telewatch
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -28,6 +27,8 @@ import androidx.core.content.edit
 import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.notification.drawableToBitmap
+import com.gohj99.telewatch.utils.notification.sendChatMessageNotification
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -462,9 +463,9 @@ class SettingActivity : ComponentActivity() {
                             }
                             cacheDir.deleteRecursively()
                             // 清空 SharedPreferences
-                            getSharedPreferences("LoginPref", Context.MODE_PRIVATE).edit().clear()
+                            getSharedPreferences("LoginPref", MODE_PRIVATE).edit().clear()
                                 .apply()
-                            getSharedPreferences("app_settings", Context.MODE_PRIVATE).edit()
+                            getSharedPreferences("app_settings", MODE_PRIVATE).edit()
                                 .clear().apply()
                             // Toast提醒
                             Toast.makeText(this, getString(R.string.Successful), Toast.LENGTH_SHORT)
@@ -523,6 +524,51 @@ class SettingActivity : ComponentActivity() {
                                 } else {
                                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
+                            }
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.test_notification),
+                        onClick = {
+                            sendChatMessageNotification(
+                                title = getString(R.string.test_notification),
+                                message = getString(R.string.test_notification),
+                                senderName = "test",
+                                conversationId = "-2",
+                                timestamp = System.currentTimeMillis(),
+                                isGroupChat = false,
+                                chatIconBitmap = drawableToBitmap(this, R.mipmap.ic_launcher)!! // 这里可以传入群组图标的 Uri
+                            )
+                        }
+                    ),
+                    /*
+                    SettingItem.Click(
+                        itemName = getString(R.string.test_notification) + " (Compat)",
+                        onClick = {
+                            sendCompatChatNotification(
+                                title = getString(R.string.test_notification),
+                                message = getString(R.string.test_notification),
+                                senderName = "test",
+                                conversationId = "-2",
+                                timestamp = System.currentTimeMillis(),
+                                isGroupChat = false,
+                                chatIconBitmap = drawableToBitmap(this, R.mipmap.ic_launcher)!! // 这里可以传入群组图标的 Uri
+                            )
+                        }
+                    ),
+                     */
+                    SettingItem.Click(
+                        itemName = getString(R.string.FCM_state),
+                        onClick = {
+                            val fcmState = settingsSharedPref.getBoolean("FCM_state", false)
+                            if (fcmState) {
+                                // Toast提醒
+                                Toast.makeText(this, getString(R.string.OK), Toast.LENGTH_SHORT)
+                                    .show()
+                            } else {
+                                // Toast提醒
+                                Toast.makeText(this, getString(R.string.Unknown), Toast.LENGTH_SHORT)
+                                    .show()
                             }
                         }
                     )

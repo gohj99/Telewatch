@@ -6,7 +6,7 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.gohj99.telewatch.utils
+package com.gohj99.telewatch.utils.notification
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -17,9 +17,11 @@ private const val EXTRA_CONVERSATION_ID = "extra_conversation_id"
 class NotificationDismissReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == ACTION_CLEAR_CHAT_HISTORY) {
-            val convId = intent.getStringExtra(EXTRA_CONVERSATION_ID) ?: return
-            val prefs = context.getSharedPreferences("chat_prefs", Context.MODE_PRIVATE)
-            prefs.edit().remove(convId).apply()
+            val convId = intent.getStringExtra(EXTRA_CONVERSATION_ID)
+            if (!convId.isNullOrEmpty()) {
+                val prefs = context.getSharedPreferences("chat_prefs", Context.MODE_PRIVATE)
+                prefs.edit().remove(convId).apply()
+            }
         }
     }
 }

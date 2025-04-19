@@ -205,4 +205,8 @@
     <string name="Apply_notification_permissions">Postuler les autorisations de notification</string>  
     <string name="global_scale_factor">Facteur de mise à l\'échelle mondial</string>  
     <string name="ui_test">Ui test</string>  
+    <string name="Remind2">Bonjour! \nwelcome à l\'application Telewatch! \n \nwe vous recommande de lire les instructions intégralement pour éviter une aide inutile \n \nfirst, nous vous recommandons de rejoindre notre groupe de télégrammes officiel pour un soutien. Vous pouvez vous joindre en cliquant sur le lien suivant: \nhttps: //t.me/teleandroidwatch \n \nhere est un guide rapide pour vous aider à utiliser l\'application: \n \nwhen en l\'utilisant pour la première fois, veuillez vous ajuster manuellement à la meilleure affichage de zoom dans l\'écran UI \nlong appuyez Message de chat pour plus de détails. \nlong Appuyez et faites glisser le texte sur certaines pages pour sélectionner et copier. \ Nin The Image Viewer, Appuyez sur une image pour l\'enregistrer dans votre galerie. \nlong Appuyez sur un élément de la page de l\'agent pour supprimer l\'agent \n \ntelewatch est open source et gratuit. Si vous souhaitez soutenir notre développement, envisagez de cliquer sur le bouton ci-dessous pour faire un don. \n \nwe j\'espère que vous apprécierez d\'utiliser Telewatch!</string>  
+    <string name="test_notification">Notification de test</string>  
+    <string name="FCM_state">État du FCM</string>  
+    <string name="mark_as_read">Mark comme lu</string>
 </resources>

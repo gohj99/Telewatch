@@ -8,12 +8,8 @@
 
 package com.gohj99.telewatch.utils.telegram
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -23,17 +19,14 @@ import android.os.Build
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.app.NotificationCompat
-import androidx.core.app.Person
 import androidx.core.graphics.createBitmap
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.getAppVersion
 import com.gohj99.telewatch.loadConfig
-import com.gohj99.telewatch.model.NotificationMessage
-import com.gohj99.telewatch.utils.NotificationDismissReceiver
 import com.gohj99.telewatch.utils.getColorById
-import com.google.common.reflect.TypeToken
+import com.gohj99.telewatch.utils.notification.drawableToBitmap
+import com.gohj99.telewatch.utils.notification.sendChatMessageNotification
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CompletableDeferred
@@ -44,12 +37,11 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
+import org.drinkless.tdlib.TdApi.InputMessageContent
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 
-private const val ACTION_CLEAR_CHAT_HISTORY = "com.gohj99.telewatch.ACTION_CLEAR_CHAT_HISTORY"
-private const val EXTRA_CONVERSATION_ID = "extra_conversation_id"
 class TgApiForPushNotification(private val context: Context) {
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
@@ -59,8 +51,6 @@ class TgApiForPushNotification(private val context: Context) {
     private val authLatch = CountDownLatch(1)
     private var currentUser: List<String> = emptyList()
     private var userId = ""
-    private val PREFS_NAME = "ChatNotificationHistory"
-    private val MAX_HISTORY_SIZE = 10 // 保留最近的消息数量、
 
     init {
         // 获取用户ID
@@ -185,7 +175,7 @@ class TgApiForPushNotification(private val context: Context) {
                     }
 
                     // 获取聊天图片
-                    var bmp = BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
+                    var bmp = drawableToBitmap(context, R.mipmap.ic_launcher)!!
                     val photoFile = chatResult.photo?.small
                     if (photoFile?.local?.isDownloadingCompleted == true) {
                         val filePath = photoFile.local.path
@@ -250,87 +240,6 @@ class TgApiForPushNotification(private val context: Context) {
                 println("HandleNewChat failed: ${e.message}")
             }
         }
-    }
-
-    fun Context.sendChatMessageNotification(
-        title: String,
-        message: String,
-        senderName: String,
-        conversationId: String,
-        timestamp: Long,
-        isGroupChat: Boolean = false,
-        chatIconBitmap: Bitmap
-    ) {
-        val channelId = "chat_notifications"
-        val channelName = "Chat Messages"
-        val nm = getSystemService(NotificationManager::class.java)!!
-
-        // —— 1. 创建或确认 Channel ——
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val ch = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "即时聊天消息通知"
-                enableLights(true)
-                enableVibration(true)
-            }
-            nm.createNotificationChannel(ch)
-        }
-
-        // —— 2. 读写 SharedPreferences ——
-        val prefs = getSharedPreferences("chat_prefs", Context.MODE_PRIVATE)
-        val gson = Gson()
-        val type = object : TypeToken<MutableList<NotificationMessage>>() {}.type
-        val historyJson = prefs.getString(conversationId, null)
-        val messageHistory: MutableList<NotificationMessage> =
-            historyJson?.let { gson.fromJson(it, type) } ?: mutableListOf()
-
-        // 添加新消息、按时间排序、截断
-        messageHistory.add(NotificationMessage(message, senderName, timestamp))
-        messageHistory.sortBy { it.timestamp }
-        while (messageHistory.size > MAX_HISTORY_SIZE) {
-            messageHistory.removeAt(0)
-        }
-        prefs.edit().putString(conversationId, gson.toJson(messageHistory)).apply()
-
-        // —— 3. 构造 MessagingStyle ——
-        val style = NotificationCompat.MessagingStyle(
-            Person.Builder().setName(title).build()
-        ).also { s ->
-            s.setGroupConversation(isGroupChat)
-            if (isGroupChat) s.setConversationTitle(title)
-            messageHistory.forEach { msg ->
-                val person = Person.Builder().setName(msg.senderName).build()
-                s.addMessage(msg.text, msg.timestamp, person)
-            }
-        }
-
-        // —— 4. 构造 DeleteIntent ——
-        val deleteIntent = Intent(this, NotificationDismissReceiver::class.java).apply {
-            action = ACTION_CLEAR_CHAT_HISTORY
-            putExtra(EXTRA_CONVERSATION_ID, conversationId)
-        }
-        val deletePending = PendingIntent.getBroadcast(
-            this,
-            conversationId.hashCode(),
-            deleteIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // —— 5. 发通知 ——
-        val notif = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setLargeIcon(chatIconBitmap)
-            .setStyle(style)
-            .setContentTitle(if (isGroupChat) title else senderName)
-            .setContentText(messageHistory.last().text)
-            .setGroup(conversationId)
-            .setGroupSummary(false)
-            .setAutoCancel(true)
-            .setDeleteIntent(deletePending)           // ← 用户滑动删除时触发
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .build()
-
-        nm.notify(conversationId.hashCode(), notif)
     }
 
     private fun loadBitmapFromUri(contentResolver: ContentResolver, uri: Uri): Bitmap? {
@@ -419,6 +328,59 @@ class TgApiForPushNotification(private val context: Context) {
         canvas.drawText(text, centerX, textBaseLineY, textPaint)
 
         return bitmap
+    }
+
+    // 标记已读
+    fun markMessagesAsRead(chatId: Long, forceRead: Boolean = true) {
+        // 异步执行
+        CoroutineScope(Dispatchers.IO).launch {
+            // 获取消息 ID
+            try {
+                val chatResult = sendRequest(TdApi.GetChat(chatId))
+                val messageId = chatResult.lastMessage?.id
+
+                if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
+                    // 创建 ViewMessages 请求
+                    val viewMessagesRequest = messageId?.let {
+                        TdApi.ViewMessages(
+                            chatId,
+                            longArrayOf(it),
+                            null,
+                            forceRead
+                        )
+                    }
+
+                    // 发送 ViewMessages 请求
+                    client.send(viewMessagesRequest) { response ->
+                        if (response is TdApi.Ok) {
+                            println("Messages successfully marked as read in chat ID $chatId")
+                        } else {
+                            println("Failed to mark messages as read: $response")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println("HandleNewChat failed: ${e.message}")
+            }
+        }
+    }
+
+    // 发送消息
+    fun sendMessage(chatId: Long, message: InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null) {
+        val message = TdApi.SendMessage().apply {
+            this.chatId = chatId
+            this.replyTo = replyTo
+            inputMessageContent = message
+        }
+        client.send(message) { result ->
+            //println("SendMessage result: $result")
+            if (result.constructor == TdApi.Error.CONSTRUCTOR) {
+                val error = result as TdApi.Error
+                println("Send Message Error: ${error.message}")
+            } else {
+                println("Message sent successfully")
+            }
+        }
     }
 
     // 处理和简化消息
