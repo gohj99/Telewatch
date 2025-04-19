@@ -8,10 +8,8 @@
 
 package com.gohj99.telewatch.model
 
-import org.drinkless.tdlib.TdApi
-
-data class ChatMessagesSave (
-    val messages: MutableList<TdApi.Message>,
-    var lastReadInboxMessageId: Long,
-    var lastReadOutboxMessageId: Long
+data class NotificationMessage(
+    val text: String,
+    val senderName: String,
+    val timestamp: Long
 )

@@ -200,4 +200,11 @@
     <string name="Unable_edit">Unable to edit message</string>
     <string name="Draft">Draft</string>
     <string name="Down_Button_Offset">Down button top left offset</string>
+    <string name="Notification">Notification</string>
+    <string name="already_agreed">Already agreed</string>
+    <string name="Apply_notification_permissions">Apply for notification permissions</string>
+    <string name="Beta" translatable="false">Beta</string>
+    <string name="global_scale_factor">Global scaling factor</string>
+    <string name="ui_test">Ui test</string>
+    <string name="Remind2" translatable="false">Hello! \nWelcome to the Telewatch app! \n\nWe recommend that you read the instructions in full to avoid unnecessary help\n\nFirst, we recommend that you join our official Telegram group for support. You can join by clicking the following link:\nhttps://t.me/teleAndroidwatch\n\nHere is a quick guide to help you use the app:\n\nWhen using it for the first time, please manually adjust to the best display zoom in the UI settings\nLong press the message border to display more functions\nOn the chat page, swipe the screen to the left to enter the message sending page, and click the title to enter the chat message for more details. \nLong press and drag text on some pages to select and copy. \nIn the image viewer, long press an image to save it to your gallery. \nLong press an item on the agent page to remove the agent\n\nTelewatch is open source and free. If you want to support our development, please consider clicking the button below to donate. \n\nWe hope you enjoy using Telewatch!</string>
 </resources>

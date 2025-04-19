@@ -9,7 +9,11 @@
 package com.gohj99.telewatch.ui.chat
 
 import android.annotation.SuppressLint
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Context.CLIPBOARD_SERVICE
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -86,7 +90,7 @@ import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.InputBar
-import com.gohj99.telewatch.ui.main.LinkText
+import com.gohj99.telewatch.ui.animateScrollToItemCentered
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.main.MessageView
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
@@ -118,6 +122,13 @@ object MessageCache {
 // 反射机制获取MessageContent的类信息
 fun getMessageContentTypeName(messageContent: TdApi.MessageContent): String {
     return messageContent::class.simpleName ?: "Unknown"
+}
+
+// 复制对应内容
+fun copyText(text: String, context: Context) {
+    val clipboardManager = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+    val clipData = android.content.ClipData.newPlainText("Copied Text", text)
+    clipboardManager.setPrimaryClip(clipData)
 }
 
 @SuppressLint("MutableCollectionMutableState")
@@ -665,8 +676,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -708,7 +719,6 @@ fun SplashChatScreen(
                                                                             fontWeight = FontWeight.Bold,
                                                                             style = MaterialTheme.typography.bodySmall,
                                                                             modifier = Modifier
-                                                                                .fillMaxWidth()
                                                                         )
 
                                                                         // 回复消息内容
@@ -756,8 +766,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -818,8 +828,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -836,8 +846,8 @@ fun SplashChatScreen(
                                                                         onClick = {
                                                                             if (messagePosition != -1) {
                                                                                 coroutineScope.launch {
-                                                                                    listState.animateScrollToItem(
-                                                                                        messagePosition
+                                                                                    listState.animateScrollToItemCentered(
+                                                                                        messagePosition + 1
                                                                                     )
                                                                                 }
                                                                             }
@@ -849,7 +859,7 @@ fun SplashChatScreen(
                                                                             size.height // 获取父容器的高度
                                                                     }
                                                             ) {
-                                                                // 回复正文
+                                                                // 回复正文部分
                                                                 if (senderName != "") {
                                                                     Column(
                                                                         modifier = Modifier
@@ -877,7 +887,6 @@ fun SplashChatScreen(
                                                                             fontWeight = FontWeight.Bold,
                                                                             style = MaterialTheme.typography.bodySmall,
                                                                             modifier = Modifier
-                                                                                .fillMaxWidth()
                                                                         )
 
                                                                         // 回复消息内容
@@ -1069,7 +1078,11 @@ fun SplashChatScreen(
                                 .fillMaxWidth()
                                 .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 0.dp)
                                 .verticalScroll(scrollState)
-                                .verticalRotaryScroll(state = scrollState, pagerState = pagerState, pageCurrent = 1),
+                                .verticalRotaryScroll(
+                                    state = scrollState,
+                                    pagerState = pagerState,
+                                    pageCurrent = 1
+                                ),
                             verticalArrangement = Arrangement.Top
                         ) {
                             if (planEditMessage != null) {
@@ -1181,11 +1194,13 @@ fun SplashChatScreen(
                                                         showUnknownMessageType = showUnknownMessageType
                                                     )
                                                 } else {
-                                                    Text(
+                                                    // 用户名
+                                                    AutoScrollingText(
                                                         text = planReplyMessageSenderName,
                                                         color = Color(0xFF66D3FE),
-                                                        fontSize = 10.sp,
                                                         fontWeight = FontWeight.Bold,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        modifier = Modifier
                                                     )
                                                     messageDrawer(
                                                         content = planReplyMessage!!.content,
@@ -1549,15 +1564,93 @@ fun messageDrawer(
     showUnknownMessageType: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
+    val onEntityClick = { clickedText: String, entityType: TdApi.TextEntityType ->
+        // 根据 entityType 执行不同的操作
+        when (entityType) {
+            is TdApi.TextEntityTypeUrl -> {
+                // 打开链接
+                // context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickedText)))
+                println("Clicked URL: $clickedText")
+                onLinkClick(clickedText)
+            }
+            is TdApi.TextEntityTypeTextUrl -> {
+                // 打开 TextUrl 中包含的链接
+                val url = entityType.url // 对于 TextUrl，需要获取其内部的 url 字段
+                try {
+                    // val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    // context.startActivity(intent)
+                    println("Attempted to open TextUrl: $url (display text: $clickedText)")
+                    onLinkClick(url)
+                } catch (e: Exception) {
+                    println("Failed to open TextUrl: $e")
+                    // 显示错误提示
+                }
+            }
+            is TdApi.TextEntityTypeBotCommand -> {
+                // 执行机器人命令的逻辑，例如发送消息 "/start"
+                // 通常需要将这个命令发送回 Telegram API
+                println("Bot Command clicked: $clickedText. Implement sending command.")
+                copyText(clickedText, context)
+            }
+            is TdApi.TextEntityTypeMention -> {
+                println("Clicked Mention: $clickedText")
+                if (clickedText.startsWith("@")) {
+                    onLinkClick("https://t.me/${clickedText}")
+                }
+            }
+            is TdApi.TextEntityTypeHashtag -> {
+                // 处理点击话题标签的逻辑，例如搜索该话题
+                println("Hashtag clicked: $clickedText. Implement searching hashtag.")
+            }
+            is TdApi.TextEntityTypeEmailAddress -> {
+                // 处理点击邮箱地址的逻辑，例如打开邮件应用
+                val emailUri = Uri.fromParts("mailto", clickedText, null)
+                try {
+                    val intent = Intent(Intent.ACTION_SENDTO, emailUri)
+                    context.startActivity(intent)
+                    println("Attempted to send email to: $clickedText")
+                } catch (e: Exception) {
+                    println("Failed to open email app: $e")
+                }
+            }
+            is TdApi.TextEntityTypePhoneNumber -> {
+                // 处理点击电话号码的逻辑，例如打开拨号应用
+                val telUri = Uri.fromParts("tel", clickedText.replace("[^\\d+]".toRegex(), ""), null) // 移除除数字和+号外的字符
+                try {
+                    val intent = Intent(Intent.ACTION_DIAL, telUri)
+                    context.startActivity(intent)
+                    println("Attempted to dial number: $clickedText")
+                } catch (e: Exception) {
+                    println("Failed to open dialer: $e")
+                }
+            }
+            is TdApi.TextEntityTypeBankCardNumber -> {
+                // 处理点击银行卡号的逻辑，例如复制到剪贴板
+                println("Bank Card Number clicked: $clickedText. Implement copy to clipboard.")
+                copyText(clickedText, context)
+            }
+            is TdApi.TextEntityTypeBlockQuote -> {
+                // 处理点击 BlockQuote 的逻辑 (如果它确实需要点击处理)
+                println("Block Quote clicked: $clickedText. Implement blockquote specific action if any.")
+            }
+            else -> {
+                // 默认处理或者不做任何事情
+                println("Clicked on entity type without specific handler: ${entityType::class.java.simpleName}")
+            }
+        }
+    }
+
     when (content) {
         is TdApi.MessageText -> {
             SelectionContainer {
-                LinkText(
+                FormattedText(
                     text = content.text.text,
-                    color = Color(0xFFFEFEFE),
+                    entities = content.text.entities,
+                    modifier = modifier,
                     style = MaterialTheme.typography.bodyMedium,
-                    onLinkClick = onLinkClick,
-                    modifier = modifier
+                    onEntityClick = onEntityClick
                 )
             }
         }
@@ -1583,12 +1676,12 @@ fun messageDrawer(
             // 图片文字
             content.caption?.text?.let {
                 SelectionContainer {
-                    LinkText(
+                    FormattedText(
                         text = it,
-                        color = Color(0xFFFEFEFE),
-                        modifier = modifier.padding(top = 4.dp),
+                        entities = content.caption.entities,
+                        modifier = modifier,
                         style = MaterialTheme.typography.bodyMedium,
-                        onLinkClick = onLinkClick
+                        onEntityClick = onEntityClick
                     )
                 }
             }
@@ -1650,12 +1743,12 @@ fun messageDrawer(
             // 视频文字
             content.caption?.text?.let {
                 SelectionContainer {
-                    LinkText(
+                    FormattedText(
                         text = it,
-                        color = Color(0xFFFEFEFE),
-                        modifier = modifier.padding(top = 4.dp),
+                        entities = content.caption.entities,
+                        modifier = modifier,
                         style = MaterialTheme.typography.bodyMedium,
-                        onLinkClick = onLinkClick
+                        onEntityClick = onEntityClick
                     )
                 }
             }
@@ -1740,12 +1833,12 @@ fun messageDrawer(
             // 文件文字
             content.caption?.text?.let {
                 SelectionContainer {
-                    LinkText(
+                    FormattedText(
                         text = it,
-                        color = Color(0xFFFEFEFE),
-                        modifier = modifier.padding(top = 4.dp),
+                        entities = content.caption.entities,
+                        modifier = modifier,
                         style = MaterialTheme.typography.bodyMedium,
-                        onLinkClick = onLinkClick
+                        onEntityClick = onEntityClick
                     )
                 }
             }

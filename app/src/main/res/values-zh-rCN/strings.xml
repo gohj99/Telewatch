@@ -196,8 +196,13 @@
     <string name="copy_success_privacy">复制成功（需要有访问权限）</string>  
     <string name="Failed_request">获取失败</string>  
     <string name="Message_preload_quantity">消息预加载数量（在手机上这个值需要增大以便消息正常加载）</string>  
-    <string name="Edit">编辑</string>
-    <string name="Unable_edit">不支持编辑的消息</string>
-    <string name="Draft">草稿</string>
-    <string name="Down_Button_Offset">向下按钮向左上方偏移量</string>
+    <string name="Edit">编辑</string>  
+    <string name="Unable_edit">不支持编辑的消息</string>  
+    <string name="Draft">草稿</string>  
+    <string name="Down_Button_Offset">向下按钮向左上方偏移量</string>  
+    <string name="Notification">通知</string>  
+    <string name="already_agreed">已经同意了</string>  
+    <string name="Apply_notification_permissions">申请通知权限</string>  
+    <string name="global_scale_factor">全球缩放系数</string>  
+    <string name="ui_test">UI测试</string> 
 </resources>

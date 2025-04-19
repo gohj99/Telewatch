@@ -196,8 +196,13 @@
     <string name="copy_success_privacy">複製成功（需要有存取權限）</string>  
     <string name="Failed_request">獲取失敗</string>  
     <string name="Message_preload_quantity">訊息預先載入數量（在手機上這個值需要增加以便訊息正常載入）</string>  
-    <string name="Edit">編輯</string>
-    <string name="Unable_edit">不支援編輯的訊息</string>
-    <string name="Draft">草稿</string>
-    <string name="Down_Button_Offset">向下按鈕向左上方偏移量</string>
+    <string name="Edit">編輯</string>  
+    <string name="Unable_edit">不支援編輯的訊息</string>  
+    <string name="Draft">草稿</string>  
+    <string name="Down_Button_Offset">向下按鈕向左上方偏移量</string>  
+    <string name="Notification">通知</string>  
+    <string name="already_agreed">已經同意了</string>  
+    <string name="Apply_notification_permissions">申請通知權限</string>  
+    <string name="global_scale_factor">全球縮放係數</string>  
+    <string name="ui_test">UI測試</string> 
 </resources>

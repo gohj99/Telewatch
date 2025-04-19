@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.gohj99.telewatch.R
 
 @Composable
 fun LinkText(
@@ -77,7 +79,7 @@ fun LinkText(
                     }
                     pushStringAnnotation("URL", fullUrl)
                     withStyle(SpanStyle(
-                        color = Color(0xFF2397D3),
+                        color = colorResource(id = R.color.blue_dark),
                         textDecoration = TextDecoration.Underline
                     )) {
                         append(match.value)
@@ -93,7 +95,7 @@ fun LinkText(
                     val username = match.groupValues[1]
                     pushStringAnnotation("URL", "https://t.me/$username")
                     withStyle(SpanStyle(
-                        color = Color(0xFF2397D3),
+                        color = colorResource(id = R.color.blue_dark),
                         textDecoration = TextDecoration.Underline
                     )) {
                         append("@$username")

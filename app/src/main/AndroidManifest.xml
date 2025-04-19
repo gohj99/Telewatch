@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.google.android.wearable.permission.URI_REDIRECT_TO_REMOTE" />
     <uses-permission android:name="android.permission.CLIPBOARD_MANAGER" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
         android:name="android.hardware.type.watch"
@@ -148,6 +149,10 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".utils.NotificationDismissReceiver"
+            android:exported="true" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -159,7 +164,7 @@
         </provider>
 
         <service
-            android:name=".TdFirebaseMessagingService"
+            android:name=".utils.TdFirebaseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>

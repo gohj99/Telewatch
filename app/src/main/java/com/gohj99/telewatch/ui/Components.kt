@@ -15,6 +15,7 @@ import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +59,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
+import kotlinx.coroutines.flow.first
 
 // 蓝底按钮
 @Composable
@@ -259,6 +263,33 @@ fun AutoScrollingText(
         fontWeight = fontWeight,
         style = style
     )
+}
+
+/**
+ * 将指定的列表项滚动到屏幕中心
+ */
+suspend fun LazyListState.animateScrollToItemCentered(itemIndex: Int) {
+    // 先滚动到目标项（不设置偏移），确保该项被测量
+    scrollToItem(itemIndex)
+
+    // 等待目标项进入可见范围
+    snapshotFlow { layoutInfo.visibleItemsInfo.any { it.index == itemIndex } }
+        .first { it }
+
+    // 计算视口（LazyColumn可见区域）的高度
+    val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+
+    // 从布局信息中找到目标项的信息
+    val targetItemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == itemIndex }
+    if (targetItemInfo != null) {
+        // 计算目标项中心点位置
+        val itemCenter = targetItemInfo.offset + targetItemInfo.size / 2
+        // 视口中心
+        val viewportCenter = viewportHeight / 2
+        // 计算需要滚动的偏移量（正值：向下滚动，负值：向上滚动）
+        val scrollAdjustment = itemCenter - viewportCenter
+        animateScrollBy(scrollAdjustment.toFloat())
+    }
 }
 
 @Preview(showBackground = true)

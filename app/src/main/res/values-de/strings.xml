@@ -196,8 +196,13 @@
     <string name="copy_success_privacy">Erfolg kopieren (Genehmigung für den Zugriff)</string>  
     <string name="Failed_request">Nicht anfordern</string>  
     <string name="Message_preload_quantity">Anzahl der zu vorgeladenen Nachrichten (dieser Wert muss auf Mobiltelefonen erhöht werden, damit Nachrichten normal geladen werden können)</string>  
-    <string name="Edit">Bearbeiten</string>
-    <string name="Unable_edit">Meldung kann nicht bearbeitet werden</string>
-    <string name="Draft">Entwurf</string>
-    <string name="Down_Button_Offset">Down -Taste oben links Offset</string>
+    <string name="Edit">Bearbeiten</string>  
+    <string name="Unable_edit">Meldung kann nicht bearbeitet werden</string>  
+    <string name="Draft">Entwurf</string>  
+    <string name="Down_Button_Offset">Down -Taste oben links Offset</string>  
+    <string name="Notification">Benachrichtigung</string>  
+    <string name="already_agreed">Bereits vereinbart</string>  
+    <string name="Apply_notification_permissions">Beantragen Sie Benachrichtigungsberechtigungen</string>  
+    <string name="global_scale_factor">Globaler Skalierungsfaktor</string>  
+    <string name="ui_test">UI -Test</string>  
 </resources>

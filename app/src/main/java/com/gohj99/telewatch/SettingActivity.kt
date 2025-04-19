@@ -8,9 +8,12 @@
 
 package com.gohj99.telewatch
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -18,10 +21,14 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import com.gohj99.telewatch.model.SettingItem
 import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.io.File
@@ -29,6 +36,22 @@ import java.io.File
 
 class SettingActivity : ComponentActivity() {
     private var settingsList = mutableStateOf(listOf<SettingItem>())
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.Done),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    this,
+                    getString(R.string.Request_error),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
 
     @SuppressLint("CommitPrefEdits")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,6 +107,18 @@ class SettingActivity : ComponentActivity() {
                             )
                         }
                     ),*/
+                    // 通知设置
+                    SettingItem.Click(
+                        itemName = getString(R.string.Notification),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    SettingActivity::class.java
+                                ).putExtra("page", 3)
+                            )
+                        }
+                    ),
                     // 界面调节
                     SettingItem.Click(
                         itemName = getString(R.string.UI_Edit),
@@ -164,6 +199,30 @@ class SettingActivity : ComponentActivity() {
             1 -> {
                 title = getString(R.string.UI_Edit)
                 settingsList.value = listOf(
+                    SettingItem.Click(
+                        itemName = getString(R.string.ui_test),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    SettingActivity::class.java
+                                ).putExtra("page", 4)
+                            )
+                        }
+                    ),
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.global_scale_factor),
+                        progress = settingsSharedPref.getFloat("global_scale_factor", 1.0f).toFloat(),
+                        maxValue = 2.5f,
+                        minValue = 0.5f,
+                        base = 0.01f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("global_scale_factor", size)
+                                apply()
+                            }
+                        }
+                    ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.Down_Button_Offset),
                         progress = settingsSharedPref.getInt("Down_Button_Offset", 25).toFloat(),
@@ -420,7 +479,110 @@ class SettingActivity : ComponentActivity() {
                         }
                     )
                 )
+            }
 
+            3 -> {
+                title = "${getString(R.string.Notification)} (${getString(R.string.Beta)})"
+                settingsList.value = listOf(
+                    SettingItem.Switch(
+                        itemName = getString(R.string.Notification),
+                        isSelected = settingsSharedPref.getBoolean("Use_Notification", false),
+                        onSelect = { dataCollection ->
+                            with(settingsSharedPref.edit()) {
+                                putBoolean("Use_Notification", dataCollection)
+                                commit()
+                            }
+                            if (dataCollection) {
+                                FirebaseMessaging.getInstance().token
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            val token = task.result
+                                            println(token)
+                                            settingsSharedPref.edit(commit = false) {
+                                                putString("Token_Notification", token)
+                                            }
+                                            TgApiManager.tgApi?.setFCMToken(token) { id ->
+                                                settingsSharedPref.edit(commit = false) {
+                                                    putLong("Id_Notification", id)
+                                                }
+                                                println(id)
+                                            }
+                                        }
+                                    }
+                            } else TgApiManager.tgApi?.setFCMToken()
+
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = getString(R.string.Apply_notification_permissions),
+                        onClick = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                                    Toast.makeText(this, getString(R.string.already_agreed), Toast.LENGTH_SHORT)
+                                        .show()
+                                } else {
+                                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                            }
+                        }
+                    )
+                )
+            }
+
+            4 -> {
+                title = getString(R.string.ui_test)
+                settingsList.value = listOf(
+                    SettingItem.Click(
+                        itemName = "test1",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test1",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test2",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test2",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test3",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test3",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test4",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test4",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test5",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test5",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    )
+                )
             }
         }
 

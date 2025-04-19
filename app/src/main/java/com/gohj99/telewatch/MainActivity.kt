@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.model.SettingItem
@@ -40,6 +41,7 @@ import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.telegram.TgApi
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
@@ -79,6 +81,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         TgApiManager.tgApi?.close()
+        TgApiManager.tgApi = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,7 +135,7 @@ class MainActivity : ComponentActivity() {
                 checkAndUpdateConfiguration(this)
             }
 
-            if (!settingsSharedPref.getBoolean("Remind1_read", false)) {
+            if (!settingsSharedPref.getBoolean("Remind2_read", false)) {
                 startActivity(
                     Intent(
                         this,
@@ -329,6 +332,30 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     TgApiManager.tgApi?.getArchiveChats()
+                }
+                // 检查是否切换账号和是否打开消息推送
+                if (settingsSharedPref.getBoolean("Change_account", false)) {
+                    with(sharedPref.edit()) {
+                        putBoolean("Change_account", false)
+                    }
+                    if (settingsSharedPref.getBoolean("Use_Notification", false)) {
+                        FirebaseMessaging.getInstance().token
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val token = task.result
+                                    //println(token)
+                                    settingsSharedPref.edit(commit = false) {
+                                        putString("Token_Notification", token)
+                                    }
+                                    TgApiManager.tgApi?.setFCMToken(token) { id ->
+                                        settingsSharedPref.edit(commit = false) {
+                                            putLong("Id_Notification", id)
+                                        }
+                                        //println(id)
+                                    }
+                                }
+                            }
+                    }
                 }
                 launch(Dispatchers.Main) {
                     setContent {
