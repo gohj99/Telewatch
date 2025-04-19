@@ -200,7 +200,9 @@
     <string name="Unable_edit">Impossible de modifier le message</string>  
     <string name="Draft">Brouillon</string>  
     <string name="Down_Button_Offset">Bouton en bas du décalage gauche</string>  
-    <string name="Notification">Notification</string>
-    <string name="already_agreed">Déjà convenu</string>
-    <string name="Apply_notification_permissions">Postuler les autorisations de notification</string>
+    <string name="Notification">Notification</string>  
+    <string name="already_agreed">Déjà convenu</string>  
+    <string name="Apply_notification_permissions">Postuler les autorisations de notification</string>  
+    <string name="global_scale_factor">Facteur de mise à l\'échelle mondial</string>  
+    <string name="ui_test">Ui test</string>  
 </resources>

@@ -200,7 +200,9 @@
     <string name="Unable_edit">Meldung kann nicht bearbeitet werden</string>  
     <string name="Draft">Entwurf</string>  
     <string name="Down_Button_Offset">Down -Taste oben links Offset</string>  
-    <string name="Notification">Benachrichtigung</string>
-    <string name="already_agreed">Bereits vereinbart</string>
-    <string name="Apply_notification_permissions">Beantragen Sie Benachrichtigungsberechtigungen</string>
+    <string name="Notification">Benachrichtigung</string>  
+    <string name="already_agreed">Bereits vereinbart</string>  
+    <string name="Apply_notification_permissions">Beantragen Sie Benachrichtigungsberechtigungen</string>  
+    <string name="global_scale_factor">Globaler Skalierungsfaktor</string>  
+    <string name="ui_test">UI -Test</string>  
 </resources>

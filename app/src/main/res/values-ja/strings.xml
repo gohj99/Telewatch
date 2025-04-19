@@ -200,7 +200,9 @@
     <string name="Unable_edit">メッセージを編集できません</string>  
     <string name="Draft">下書き</string>  
     <string name="Down_Button_Offset">ダウンボタントップの左オフセット</string>  
-    <string name="Notification">通知</string>
-    <string name="already_agreed">すでに同意しました</string>
-    <string name="Apply_notification_permissions">通知許可を申請します</string>
+    <string name="Notification">通知</string>  
+    <string name="already_agreed">すでに同意しました</string>  
+    <string name="Apply_notification_permissions">通知許可を申請します</string>  
+    <string name="global_scale_factor">グローバルスケーリング係数</string>  
+    <string name="ui_test">UIテスト</string>  
 </resources>

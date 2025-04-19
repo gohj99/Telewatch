@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+ * Copyright (c) 2024-2025 gohj99. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
  * Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
  * Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
  * Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
@@ -8,7 +8,6 @@
 
 package com.gohj99.telewatch
 
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -46,7 +45,7 @@ class WelcomeActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // 获取共享偏好设置
-        sharedPref = getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
+        sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
         // 注册监听器
         getPreferences(MODE_PRIVATE).registerOnSharedPreferenceChangeListener(
             preferenceChangeListener

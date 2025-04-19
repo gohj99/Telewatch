@@ -199,6 +199,30 @@ class SettingActivity : ComponentActivity() {
             1 -> {
                 title = getString(R.string.UI_Edit)
                 settingsList.value = listOf(
+                    SettingItem.Click(
+                        itemName = getString(R.string.ui_test),
+                        onClick = {
+                            startActivity(
+                                Intent(
+                                    this,
+                                    SettingActivity::class.java
+                                ).putExtra("page", 4)
+                            )
+                        }
+                    ),
+                    SettingItem.ProgressBar(
+                        itemName = getString(R.string.global_scale_factor),
+                        progress = settingsSharedPref.getFloat("global_scale_factor", 1.0f).toFloat(),
+                        maxValue = 2.5f,
+                        minValue = 0.5f,
+                        base = 0.01f,
+                        onProgressChange = { size ->
+                            with(settingsSharedPref.edit()) {
+                                putFloat("global_scale_factor", size)
+                                apply()
+                            }
+                        }
+                    ),
                     SettingItem.ProgressBar(
                         itemName = getString(R.string.Down_Button_Offset),
                         progress = settingsSharedPref.getInt("Down_Button_Offset", 25).toFloat(),
@@ -455,7 +479,6 @@ class SettingActivity : ComponentActivity() {
                         }
                     )
                 )
-
             }
 
             3 -> {
@@ -501,6 +524,62 @@ class SettingActivity : ComponentActivity() {
                                     requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                                 }
                             }
+                        }
+                    )
+                )
+            }
+
+            4 -> {
+                title = getString(R.string.ui_test)
+                settingsList.value = listOf(
+                    SettingItem.Click(
+                        itemName = "test1",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test1",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test2",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test2",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test3",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test3",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test4",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test4",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    ),
+                    SettingItem.Click(
+                        itemName = "test5",
+                        onClick = {
+                            Toast.makeText(
+                                this,
+                                "test5",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     )
                 )

@@ -200,7 +200,9 @@
     <string name="Unable_edit">Невозможно редактировать сообщение</string>  
     <string name="Draft">Черновик</string>  
     <string name="Down_Button_Offset">Кнопка вниз кнопку верхнего смещения</string>  
-    <string name="Notification">Уведомление</string>
-    <string name="already_agreed">Уже согласился</string>
-    <string name="Apply_notification_permissions">Подать заявку на разрешения уведомления</string>
+    <string name="Notification">Уведомление</string>  
+    <string name="already_agreed">Уже согласился</string>  
+    <string name="Apply_notification_permissions">Подать заявку на разрешения уведомления</string>  
+    <string name="global_scale_factor">Глобальный фактор масштабирования</string>  
+    <string name="ui_test">Тест пользовательского интерфейса</string>
 </resources>

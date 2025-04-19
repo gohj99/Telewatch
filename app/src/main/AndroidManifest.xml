@@ -149,6 +149,10 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".utils.NotificationDismissReceiver"
+            android:exported="true" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

@@ -8,33 +8,30 @@
 
 package com.gohj99.telewatch.utils.telegram
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Context.NOTIFICATION_SERVICE
-import android.content.pm.PackageManager
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
-import androidx.core.content.edit
-import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.createBitmap
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.getAppVersion
 import com.gohj99.telewatch.loadConfig
 import com.gohj99.telewatch.model.NotificationMessage
+import com.gohj99.telewatch.utils.NotificationDismissReceiver
 import com.gohj99.telewatch.utils.getColorById
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
@@ -51,6 +48,8 @@ import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
 
+private const val ACTION_CLEAR_CHAT_HISTORY = "com.gohj99.telewatch.ACTION_CLEAR_CHAT_HISTORY"
+private const val EXTRA_CONVERSATION_ID = "extra_conversation_id"
 class TgApiForPushNotification(private val context: Context) {
     private val sharedPref = context.getSharedPreferences("LoginPref", Context.MODE_PRIVATE)
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
@@ -61,7 +60,7 @@ class TgApiForPushNotification(private val context: Context) {
     private var currentUser: List<String> = emptyList()
     private var userId = ""
     private val PREFS_NAME = "ChatNotificationHistory"
-    private val MAX_HISTORY_SIZE = 10 // 保留最近的消息数量
+    private val MAX_HISTORY_SIZE = 10 // 保留最近的消息数量、
 
     init {
         // 获取用户ID
@@ -241,96 +240,97 @@ class TgApiForPushNotification(private val context: Context) {
                             message = handleAllMessages(message),
                             senderName = senderName,
                             conversationId = chatId.toString(),
-                            messageId = message.id,
+                            timestamp = message.date * 1000L,
                             isGroupChat = isGroup,
                             chatIconBitmap = bmp // 这里可以传入群组图标的 Uri
                         )
                     }
                 }
             } catch (e: Exception) {
-                println("GetChat request failed (handleNewChat): ${e.message}")
+                println("HandleNewChat failed: ${e.message}")
             }
         }
     }
 
     fun Context.sendChatMessageNotification(
-        title: String, // 会话标题
-        message: String, // 消息内容
-        senderName: String, // 发送者名称
-        conversationId: String, // 用于区分不同的聊天会话
-        messageId: Long, // 唯一的消息 ID
+        title: String,
+        message: String,
+        senderName: String,
+        conversationId: String,
+        timestamp: Long,
         isGroupChat: Boolean = false,
-        chatIconBitmap: Bitmap // 会话的通知图标 Bitmap
+        chatIconBitmap: Bitmap
     ) {
         val channelId = "chat_notifications"
         val channelName = "Chat Messages"
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val nm = getSystemService(NotificationManager::class.java)!!
 
+        // —— 1. 创建或确认 Channel ——
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(channelId, channelName, importance).apply {
-                description = "Used to display instant chat messages"
+            val ch = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "即时聊天消息通知"
                 enableLights(true)
                 enableVibration(true)
             }
-            notificationManager.createNotificationChannel(channel)
+            nm.createNotificationChannel(ch)
         }
 
-        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        // —— 2. 读写 SharedPreferences ——
+        val prefs = getSharedPreferences("chat_prefs", Context.MODE_PRIVATE)
         val gson = Gson()
         val type = object : TypeToken<MutableList<NotificationMessage>>() {}.type
-
-        // 从 SharedPreferences 加载历史消息
         val historyJson = prefs.getString(conversationId, null)
-        val messageHistory = historyJson?.let { gson.fromJson<MutableList<NotificationMessage>>(it, type) } ?: mutableListOf()
+        val messageHistory: MutableList<NotificationMessage> =
+            historyJson?.let { gson.fromJson(it, type) } ?: mutableListOf()
 
-        // 添加新消息到历史记录
-        messageHistory.add(NotificationMessage(message, senderName, System.currentTimeMillis()))
-
-        // 限制历史记录大小
+        // 添加新消息、按时间排序、截断
+        messageHistory.add(NotificationMessage(message, senderName, timestamp))
+        messageHistory.sortBy { it.timestamp }
         while (messageHistory.size > MAX_HISTORY_SIZE) {
             messageHistory.removeAt(0)
         }
+        prefs.edit().putString(conversationId, gson.toJson(messageHistory)).apply()
 
-        // 将更新后的历史记录保存到 SharedPreferences
-        prefs.edit { putString(conversationId, gson.toJson(messageHistory)) }
-
-        val messagingStyle = NotificationCompat.MessagingStyle(Person.Builder().setName(title).build())
-            .setGroupConversation(isGroupChat)
-            .setConversationTitle(if (isGroupChat) title else null)
-
-        for (notificationMessage in messageHistory) {
-            val person = Person.Builder().setName(notificationMessage.senderName).build()
-            messagingStyle.addMessage(notificationMessage.text, notificationMessage.timestamp, person)
+        // —— 3. 构造 MessagingStyle ——
+        val style = NotificationCompat.MessagingStyle(
+            Person.Builder().setName(title).build()
+        ).also { s ->
+            s.setGroupConversation(isGroupChat)
+            if (isGroupChat) s.setConversationTitle(title)
+            messageHistory.forEach { msg ->
+                val person = Person.Builder().setName(msg.senderName).build()
+                s.addMessage(msg.text, msg.timestamp, person)
+            }
         }
 
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+        // —— 4. 构造 DeleteIntent ——
+        val deleteIntent = Intent(this, NotificationDismissReceiver::class.java).apply {
+            action = ACTION_CLEAR_CHAT_HISTORY
+            putExtra(EXTRA_CONVERSATION_ID, conversationId)
+        }
+        val deletePending = PendingIntent.getBroadcast(
+            this,
+            conversationId.hashCode(),
+            deleteIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // —— 5. 发通知 ——
+        val notif = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .apply {
-                chatIconBitmap?.let { bitmap ->
-                    setSmallIcon(IconCompat.createWithBitmap(bitmap))
-                }
-            }
-            .setStyle(messagingStyle)
+            .setLargeIcon(chatIconBitmap)
+            .setStyle(style)
             .setContentTitle(if (isGroupChat) title else senderName)
-            .setContentText(message)
+            .setContentText(messageHistory.last().text)
+            .setGroup(conversationId)
+            .setGroupSummary(false)
             .setAutoCancel(true)
-            .setSound(defaultSoundUri)
+            .setDeleteIntent(deletePending)           // ← 用户滑动删除时触发
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setGroup(conversationId)
-            .setSortKey(messageId.toString())
-            .setGroupSummary(true)
-            .setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+            .build()
 
-        if (ActivityCompat.checkSelfPermission(
-                this@sendChatMessageNotification,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            notificationManager.notify(conversationId.hashCode(), notificationBuilder.build())
-        }
+        nm.notify(conversationId.hashCode(), notif)
     }
 
     private fun loadBitmapFromUri(contentResolver: ContentResolver, uri: Uri): Bitmap? {
@@ -372,7 +372,7 @@ class TgApiForPushNotification(private val context: Context) {
         val textSizePx = (textSizeSp * density).toInt()
 
         // 创建一个可变的 Bitmap
-        val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888) // ARGB_8888 也可以
+        val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
 
         // --- 绘制圆形背景 ---
