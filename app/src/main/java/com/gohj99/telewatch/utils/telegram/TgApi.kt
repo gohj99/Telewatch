@@ -22,8 +22,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.core.content.edit
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.model.ChatMessagesSave
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,7 @@ class TgApi(
     private var saveChatIdList = mutableMapOf<Long, MutableList<Long>>()
     private val client: Client = Client.create({ update -> handleUpdate(update) }, null, null)
     private val sharedPref = context.getSharedPreferences("LoginPref", MODE_PRIVATE)
+    private val settingsSharedPref = context.getSharedPreferences("app_settings", MODE_PRIVATE)
     @Volatile private var isAuthorized: Boolean = false
     private val authLatch = CountDownLatch(1)
     private var isExitChatPage = true
@@ -436,6 +439,25 @@ class TgApi(
                 // 已经成功连接到 Telegram 服务器
                 topTitle.value = ""
                 println("TgApi: Connection Ready")
+                // 更新通知
+                if (settingsSharedPref.getBoolean("Use_Notification", false)) {
+                    FirebaseMessaging.getInstance().token
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val token = task.result
+                                //println(token)
+                                settingsSharedPref.edit(commit = false) {
+                                    putString("Token_Notification", token)
+                                }
+                                TgApiManager.tgApi?.setFCMToken(token) { id ->
+                                    settingsSharedPref.edit(commit = false) {
+                                        putLong("Id_Notification", id)
+                                    }
+                                    //println(id)
+                                }
+                            }
+                        }
+                }
             }
 
             TdApi.ConnectionStateConnecting.CONSTRUCTOR -> {

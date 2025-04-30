@@ -164,12 +164,12 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
-        if (TgApiForPushNotificationManager.tgApi != null) {
-            TgApiForPushNotificationManager.tgApi?.close()
-            TgApiForPushNotificationManager.tgApi = null
-        }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                if (TgApiForPushNotificationManager.tgApi != null) {
+                    TgApiForPushNotificationManager.tgApi?.close()
+                    TgApiForPushNotificationManager.tgApi = null
+                }
                 val gson = Gson()
                 val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
                 var userList = sharedPref.getString("userList", "")
