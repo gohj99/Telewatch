@@ -169,8 +169,7 @@ fun Context.sendChatMessageNotification(
     val openChatPendingIntent = PendingIntent.getActivity(this, notificationId + 3, openChatIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     val notifBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-        // .setSmallIcon(R.mipmap.ic_launcher) // 替换为你的应用小图标
-        .setSmallIcon(android.R.drawable.sym_def_app_icon) // 示例图标
+        .setSmallIcon(R.mipmap.ic_launcher) // 替换为你的应用小图标
         .setLargeIcon(chatIconBitmap)
         .setStyle(style)
         .setWhen(timestamp) // 显示消息时间戳
