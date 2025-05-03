@@ -51,9 +51,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.gohj99.telewatch.ImgViewActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.ViewActivity
 import com.gohj99.telewatch.formatJson
 import com.gohj99.telewatch.model.tgFile
 import com.gohj99.telewatch.ui.main.LinkText
@@ -130,7 +130,7 @@ deleteChat: (() -> Unit)? = null
                                     context.startActivity(
                                         Intent(
                                             context,
-                                            ImgViewActivity::class.java
+                                            ViewActivity::class.java
                                         ).apply {
                                             val bigPhotoFile = tgFile(chatObject.photo!!.big)
                                             putExtra("file", bigPhotoFile)
@@ -293,7 +293,7 @@ deleteChat: (() -> Unit)? = null
 }
 
 @Composable
-fun ThumbnailChatPhoto(thumbnail: TdApi.File, size: Int = 45, title: String = "", callback: () -> Unit) {
+fun ThumbnailChatPhoto(thumbnail: TdApi.File, size: Int = 45, title: String = "", callback: (() -> Unit)? = null) {
     var imagePath by remember { mutableStateOf<String?>(null) }
     val painter = rememberAsyncImagePainter(model = imagePath) // 在Composable作用域
 
@@ -319,11 +319,13 @@ fun ThumbnailChatPhoto(thumbnail: TdApi.File, size: Int = 45, title: String = ""
         modifier = Modifier
             .size(size.dp)
             .clip(CircleShape)
-            .clickable {
-                // 在这里处理点击事件
-                //println("Box clicked!")
-                callback()
-            }
+            .then(if (callback != null) {
+                Modifier.clickable {
+                    callback.invoke()
+                }
+            } else {
+                Modifier
+            })
     ) {
         if (imagePath != null) { // imagePath 非空才显示图片
             Image(
@@ -356,5 +358,5 @@ fun ThumbnailChatPhoto(thumbnail: TdApi.File, size: Int = 45, title: String = ""
 @Preview(showBackground = true)
 @Composable
 fun SplashChatInfoScreenPreview() {
-    SplashChatInfoScreen(chatObject = TdApi.Chat(), "群组", "电话号码", {})
+    SplashChatInfoScreen(chatObject = TdApi.Chat(), "群组", "电话号码") {}
 }

@@ -237,7 +237,7 @@ class ChatActivity : ComponentActivity() {
 
                                         is TdApi.MessagePhoto -> {
                                             println("图片消息")
-                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            val intent = Intent(this, ViewActivity::class.java)
                                             intent.putExtra("messageId", message.id)
                                             startActivity(intent)
                                         }
@@ -245,7 +245,7 @@ class ChatActivity : ComponentActivity() {
                                         // 贴纸消息
                                         is TdApi.MessageSticker -> {
                                             println("贴纸消息")
-                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            val intent = Intent(this, ViewActivity::class.java)
                                             intent.putExtra("messageId", message.id)
                                             startActivity(intent)
                                         }
@@ -253,7 +253,7 @@ class ChatActivity : ComponentActivity() {
                                         // GIF消息
                                         is TdApi.MessageAnimation -> {
                                             println("GIF消息")
-                                            val intent = Intent(this, ImgViewActivity::class.java)
+                                            val intent = Intent(this, ViewActivity::class.java)
                                             intent.putExtra("messageId", message.id)
                                             startActivity(intent)
                                         }

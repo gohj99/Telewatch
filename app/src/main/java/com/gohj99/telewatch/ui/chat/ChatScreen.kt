@@ -12,27 +12,17 @@ import android.annotation.SuppressLint
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -40,71 +30,37 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
-import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.CustomButton
-import com.gohj99.telewatch.ui.InputBar
-import com.gohj99.telewatch.ui.animateScrollToItemCentered
-import com.gohj99.telewatch.ui.main.MainCard
-import com.gohj99.telewatch.ui.main.MessageView
-import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
-import com.gohj99.telewatch.utils.formatDuration
-import com.gohj99.telewatch.utils.formatSize
-import com.gohj99.telewatch.utils.formatTimestampToDate
-import com.gohj99.telewatch.utils.formatTimestampToTime
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
-import java.io.File
-import java.io.IOException
 
 object MessageCache {
     private val cache = mutableMapOf<Int, TdApi.MessageContent>()
@@ -153,55 +109,20 @@ fun SplashChatScreen(
     val context = LocalContext.current
 
     var isFloatingVisible by remember { mutableStateOf(true) }
-    var isLongPressed by remember { mutableStateOf(false) }
-    var selectMessage by remember { mutableStateOf(TdApi.Message()) }
-    val senderNameMap by remember { mutableStateOf(mutableMapOf<Long, String?>()) }
+    var isLongPressed = remember { mutableStateOf(false) }
+    val selectMessage = remember {
+        mutableStateOf<TdApi.Message>(TdApi.Message())
+    }
+    val senderNameMap = remember { mutableStateOf(mutableMapOf<Long, String?>()) }
     val pagerState = rememberPagerState(pageCount = { 2 }, initialPage = 0)
     var notJoin by remember { mutableStateOf(chatObject.positions.isEmpty()) }
     val coroutineScope = rememberCoroutineScope()
-    var planReplyMessage by remember { mutableStateOf(tgApi!!.replyMessage.value) }
+    var planReplyMessage = remember { mutableStateOf(tgApi!!.replyMessage.value) }
     var planReplyMessageSenderName by rememberSaveable { mutableStateOf("") }
-    var planEditMessage by remember { mutableStateOf<TdApi.Message?>((null)) }
+    var planEditMessage = remember { mutableStateOf<TdApi.Message?>((null)) }
     var planEditMessageText = remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
-    var chatReadList = tgApi?.chatReadList!!
-
-    // 保存和恢复MessageContent
-    val MessageContentSaver = Saver<TdApi.MessageContent, Any>(
-        save = { content ->
-            when {
-                // 优先处理文本类型
-                content is TdApi.MessageText -> mapOf(
-                    "type" to "MessageText",
-                    "text" to content.text.text
-                )
-                // 其他类型统一使用ID引用
-                else -> {
-                    val cache = MessageCache.put(content)
-                    mapOf("type" to "MessageReference", "cache" to cache)
-                }
-            }
-        },
-        restore = { value ->
-            when ((value as Map<String, *>)["type"]) {
-                "MessageText" -> TdApi.MessageText(
-                    TdApi.FormattedText(value["text"] as String, emptyArray()),
-                    null, null
-                )
-                "MessageReference" -> {
-                    val cache = value["cache"] as Int
-                    MessageCache.get(cache) ?: TdApi.MessageText(
-                        TdApi.FormattedText("error", emptyArray()),
-                        null, null
-                    )
-                }
-                else -> TdApi.MessageText(
-                    TdApi.FormattedText("error", emptyArray()),
-                    null, null
-                )
-            }
-        }
-    )
+    //var chatReadList = tgApi?.chatReadList!!
 
     // 获取show_unknown_message_type值
     val settingsSharedPref = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
@@ -214,7 +135,7 @@ fun SplashChatScreen(
     val downButtonOffset = settingsSharedPref.getInt("Down_Button_Offset", 25)
 
     //println(chatsListManager.chatsList.value)
-    val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
+    //val chatPermissions: TdApi.ChatPermissions? = chatObject.permissions
 
     LaunchedEffect(listState) {
         var previousIndex = listState.firstVisibleItemIndex
@@ -237,19 +158,19 @@ fun SplashChatScreen(
     }
 
     // 更新将回复消息的发送者
-    LaunchedEffect(planReplyMessage) {
-        if (planReplyMessage != null) {
-            when (val sender = planReplyMessage!!.senderId) {
+    LaunchedEffect(planReplyMessage.value) {
+        if (planReplyMessage.value != null) {
+            when (val sender = planReplyMessage.value!!.senderId) {
                 is TdApi.MessageSenderUser -> {
-                    if (sender.userId in senderNameMap) {
-                        planReplyMessageSenderName = senderNameMap[sender.userId]!!
+                    if (sender.userId in senderNameMap.value) {
+                        planReplyMessageSenderName = senderNameMap.value[sender.userId]!!
                     } else {
                         tgApi?.getUserName(sender.userId) { user ->
                             planReplyMessageSenderName = user
-                            senderNameMap[sender.userId] = user
+                            senderNameMap.value[sender.userId] = user
                         }
                     }
-                    val replyChatId = planReplyMessage!!.chatId
+                    val replyChatId = planReplyMessage.value!!.chatId
                     if (replyChatId != chatId && replyChatId != sender.userId) {
                         val itChat = tgApi?.getChat(replyChatId)
                         itChat.let {
@@ -266,7 +187,7 @@ fun SplashChatScreen(
                             planReplyMessageSenderName = it!!.title
                         }
                     }
-                    val replyChatId = planReplyMessage!!.chatId
+                    val replyChatId = planReplyMessage.value!!.chatId
                     if (replyChatId != chatId && replyChatId != sender.chatId) {
                         val itChat = tgApi?.getChat(replyChatId)
                         itChat.let {
@@ -335,6 +256,7 @@ fun SplashChatScreen(
                             verticalArrangement = Arrangement.Top,
                         ) {
                             item {
+                                // 未加入会话
                                 if (notJoin) {
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Row(
@@ -361,6 +283,7 @@ fun SplashChatScreen(
                                     Spacer(modifier = Modifier.height(55.dp))
                                 }
                             }
+                            // 消息正文
                             itemsIndexed(
                                 chatList.value,
                                 key = { _, message -> message.id.toString() + message.date.toString() }
@@ -376,698 +299,30 @@ fun SplashChatScreen(
 
                                 tgApi?.markMessagesAsRead(message.id)
 
-                                Column {
-                                    // 绘制日期
-                                    val nextItem = chatList.value.getOrNull(index + 1)
-                                    if (nextItem == null){
-                                        DateText(formatTimestampToDate(message.date))
-                                    } else {
-                                        val currentDate = formatTimestampToDate(message.date)
-                                        if (formatTimestampToDate(nextItem.date) != currentDate) {
-                                            DateText(currentDate)
-                                        }
-                                    }
-
-                                    // 渲染用户名字
-                                    if (!isCurrentUser) {
-                                        var senderName by rememberSaveable { mutableStateOf("") }
-                                        val senderId = message.senderId
-                                        //println("senderId: $senderId")
-                                        if (senderId.constructor == TdApi.MessageSenderUser.CONSTRUCTOR){
-                                            val senderUser = senderId as TdApi.MessageSenderUser
-                                            //println("senderUser: $senderUser")
-                                            senderUser.userId.let {
-                                                AutoScrollingText(
-                                                    text = senderName,
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.Bold,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .pointerInput(Unit) {
-                                                            detectTapGestures(onTap = {
-                                                                if (senderUser.userId != chatId) {
-                                                                    goToChat(
-                                                                        Chat(
-                                                                            id = senderUser.userId,
-                                                                            title = senderName
-                                                                        )
-                                                                    )
-                                                                }
-                                                            }, onLongPress = {
-                                                                selectMessage = message
-                                                                isLongPressed = true
-                                                            })
-                                                        }
-                                                )
-
-                                                LaunchedEffect(message.senderId) {
-                                                    if (it in senderNameMap) {
-                                                        senderName = senderNameMap[it]!!
-                                                    } else {
-                                                        tgApi?.getUserName(it) { user ->
-                                                            senderName = user
-                                                            senderNameMap[it] = user
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        } else if (senderId.constructor == TdApi.MessageSenderChat.CONSTRUCTOR) {
-                                            val senderChat = senderId as TdApi.MessageSenderChat
-                                            //println("senderChat: $senderChat")
-                                            senderChat.chatId.let { itChatId ->
-                                                AutoScrollingText(
-                                                    text = senderName,
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.Bold,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    modifier = Modifier
-                                                        .padding(start = 10.dp, end = 5.dp)
-                                                        .fillMaxWidth()
-                                                        .pointerInput(Unit) {
-                                                            detectTapGestures(
-                                                                onLongPress = {
-                                                                    selectMessage = message
-                                                                    isLongPressed = true
-                                                                }
-                                                            )
-                                                        }
-                                                )
-
-                                                LaunchedEffect(message.senderId) {
-                                                    if (senderId.chatId == chatId) {
-                                                        senderName = chatTitle
-                                                    } else {
-                                                        val itChat = tgApi?.getChat(itChatId)
-                                                        itChat.let {
-                                                            senderName = it!!.title
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // 回复
-                                    if (message.replyTo != null) {
-                                        var senderName by rememberSaveable { mutableStateOf("") }
-                                        var messagePosition by remember { mutableStateOf(-1) }
-                                        val replyTo = message.replyTo
-                                        if (replyTo is TdApi.MessageReplyToMessage) {
-                                            var content by rememberSaveable(stateSaver = MessageContentSaver) { mutableStateOf<TdApi.MessageContent>(
-                                                TdApi.MessageText(
-                                                    TdApi.FormattedText(
-                                                        context.getString(R.string.loading),
-                                                        emptyArray()
-                                                    ),
-                                                    null,
-                                                    null
-                                                )
-                                            )}
-                                            LaunchedEffect(replyTo.chatId) {
-                                                if (replyTo.origin != null) {
-                                                    //println(replyTo.origin)
-                                                    when (val origin = replyTo.origin) {
-                                                        is TdApi.MessageOriginChannel -> {
-                                                            if (origin.authorSignature != "") senderName = origin.authorSignature
-                                                            else {
-                                                                val chat = tgApi?.getChat(origin.chatId)
-                                                                chat?.let {
-                                                                    senderName = it.title
-                                                                }
-                                                            }
-                                                        }
-                                                        is TdApi.MessageOriginChat -> {
-                                                            if (origin.authorSignature != "") senderName = origin.authorSignature
-                                                            else {
-                                                                val chat = tgApi?.getChat(origin.senderChatId)
-                                                                chat?.let {
-                                                                    senderName = it.title
-                                                                }
-                                                            }
-                                                        }
-                                                        is TdApi.MessageOriginHiddenUser -> {
-                                                            senderName = origin.senderName
-                                                        }
-                                                        is TdApi.MessageOriginUser -> {
-                                                            val chat = tgApi?.createPrivateChat(origin.senderUserId)
-                                                            chat?.let {
-                                                                senderName = it.title
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            //println(replyTo.content)
-                                            LaunchedEffect(replyTo.content) {
-                                                if (replyTo.content != null) {
-                                                    //println("replyTo.content: ${replyTo.content}")
-                                                    content = replyTo.content!!
-                                                } else {
-                                                    if (replyTo.chatId == 0L) {
-                                                        if (replyTo.quote != null) {
-                                                            if (replyTo.quote!!.text != null) {
-                                                                if (replyTo.quote!!.text.text != "") {
-                                                                    content = TdApi.MessageText(
-                                                                        TdApi.FormattedText(
-                                                                            replyTo.quote!!.text.text,
-                                                                            emptyArray()
-                                                                        ),
-                                                                        null,
-                                                                        null
-                                                                    )
-                                                                }
-                                                            }
-                                                        } else {
-                                                            content = TdApi.MessageText(
-                                                                TdApi.FormattedText(
-                                                                    context.getString(R.string.empty_message),
-                                                                    emptyArray()
-                                                                ),
-                                                                null,
-                                                                null
-                                                            )
-                                                        }
-                                                    } else if (replyTo.chatId == chatId) {
-                                                        var replyMessage = chatList.value.find { it.id == replyTo.messageId }
-                                                        if (replyMessage == null) replyMessage = tgApi?.getMessageTypeById(replyTo.messageId)
-                                                        else messagePosition = chatList.value.indexOfFirst {
-                                                            it.id == replyTo.messageId
-                                                        }
-                                                        if (replyMessage != null) {
-                                                            chatList.value.find { it.id == replyTo.messageId }?.let {
-                                                                content = it.content
-                                                            }
-
-                                                            content = replyMessage.content
-
-                                                            // 用户名称
-                                                            //println(replyMessage.senderId)
-                                                            if (replyMessage.senderId != null) {
-                                                                val senderId = replyMessage.senderId
-                                                                if (senderId is TdApi.MessageSenderUser){
-                                                                    senderId.userId.let { senderUserId ->
-                                                                        if (senderUserId in senderNameMap) {
-                                                                            senderName = senderNameMap[senderUserId]!!
-                                                                        } else {
-                                                                            tgApi?.getUserName(senderUserId) { user ->
-                                                                                senderName = user
-                                                                                senderNameMap[senderUserId] = user
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                } else if (senderId is TdApi.MessageSenderChat) {
-                                                                    if (senderId.chatId == chatId) {
-                                                                        senderName = chatTitle
-                                                                    } else {
-                                                                        val chat = tgApi?.getChat(senderId.chatId)
-                                                                        chat?.let {
-                                                                            senderName = it.title
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        } else {
-                                                            content = TdApi.MessageText(
-                                                                TdApi.FormattedText(
-                                                                    context.getString(R.string.Deleted_message),
-                                                                    emptyArray()
-                                                                ),
-                                                                null,
-                                                                null
-                                                            )
-                                                        }
-                                                    } else {
-                                                        val chat = tgApi?.getChat(replyTo.chatId)
-                                                        if (chat != null) {
-                                                            val replyMessage = tgApi?.getMessageTypeById(replyTo.messageId, replyTo.chatId)
-                                                            replyMessage?.let { content = it.content }
-                                                        } else {
-                                                            content = TdApi.MessageText(
-                                                                TdApi.FormattedText(
-                                                                    context.getString(R.string.empty_message),
-                                                                    emptyArray()
-                                                                ),
-                                                                null,
-                                                                null
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            var parentHeight by remember { mutableIntStateOf(0) }
-
-                                            Box (
-                                                modifier = Modifier.clickable(
-                                                    onClick = {
-                                                        if (messagePosition != -1) {
-                                                            coroutineScope.launch {
-                                                                listState.animateScrollToItem(messagePosition)
-                                                            }
-                                                        }
-                                                    }
-                                                )
-                                            ) {
-                                                if (isCurrentUser) {
-                                                    Row(
-                                                        modifier = Modifier
-                                                            .clickable(
-                                                                onClick = {
-                                                                    if (messagePosition != -1) {
-                                                                        coroutineScope.launch {
-                                                                            listState.animateScrollToItem(
-                                                                                messagePosition
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }
-                                                            )
-                                                            .padding(
-                                                                start = 5.dp,
-                                                                end = 5.dp,
-                                                                top = 5.dp
-                                                            )
-                                                            .fillMaxWidth(),
-                                                        horizontalArrangement = alignment
-                                                    ) {
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .clickable(
-                                                                    onClick = {
-                                                                        if (messagePosition != -1) {
-                                                                            coroutineScope.launch {
-                                                                                listState.animateScrollToItem(
-                                                                                    messagePosition
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                )
-                                                                .background(
-                                                                    Color(0xFF3A4048),
-                                                                    shape = RoundedCornerShape(8.dp)
-                                                                )
-                                                                .clip(RoundedCornerShape(8.dp))
-                                                        ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .clickable(
-                                                                        onClick = {
-                                                                            if (messagePosition != -1) {
-                                                                                coroutineScope.launch {
-                                                                                    listState.animateScrollToItemCentered(
-                                                                                        messagePosition + 1
-                                                                                    )
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    )
-                                                                    .weight(1f, fill = false)
-                                                                    .fillMaxHeight()
-                                                                    .onSizeChanged { size ->
-                                                                        parentHeight =
-                                                                            size.height // 获取父容器的高度
-                                                                    },
-                                                            ) {
-                                                                // 回复正文部分
-                                                                if (senderName != "") {
-                                                                    Column(
-                                                                        modifier = Modifier
-                                                                            .clickable(
-                                                                                onClick = {
-                                                                                    if (messagePosition != -1) {
-                                                                                        coroutineScope.launch {
-                                                                                            listState.animateScrollToItem(
-                                                                                                messagePosition
-                                                                                            )
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            )
-                                                                            .padding(
-                                                                                bottom = 5.dp,
-                                                                                start = 5.dp,
-                                                                                end = 5.dp
-                                                                            ),
-                                                                        horizontalAlignment = Alignment.End // 文字右对齐
-                                                                    ) {
-                                                                        // 用户名
-                                                                        AutoScrollingText(
-                                                                            text = senderName,
-                                                                            color = Color(0xFF66D3FE),
-                                                                            fontWeight = FontWeight.Bold,
-                                                                            style = MaterialTheme.typography.bodySmall,
-                                                                            modifier = Modifier
-                                                                        )
-
-                                                                        // 回复消息内容
-                                                                        messageDrawer(
-                                                                            content = content,
-                                                                            onLinkClick = onLinkClick,
-                                                                            textColor = textColor,
-                                                                            stateDownload = stateDownload,
-                                                                            stateDownloadDone = stateDownloadDone,
-                                                                            showUnknownMessageType = showUnknownMessageType
-                                                                        )
-                                                                    }
-                                                                } else {
-                                                                    Column(
-                                                                        modifier = Modifier
-                                                                            .clickable(
-                                                                                onClick = {
-                                                                                    if (messagePosition != -1) {
-                                                                                        coroutineScope.launch {
-                                                                                            listState.animateScrollToItem(
-                                                                                                messagePosition
-                                                                                            )
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            )
-                                                                            .padding(5.dp),
-                                                                        horizontalAlignment = Alignment.End // 文字右对齐
-                                                                    ) {
-                                                                        // 消息内容
-                                                                        messageDrawer(
-                                                                            content = content,
-                                                                            onLinkClick = onLinkClick,
-                                                                            textColor = textColor,
-                                                                            stateDownload = stateDownload,
-                                                                            stateDownloadDone = stateDownloadDone,
-                                                                            showUnknownMessageType = showUnknownMessageType
-                                                                        )
-                                                                    }
-                                                                }
-                                                            }
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .clickable(
-                                                                        onClick = {
-                                                                            if (messagePosition != -1) {
-                                                                                coroutineScope.launch {
-                                                                                    listState.animateScrollToItemCentered(
-                                                                                        messagePosition + 1
-                                                                                    )
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    )
-                                                                    .background(Color(0xFF397DBC))
-                                                                    .width(8.dp)
-                                                                    .fillMaxHeight()
-                                                            ) {
-                                                                Spacer(Modifier.height((parentHeight/2).dp)) // 保持Spacer，虽然在这里作用不大
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    Row(
-                                                        modifier = Modifier
-                                                            .clickable(
-                                                                onClick = {
-                                                                    if (messagePosition != -1) {
-                                                                        coroutineScope.launch {
-                                                                            listState.animateScrollToItem(
-                                                                                messagePosition
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }
-                                                            )
-                                                            .padding(
-                                                                start = 5.dp,
-                                                                end = 5.dp,
-                                                                top = 5.dp
-                                                            )
-                                                            .fillMaxWidth(),
-                                                        horizontalArrangement = alignment
-                                                    ) {
-                                                        Row(
-                                                            modifier = Modifier
-                                                                .clickable(
-                                                                    onClick = {
-                                                                        if (messagePosition != -1) {
-                                                                            coroutineScope.launch {
-                                                                                listState.animateScrollToItem(
-                                                                                    messagePosition
-                                                                                )
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                )
-                                                                .background(
-                                                                    Color(0xFF3A4048),
-                                                                    shape = RoundedCornerShape(8.dp)
-                                                                )
-                                                                .clip(RoundedCornerShape(8.dp))
-                                                        ) {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .clickable(
-                                                                        onClick = {
-                                                                            if (messagePosition != -1) {
-                                                                                coroutineScope.launch {
-                                                                                    listState.animateScrollToItemCentered(
-                                                                                        messagePosition + 1
-                                                                                    )
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    )
-                                                                    .background(Color(0xFF397DBC))
-                                                                    .width(8.dp) // 指定左边颜色宽度为 10.dp
-                                                            ) {
-                                                                Spacer(Modifier.height((parentHeight/2).dp))
-                                                            }
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .clickable(
-                                                                        onClick = {
-                                                                            if (messagePosition != -1) {
-                                                                                coroutineScope.launch {
-                                                                                    listState.animateScrollToItemCentered(
-                                                                                        messagePosition + 1
-                                                                                    )
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    )
-                                                                    .fillMaxHeight()
-                                                                    .onSizeChanged { size ->
-                                                                        parentHeight =
-                                                                            size.height // 获取父容器的高度
-                                                                    }
-                                                            ) {
-                                                                // 回复正文部分
-                                                                if (senderName != "") {
-                                                                    Column(
-                                                                        modifier = Modifier
-                                                                            .clickable(
-                                                                                onClick = {
-                                                                                    if (messagePosition != -1) {
-                                                                                        coroutineScope.launch {
-                                                                                            listState.animateScrollToItem(
-                                                                                                messagePosition
-                                                                                            )
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            )
-                                                                            .padding(
-                                                                                bottom = 5.dp,
-                                                                                start = 5.dp,
-                                                                                end = 5.dp
-                                                                            )
-                                                                    ) {
-                                                                        // 用户名
-                                                                        AutoScrollingText(
-                                                                            text = senderName,
-                                                                            color = Color(0xFF66D3FE),
-                                                                            fontWeight = FontWeight.Bold,
-                                                                            style = MaterialTheme.typography.bodySmall,
-                                                                            modifier = Modifier
-                                                                        )
-
-                                                                        // 回复消息内容
-                                                                        messageDrawer(
-                                                                            content = content,
-                                                                            onLinkClick = onLinkClick,
-                                                                            textColor = textColor,
-                                                                            stateDownload = stateDownload,
-                                                                            stateDownloadDone = stateDownloadDone,
-                                                                            showUnknownMessageType = showUnknownMessageType
-                                                                        )
-                                                                    }
-                                                                } else {
-                                                                    Box(
-                                                                        modifier = Modifier
-                                                                            .clickable(
-                                                                                onClick = {
-                                                                                    if (messagePosition != -1) {
-                                                                                        coroutineScope.launch {
-                                                                                            listState.animateScrollToItem(
-                                                                                                messagePosition
-                                                                                            )
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            )
-                                                                            .padding(5.dp)
-                                                                    ) {
-                                                                        messageDrawer(
-                                                                            content = content,
-                                                                            onLinkClick = onLinkClick,
-                                                                            textColor = textColor,
-                                                                            stateDownload = stateDownload,
-                                                                            stateDownloadDone = stateDownloadDone,
-                                                                            showUnknownMessageType = showUnknownMessageType
-                                                                        )
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // 正文
-                                    Row(
-                                        modifier = Modifier
-                                            .padding(5.dp)
-                                            .fillMaxWidth(),
-                                        horizontalArrangement = alignment
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .background(
-                                                    backgroundColor,
-                                                    shape = RoundedCornerShape(8.dp)
-                                                )
-                                                .padding(
-                                                    start = 8.dp,
-                                                    end = 8.dp,
-                                                    top = 6.dp,
-                                                    bottom = 1.dp
-                                                )
-                                                .pointerInput(Unit) {
-                                                    detectTapGestures(
-                                                        onLongPress = {
-                                                            selectMessage = message
-                                                            isLongPressed = true
-                                                        },
-                                                        onTap = {
-                                                            if (!stateDownload.value) {
-                                                                if (message.content is TdApi.MessageVideo) {
-                                                                    val videoFile =
-                                                                        (message.content as TdApi.MessageVideo).video.video
-                                                                    if (!videoFile.local.isDownloadingCompleted) {
-                                                                        tgApi!!.downloadFile(
-                                                                            file = videoFile,
-                                                                            schedule = { schedule ->
-                                                                                println("下载进度: $schedule")
-                                                                            },
-                                                                            completion = { boolean, path ->
-                                                                                println("下载完成情况: $boolean")
-                                                                                println("下载路径: $path")
-                                                                                stateDownload.value =
-                                                                                    false
-                                                                                stateDownloadDone.value =
-                                                                                    true
-                                                                            }
-                                                                        )
-                                                                        stateDownload.value = true
-                                                                    }
-                                                                }
-                                                                press(message)
-                                                            }
-                                                        }
-                                                    )
-                                                }
-                                        ) {
-                                            Column {
-                                                val content = message.content
-                                                messageDrawer(
-                                                    content = content,
-                                                    onLinkClick = onLinkClick,
-                                                    textColor = textColor,
-                                                    stateDownload = stateDownload,
-                                                    stateDownloadDone = stateDownloadDone,
-                                                    showUnknownMessageType = showUnknownMessageType
-                                                )
-
-                                                Row(
-                                                    modifier = modifier
-                                                        .padding(top = 4.dp),
-                                                    horizontalArrangement = Arrangement.SpaceBetween // 两端对齐
-                                                ) {
-                                                    // 时间
-                                                    Text(
-                                                        text = if (message.editDate == 0) formatTimestampToTime(message.date)
-                                                        else stringResource(id = R.string.edit) + " " + formatTimestampToTime(message.editDate),
-                                                        modifier = modifier,
-                                                        color = Color(0xFF6A86A3),
-                                                        style = MaterialTheme.typography.bodySmall
-                                                    )
-
-                                                    // 已读未读标识
-                                                    // 确定消息是否为自己发的
-                                                    if (message.isOutgoing) {
-                                                        //println("read.message.id: ${chatObject.lastReadInboxMessageId}")
-                                                        if (message.id <= lastReadOutboxMessageId.value) {
-                                                            Image(
-                                                                painter = painterResource(id = R.drawable.outgoing_read),
-                                                                contentDescription = null,
-                                                                modifier = Modifier
-                                                                    .size(19.4.dp, 12.dp) // 设置 Image 的大小
-                                                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                                                                    .padding(start = 3.8.dp)
-                                                            )
-                                                        } else if (message.id <= lastReadInboxMessageId.value) {
-                                                            Image(
-                                                                painter = painterResource(id = R.drawable.outgoing),
-                                                                contentDescription = null,
-                                                                modifier = Modifier
-                                                                    .size(16.2.dp, 11.dp) // 设置 Image 的大小
-                                                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                                                                    .padding(start = 3.5.dp)
-                                                            )
-                                                        } else {
-                                                            Image(
-                                                                painter = painterResource(id = R.drawable.sending),
-                                                                contentDescription = null,
-                                                                modifier = Modifier
-                                                                    .size(15.8.dp, 12.dp) // 设置 Image 的大小
-                                                                    .graphicsLayer(alpha = 0.5f) // 设置 Image 的不透明度
-                                                                    .padding(start = 3.5.dp)
-                                                            )
-                                                        }
-                                                    }
-
-                                                    if (!isCurrentUser) {
-                                                        val forwardInfo = message.forwardInfo
-                                                        forwardInfo?.origin?.let { origin ->
-                                                            if (origin is TdApi.MessageOriginChannel) {
-                                                                // 署名
-                                                                Text(
-                                                                    text = origin.authorSignature,
-                                                                    color = Color(0xFF6A86A3),
-                                                                    style = MaterialTheme.typography.bodyMedium,
-                                                                    modifier = Modifier
-                                                                        .align(Alignment.CenterVertically)
-                                                                        .weight(1f)
-                                                                        .wrapContentWidth(Alignment.End) // 向右对齐
-                                                                )
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                MessageHandleCompose(
+                                    message = message,
+                                    chatList = chatList,
+                                    index = index,
+                                    chatId = chatId,
+                                    chatTitle = chatTitle,
+                                    isCurrentUser = isCurrentUser,
+                                    modifier = modifier,
+                                    alignment = alignment,
+                                    textColor = textColor,
+                                    backgroundColor = backgroundColor,
+                                    stateDownload = stateDownload,
+                                    stateDownloadDone = stateDownloadDone,
+                                    showUnknownMessageType = showUnknownMessageType,
+                                    selectMessage = selectMessage,
+                                    isLongPressed = isLongPressed,
+                                    senderNameMap = senderNameMap,
+                                    listState = listState,
+                                    press = press,
+                                    lastReadOutboxMessageId = lastReadOutboxMessageId,
+                                    lastReadInboxMessageId = lastReadInboxMessageId,
+                                    onLinkClick = onLinkClick,
+                                    goToChat = goToChat,
+                                )
                             }
                         }
                     }
@@ -1085,342 +340,19 @@ fun SplashChatScreen(
                                 ),
                             verticalArrangement = Arrangement.Top
                         ) {
-                            if (planEditMessage != null) {
-                                Box (
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable(
-                                            onClick = {
-                                                planReplyMessage = null
-                                                tgApi!!.replyMessage.value = null
-                                            }
-                                        )
-                                )
-                                Text(
-                                    text = stringResource(R.string.Edit),
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier
-                                        .padding(
-                                            start = 10.dp,
-                                            end = 5.dp,
-                                            top = 5.dp
-                                        )
-                                        .fillMaxWidth()
-                                        .clickable(
-                                            onClick = {
-                                                planEditMessage = null
-                                            }
-                                        )
-                                )
-                            } else if (planReplyMessage != null) {
-                                // 将回复消息显示
-                                Box (
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable(
-                                            onClick = {
-                                                planReplyMessage = null
-                                                tgApi!!.replyMessage.value = null
-                                            }
-                                        )
-                                )
-                                Text(
-                                    text = stringResource(R.string.Reply),
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier
-                                        .padding(
-                                            start = 10.dp,
-                                            end = 5.dp,
-                                            top = 5.dp
-                                        )
-                                        .fillMaxWidth()
-                                )
-                                var parentHeight by remember { mutableIntStateOf(0) }
-                                var stateDownloadDone = rememberSaveable { mutableStateOf(false) }
-                                var stateDownload = rememberSaveable { mutableStateOf(false) }
-
-                                Row(
-                                    modifier = Modifier
-                                        .padding(
-                                            start = 5.dp,
-                                            end = 5.dp,
-                                            top = 5.dp
-                                        )
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Start
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .background(
-                                                Color(0xFF3A4048),
-                                                shape = RoundedCornerShape(8.dp)
-                                            )
-                                            .clip(RoundedCornerShape(8.dp))
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .background(Color(0xFF397DBC))
-                                                .width(8.dp) // 指定左边颜色宽度为 10.dp
-                                        ) {
-                                            Spacer(Modifier.height((parentHeight/2).dp))
-                                        }
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxHeight()
-                                                .onSizeChanged { size ->
-                                                    parentHeight =
-                                                        size.height // 获取父容器的高度
-                                                }
-                                        ) {
-                                            Column(
-                                                modifier = Modifier
-                                                    .padding(
-                                                        bottom = 5.dp,
-                                                        start = 5.dp,
-                                                        end = 5.dp
-                                                    )
-                                            ) {
-                                                if (planReplyMessageSenderName == "") {
-                                                    messageDrawer(
-                                                        content = planReplyMessage!!.content,
-                                                        onLinkClick = onLinkClick,
-                                                        textColor = Color(0xFFFEFEFE),
-                                                        stateDownload = stateDownload,
-                                                        stateDownloadDone = stateDownloadDone,
-                                                        showUnknownMessageType = showUnknownMessageType
-                                                    )
-                                                } else {
-                                                    // 用户名
-                                                    AutoScrollingText(
-                                                        text = planReplyMessageSenderName,
-                                                        color = Color(0xFF66D3FE),
-                                                        fontWeight = FontWeight.Bold,
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        modifier = Modifier
-                                                    )
-                                                    messageDrawer(
-                                                        content = planReplyMessage!!.content,
-                                                        onLinkClick = onLinkClick,
-                                                        textColor = Color(0xFFFEFEFE),
-                                                        stateDownload = stateDownload,
-                                                        stateDownloadDone = stateDownloadDone,
-                                                        showUnknownMessageType = showUnknownMessageType
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                            if (planEditMessage != null) {
-                                InputBar(
-                                    query = planEditMessageText.value,
-                                    onQueryChange = { planEditMessageText.value = it },
-                                    placeholder = stringResource(id = R.string.Write_message),
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                // 完成编辑消息按钮
-                                Column(
-                                    horizontalAlignment = Alignment.End,
-                                    modifier = Modifier
-                                        .padding(end = 10.dp)
-                                        .fillMaxWidth()
-                                ) {
-                                    IconButton(
-                                        onClick = {
-                                            if (planEditMessage != null) {
-                                                tgApi?.editMessageText(
-                                                    chatId = chatId,
-                                                    messageId = planEditMessage!!.id,
-                                                    message = TdApi.InputMessageText().apply {
-                                                        text = TdApi.FormattedText().apply {
-                                                            this.text = planEditMessageText.value
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                            planEditMessage = null
-                                            coroutineScope.launch {
-                                                pagerState.animateScrollToPage(0)
-                                                listState.animateScrollToItem(0)
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .size(45.dp)
-                                    ) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.done_icon),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(45.dp)
-                                        )
-                                    }
-                                }
-                            } else {
-                                InputBar(
-                                    query = inputText.value,
-                                    onQueryChange = { inputText.value = it },
-                                    placeholder = stringResource(id = R.string.Write_message),
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                // 换行和发送消息按钮
-                                Column(
-                                    horizontalAlignment = Alignment.End,
-                                    modifier = Modifier
-                                        .padding(end = 10.dp)
-                                        .fillMaxWidth()
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween // 左右对齐
-                                    ) {
-                                        // 换行按钮
-                                        IconButton(
-                                            onClick = {
-                                                inputText.value += "\n"
-                                            },
-                                            modifier = Modifier
-                                                .padding(start = 10.dp)
-                                                .size(45.dp)
-                                        ) {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.enter_icon),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(45.dp)
-                                            )
-                                        }
-
-                                        // 发送按钮
-                                        IconButton(
-                                            onClick = {
-                                                if (planReplyMessage == null) {
-                                                    tgApi?.sendMessage(
-                                                        chatId = chatId,
-                                                        message = TdApi.InputMessageText().apply {
-                                                            text = TdApi.FormattedText().apply {
-                                                                this.text = inputText.value
-                                                            }
-                                                        }
-                                                    )
-                                                } else {
-                                                    if (planReplyMessage!!.chatId != chatId) {
-                                                        tgApi?.sendMessage(
-                                                            chatId = chatId,
-                                                            message = TdApi.InputMessageText().apply {
-                                                                text = TdApi.FormattedText().apply {
-                                                                    this.text = inputText.value
-                                                                }
-                                                            },
-                                                            replyTo = TdApi.InputMessageReplyToExternalMessage(
-                                                                planReplyMessage!!.chatId,
-                                                                planReplyMessage!!.id, null
-                                                            )
-                                                        )
-                                                    } else {
-                                                        tgApi?.sendMessage(
-                                                            chatId = chatId,
-                                                            message = TdApi.InputMessageText().apply {
-                                                                text = TdApi.FormattedText().apply {
-                                                                    this.text = inputText.value
-                                                                }
-                                                            },
-                                                            replyTo = TdApi.InputMessageReplyToMessage(
-                                                                planReplyMessage!!.id, null
-                                                            )
-                                                        )
-                                                    }
-                                                    planReplyMessage = null
-                                                    tgApi!!.replyMessage.value = null
-                                                }
-                                                inputText.value = ""
-                                                coroutineScope.launch {
-                                                    pagerState.animateScrollToPage(0)
-                                                    listState.animateScrollToItem(0)
-                                                }
-                                            },
-                                            modifier = Modifier.size(45.dp)
-                                        ) {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.ic_custom_send),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(45.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
-                            val forwardMessage = tgApi!!.forwardMessage
-                            if (forwardMessage.value != null) {
-                                val messageText =
-                                    tgApi!!.handleAllMessages(message = forwardMessage.value, maxText = 100)
-                                val targetTitle =
-                                    if (forwardMessage.value!!.chatId == currentUserId.value) stringResource(R.string.Saved_Messages) else
-                                        tgApi!!.chatsList.value
-                                            .find { it.id == forwardMessage.value!!.chatId }
-                                            ?.title ?: stringResource(R.string.Unknown_chat) // 找不到时返回默认值
-
-                                Text(
-                                    text = stringResource(R.string.Forward),
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp,
-                                    modifier = Modifier.clickable(
-                                        onClick = {
-                                            tgApi!!.forwardMessage.value = null
-                                        }
-                                    )
-                                )
-                                MainCard(
-                                    column = {
-                                        Text(
-                                            text = targetTitle,
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        MessageView(message = messageText)
-                                    },
-                                    item = forwardMessage.value
-                                )
-                                // 转发消息部分发送按钮
-                                Column(
-                                    horizontalAlignment = Alignment.End,
-                                    modifier = Modifier
-                                        .padding(end = 10.dp)
-                                        .fillMaxWidth()
-                                ) {
-                                    IconButton(
-                                        onClick = {
-                                            tgApi?.sendMessage(
-                                                chatId = chatId,
-                                                message = TdApi.InputMessageForwarded().apply {  // 参数名改为message
-                                                    copyOptions = null
-                                                    fromChatId = forwardMessage.value!!.chatId
-                                                    inGameShare = false
-                                                    messageId = forwardMessage.value!!.id
-                                                }
-                                            )
-                                            coroutineScope.launch {
-                                                pagerState.animateScrollToPage(0)
-                                                listState.animateScrollToItem(0)
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .size(45.dp)
-                                    ) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_custom_send),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(45.dp)
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(80.dp))
+                            SendMessageCompose(
+                                chatId = chatId,
+                                inputText = inputText,
+                                currentUserId = currentUserId,
+                                planReplyMessage = planReplyMessage,
+                                planReplyMessageSenderName = planReplyMessageSenderName,
+                                planEditMessage = planEditMessage,
+                                planEditMessageText = planEditMessageText,
+                                listState = listState,
+                                pagerState = pagerState,
+                                showUnknownMessageType = showUnknownMessageType,
+                                onLinkClick = onLinkClick,
+                            )
                         }
                     }
                 }
@@ -1428,765 +360,52 @@ fun SplashChatScreen(
         }
 
         // 长按处理
-        if (isLongPressed) {
+        if (isLongPressed.value) {
             LongPressBox(
                 callBack = { select ->
                     when (select) {
                         // 特殊处理
                         "Edit" -> {
-                            val content = selectMessage.content
+                            val content = selectMessage.value.content
                             if (content is TdApi.MessageText) {
-                                planEditMessage = selectMessage
+                                planEditMessage.value = selectMessage.value
                                 planEditMessageText.value = content.text.text
                                 coroutineScope.launch {
                                     pagerState.animateScrollToPage(1)
                                 }
                             } else {
-                                longPress(select, selectMessage)
+                                longPress(select, selectMessage.value)
                             }
                             ""
                         }
                         "Reply" -> {
                             // 返回空字符串同时执行操作
-                            planReplyMessage = selectMessage
-                            tgApi!!.replyMessage.value = selectMessage
+                            planReplyMessage.value = selectMessage.value
+                            tgApi!!.replyMessage.value = selectMessage.value
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(1)
                             }
                             ""
                         }
-                        else -> return@LongPressBox longPress(select, selectMessage)
+                        else -> return@LongPressBox longPress(select, selectMessage.value)
                     }
                 },
-                onDismiss = { isLongPressed = false }
+                onDismiss = { isLongPressed.value = false }
             )
         }
-
-        // 隐藏的 TextField 用于触发输入法
-        /*
-        val textFieldFocusRequester by remember { mutableStateOf(FocusRequester()) }
-
-        TextField(
-            value = inputText,
-            onValueChange = { inputText = it },
-            modifier = Modifier
-                .size(1.dp)
-                .alpha(0f)
-                .focusRequester(textFieldFocusRequester),
-            maxLines = 1,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                }
-            )
-        )
-         */
 
         // 0页下方功能区
         if (pagerState.currentPage == 0) {
-            /*
-            if (notJoin) {
-                showKeyboard = true
-            } else {
-                if (chatPermissions == null) {
-                    showKeyboard = true
-                } else {
-                    if (chatPermissions.canSendBasicMessages) {
-                        showKeyboard = true
-                    }
-                }
-            }
-             */
-            if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset > 10240) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd) // 定位到右下角
-                        .offset(x = (-downButtonOffset).dp, y = (-downButtonOffset).dp) // 向左上偏移，避免紧贴屏幕边缘
-                ) {
-                    // 滑动最下面
-                    IconButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                listState.animateScrollToItem(0)
-                            }
-                        },
-                        modifier = Modifier
-
-                    ) {
-                        Box(modifier = Modifier.size(60.dp)) {
-                            Image(
-                                painter = painterResource(id = R.drawable.bottom),
-                                contentDescription = null,
-                                modifier = Modifier.size(45.dp)
-                            )
-                        }
-                    }
-                    // 未读消息指示器
-                    chatReadList.get(chatId)?.takeIf { it > 0 }?.let { unreadCount ->
-                        Box(
-                            modifier = Modifier.offset(x = (15.7).dp, y = (-3).dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Surface(
-                                color = Color(0xFF3F81BB),
-                                shape = RoundedCornerShape(50)
-                            ) {
-                                Text(
-                                    text = unreadCount.toString(),
-                                    modifier = Modifier
-                                        .padding(horizontal = 4.6.dp, vertical = 1.3.dp),
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    lineHeight = 10.sp,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun messageDrawer(
-    onLinkClick: (String) -> Unit,
-    content: TdApi.MessageContent,
-    stateDownload: MutableState<Boolean>,
-    stateDownloadDone: MutableState<Boolean>,
-    textColor: Color,
-    showUnknownMessageType: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-
-    val onEntityClick = { clickedText: String, entityType: TdApi.TextEntityType ->
-        // 根据 entityType 执行不同的操作
-        when (entityType) {
-            is TdApi.TextEntityTypeUrl -> {
-                // 打开链接
-                // context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(clickedText)))
-                println("Clicked URL: $clickedText")
-                onLinkClick(clickedText)
-            }
-            is TdApi.TextEntityTypeTextUrl -> {
-                // 打开 TextUrl 中包含的链接
-                val url = entityType.url // 对于 TextUrl，需要获取其内部的 url 字段
-                try {
-                    // val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                    // context.startActivity(intent)
-                    println("Attempted to open TextUrl: $url (display text: $clickedText)")
-                    onLinkClick(url)
-                } catch (e: Exception) {
-                    println("Failed to open TextUrl: $e")
-                    // 显示错误提示
-                }
-            }
-            is TdApi.TextEntityTypeBotCommand -> {
-                // 执行机器人命令的逻辑，例如发送消息 "/start"
-                // 通常需要将这个命令发送回 Telegram API
-                println("Bot Command clicked: $clickedText. Implement sending command.")
-                copyText(clickedText, context)
-            }
-            is TdApi.TextEntityTypeMention -> {
-                println("Clicked Mention: $clickedText")
-                if (clickedText.startsWith("@")) {
-                    onLinkClick("https://t.me/${clickedText}")
-                }
-            }
-            is TdApi.TextEntityTypeHashtag -> {
-                // 处理点击话题标签的逻辑，例如搜索该话题
-                println("Hashtag clicked: $clickedText. Implement searching hashtag.")
-            }
-            is TdApi.TextEntityTypeEmailAddress -> {
-                // 处理点击邮箱地址的逻辑，例如打开邮件应用
-                val emailUri = Uri.fromParts("mailto", clickedText, null)
-                try {
-                    val intent = Intent(Intent.ACTION_SENDTO, emailUri)
-                    context.startActivity(intent)
-                    println("Attempted to send email to: $clickedText")
-                } catch (e: Exception) {
-                    println("Failed to open email app: $e")
-                }
-            }
-            is TdApi.TextEntityTypePhoneNumber -> {
-                // 处理点击电话号码的逻辑，例如打开拨号应用
-                val telUri = Uri.fromParts("tel", clickedText.replace("[^\\d+]".toRegex(), ""), null) // 移除除数字和+号外的字符
-                try {
-                    val intent = Intent(Intent.ACTION_DIAL, telUri)
-                    context.startActivity(intent)
-                    println("Attempted to dial number: $clickedText")
-                } catch (e: Exception) {
-                    println("Failed to open dialer: $e")
-                }
-            }
-            is TdApi.TextEntityTypeBankCardNumber -> {
-                // 处理点击银行卡号的逻辑，例如复制到剪贴板
-                println("Bank Card Number clicked: $clickedText. Implement copy to clipboard.")
-                copyText(clickedText, context)
-            }
-            is TdApi.TextEntityTypeBlockQuote -> {
-                // 处理点击 BlockQuote 的逻辑 (如果它确实需要点击处理)
-                println("Block Quote clicked: $clickedText. Implement blockquote specific action if any.")
-            }
-            else -> {
-                // 默认处理或者不做任何事情
-                println("Clicked on entity type without specific handler: ${entityType::class.java.simpleName}")
-            }
-        }
-    }
-
-    when (content) {
-        is TdApi.MessageText -> {
-            SelectionContainer {
-                FormattedText(
-                    text = content.text.text,
-                    entities = content.text.entities,
-                    modifier = modifier,
-                    style = MaterialTheme.typography.bodyMedium,
-                    onEntityClick = onEntityClick
-                )
-            }
-        }
-        is TdApi.MessagePhoto -> {
-            val thumbnail = content.photo.sizes.minByOrNull { it.width * it.height }
-            if (thumbnail != null) {
-                ThumbnailImage(
-                    thumbnail = thumbnail.photo,
-                    imageWidth = thumbnail.width,
-                    imageHeight = thumbnail.height,
-                    textColor = Color(0xFFFEFEFE),
-                    modifier = modifier
-                )
-            } else {
-                // 处理没有缩略图的情况
-                Text(
-                    text = stringResource(id = R.string.No_thumbnail_available),
-                    color = Color(0xFFFEFEFE),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = modifier
-                )
-            }
-            // 图片文字
-            content.caption?.text?.let {
-                SelectionContainer {
-                    FormattedText(
-                        text = it,
-                        entities = content.caption.entities,
-                        modifier = modifier,
-                        style = MaterialTheme.typography.bodyMedium,
-                        onEntityClick = onEntityClick
-                    )
-                }
-            }
-        }
-        is TdApi.MessageVideo -> {
-            val thumbnail = content.video.thumbnail
             Box(
-                contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .align(Alignment.BottomEnd) // 定位到右下角
+                    .offset(x = (-downButtonOffset).dp, y = (-downButtonOffset).dp) // 向左上偏移，避免紧贴屏幕边缘
             ) {
-                if (thumbnail != null) {
-                    ThumbnailImage(
-                        thumbnail = thumbnail.file,
-                        imageWidth = thumbnail.width,
-                        imageHeight = thumbnail.height,
-                        textColor = Color(0xFFFEFEFE),
-                        modifier = modifier
-                    )
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize() // 覆盖层与图片大小一致
-                            .background(Color.Black.copy(alpha = 0.5f)) // 设置半透明黑色背景
-                    )
-                } else {
-                    // 处理没有缩略图的情况
-                    Text(
-                        text = stringResource(id = R.string.No_thumbnail_available),
-                        color = Color(0xFFFEFEFE),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = modifier
-                    )
-                }
-
-                if (stateDownload.value) SplashLoadingScreen()
-                val videoFile = content.video.video
-                if (videoFile.local.isDownloadingCompleted) {
-                    stateDownloadDone.value = true
-                }
-                if (stateDownloadDone.value) {
-                    Image(
-                        painter = painterResource(id = R.drawable.play),
-                        contentDescription = null,
-                        modifier = modifier
-                            .align(Alignment.Center)
-                            .size(36.dp) // 设置图标大小为 24dp
-                    )
-                } else {
-                    if (!stateDownload.value) {
-                        Image(
-                            painter = painterResource(id = R.drawable.download),
-                            contentDescription = null,
-                            modifier = modifier
-                                .align(Alignment.Center)
-                                .size(36.dp) // 设置图标大小为 24dp
-                        )
-                    }
-                }
-            }
-
-            // 视频文字
-            content.caption?.text?.let {
-                SelectionContainer {
-                    FormattedText(
-                        text = it,
-                        entities = content.caption.entities,
-                        modifier = modifier,
-                        style = MaterialTheme.typography.bodyMedium,
-                        onEntityClick = onEntityClick
-                    )
-                }
-            }
-        }
-        // GIF信息
-        is TdApi.MessageAnimation -> {
-            val thumbnail = content.animation.thumbnail
-            if (thumbnail != null) {
-                ThumbnailImage(
-                    thumbnail = thumbnail.file,
-                    imageWidth = thumbnail.width,
-                    imageHeight = thumbnail.height,
-                    textColor = textColor,
-                    modifier = modifier
+                MessageBottomFunctionalCompose(
+                    listState = listState,
+                    chatId = chatId
                 )
             }
-        }
-        // 表情消息
-        is TdApi.MessageAnimatedEmoji -> {
-            val emoji = content.emoji
-            val thumbnail = content.animatedEmoji.sticker?.thumbnail
-            if (thumbnail != null) {
-                ThumbnailImage(
-                    thumbnail = thumbnail.file,
-                    imageWidth = thumbnail.width,
-                    imageHeight = thumbnail.height,
-                    textColor = textColor,
-                    loadingText = emoji,
-                    modifier = modifier
-                )
-            } else {
-                SelectionContainer {
-                    Text(
-                        text = emoji,
-                        color = textColor,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = modifier
-                    )
-                }
-            }
-        }
-        // 贴纸表情消息
-        is TdApi.MessageSticker -> {
-            val emoji = content.sticker.emoji
-            val thumbnail = content.sticker.thumbnail
-            if (thumbnail != null) {
-                ThumbnailImage(
-                    thumbnail = thumbnail.file,
-                    imageWidth = thumbnail.width,
-                    imageHeight = thumbnail.height,
-                    textColor = textColor,
-                    loadingText = emoji,
-                    modifier = modifier
-                )
-            } else {
-                SelectionContainer {
-                    Text(
-                        text = emoji,
-                        color = textColor,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = modifier
-                    )
-                }
-            }
-        }
-        // 语音消息
-        is TdApi.MessageVoiceNote -> {
-            MessageVideoNote(
-                messageVideoNote = content,
-                modifier = modifier
-            )
-        }
-        // 文件消息
-        is TdApi.MessageDocument -> {
-            MessageFile(
-                content = content,
-                stateDownload = stateDownload,
-                stateDownloadDone = stateDownloadDone,
-                modifier = modifier
-            )
-
-            // 文件文字
-            content.caption?.text?.let {
-                SelectionContainer {
-                    FormattedText(
-                        text = it,
-                        entities = content.caption.entities,
-                        modifier = modifier,
-                        style = MaterialTheme.typography.bodyMedium,
-                        onEntityClick = onEntityClick
-                    )
-                }
-            }
-        }
-        else -> {
-            SelectionContainer {
-                Text(
-                    text = stringResource(id = R.string.Unknown_Message) + if (showUnknownMessageType) "\nType: TdApi." + getMessageContentTypeName(content) else "",
-                    color = textColor,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = modifier
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MessageFile(
-    content: TdApi.MessageDocument,
-    stateDownload: MutableState<Boolean>,
-    stateDownloadDone: MutableState<Boolean>,
-    modifier: Modifier = Modifier
-){
-    val context = LocalContext.current
-    val document = content.document
-    val file = document.document
-    var fileUrl by remember { mutableStateOf(file.local.path) }
-    val fileName = document.fileName
-    val fileSize = file.size
-    var downloadSchedule by remember { mutableStateOf(file.local.downloadedSize) }
-
-    // 检查文件状态
-    LaunchedEffect(document) {
-        if (file.local.isDownloadingCompleted) {
-            stateDownloadDone.value = true
-        } else {
-            stateDownloadDone.value = false
-        }
-    }
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (stateDownloadDone.value) {
-            Image(
-                painter = painterResource(id = R.drawable.file_icon),
-                contentDescription = "downloaded_file",
-                modifier = Modifier
-                    .size(width = 32.dp, height = 32.dp)
-                    .clip(CircleShape)
-                    .clickable {
-                        Toast.makeText(context, fileUrl, Toast.LENGTH_SHORT).show()
-                    }
-            )
-        } else {
-            if (stateDownload.value) {
-                Image(
-                    painter = painterResource(id = R.drawable.remove_icon),
-                    contentDescription = "remove",
-                    modifier = Modifier
-                        .size(width = 32.dp, height = 32.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            tgApi!!.cancelDownloadFile(file.id) {
-                                stateDownload.value = false
-                                stateDownloadDone.value = false
-                            }
-                        }
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.download_file),
-                    contentDescription = "download_file",
-                    modifier = Modifier
-                        .size(width = 32.dp, height = 32.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            stateDownload.value = true
-                            tgApi!!.downloadFile(
-                                file = file,
-                                schedule = { schedule ->
-                                    downloadSchedule = schedule.local.downloadedSize
-                                },
-                                completion = { success, tdFleUrl ->
-                                    if (success) {
-                                        //println(tdFleUrl)
-                                        if (tdFleUrl != null) fileUrl = tdFleUrl
-                                        //println(fileUrl)
-                                        stateDownloadDone.value = true
-                                        stateDownload.value = false
-                                    }
-                                }
-                            )
-                        }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = fileName,
-                color = Color(0xFFFEFEFE),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = modifier
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text =
-                    if (downloadSchedule == 0L || downloadSchedule == fileSize) formatSize(fileSize)
-                    else "${formatSize(downloadSchedule)} | ${formatSize(fileSize)}",
-                color = Color(0xFF6985A2),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = modifier
-            )
-        }
-    }
-}
-
-@Composable
-fun MessageVideoNote(
-    messageVideoNote: TdApi.MessageVoiceNote,
-    modifier: Modifier = Modifier
-) {
-    val videoNote = messageVideoNote.voiceNote
-    val voiceFile = videoNote.voice
-    val context = LocalContext.current
-    var playTime by remember { mutableStateOf(0) }
-    var playingShow by remember { mutableStateOf(false) }
-    var isDownload by remember { mutableStateOf(voiceFile.local.isDownloadingCompleted) }
-    var downloading by remember { mutableStateOf(false) }
-    var fileUrl = remember { mutableStateOf("") }
-    if (voiceFile.local.isDownloadingCompleted) fileUrl.value = voiceFile.local.path
-
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            addListener(object : Player.Listener {
-                override fun onPlaybackStateChanged(state: Int) {
-                    if (state == Player.STATE_READY && !isPlaying) {
-                        // 播放器已准备好但未播放
-                        playTime = (currentPosition / 1000).toInt()
-                    } else if (state == Player.STATE_ENDED) {
-                        playingShow = false
-                        playTime = 0
-                        seekTo(0) // 将播放位置重置到起点
-                        pause()
-                    }
-                }
-            })
-        }
-    }
-
-    // 播放时间更新任务
-    LaunchedEffect(playingShow) {
-        if (playingShow) {
-            while (playingShow) {
-                playTime = (exoPlayer.currentPosition / 1000).toInt()
-                delay(500) // 每 500ms 更新一次
-                //println(exoPlayer.currentPosition)
-                //println(playTime)
-            }
-        }
-    }
-
-    // 播放器初始化
-    LaunchedEffect(isDownload) {
-        //println("值改变isDownload: $isDownload")
-        if (isDownload) {
-            //println("初始化")
-            try {
-                var file = File(fileUrl.value)
-                while (!file.exists() || file.length() == 0L) {
-                    //("文件不存在或长度为0，正在等待...")
-                    //println("完整途径：" + photoPath + "结尾")
-                    delay(1000)  // 每 1000 毫秒检查一次
-                    file = File(fileUrl.value)  // 重新获取文件状态
-                    //println(fileUrl.value)
-                    //println("文件大小：" + file.length())
-                }
-                //println("文件存在")
-                exoPlayer.setMediaItem(MediaItem.fromUri(file.toUri()))
-                exoPlayer.prepare()
-                //println("初始化完成")
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    // 资源释放
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (isDownload) {
-            if (playingShow) {
-                Image(
-                    painter = painterResource(id = R.drawable.playing_audio),
-                    contentDescription = "playing_audio",
-                    modifier = Modifier
-                        .size(width = 32.dp, height = 32.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            exoPlayer.pause()
-                            playingShow = false
-                        }
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = R.drawable.play_audio),
-                    contentDescription = "play_audio",
-                    modifier = Modifier
-                        .size(width = 32.dp, height = 32.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            exoPlayer.play()
-                            playingShow = true
-                        }
-                )
-            }
-        } else {
-            if (videoNote.mimeType == "audio/ogg") {
-                if (downloading) {
-                    SplashLoadingScreen()
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.download_audio),
-                        contentDescription = "download_audio",
-                        modifier = Modifier
-                            .size(width = 32.dp, height = 32.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                downloading = true
-                                tgApi!!.downloadFile(
-                                    file = voiceFile,
-                                    schedule = { schedule -> },
-                                    completion = { success, tdFleUrl ->
-                                        if (success) {
-                                            //println(tdFleUrl)
-                                            if (tdFleUrl != null) fileUrl.value = tdFleUrl
-                                            //println(fileUrl)
-                                            isDownload = true
-                                            downloading = false
-                                        }
-                                    }
-                                )
-                            }
-                    )
-                }
-            } else {
-                Text(
-                    text = stringResource(id = R.string.Audio_Error),
-                    color = Color(0xFF6985A2),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = modifier
-                )
-            }
-        }
-        Spacer(modifier = Modifier.width(14.dp))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Spacer(modifier = Modifier.width(42.dp))
-            Image(
-                painter = painterResource(id = R.drawable.video_ripple),
-                contentDescription = "video_ripple",
-                modifier = Modifier
-                    .size(32.dp)
-                    .scale(1.65f)
-            )
-            Text(
-                text = "${formatDuration(playTime)} | ${formatDuration(videoNote.duration)}",
-                color = Color(0xFF6985A2),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = modifier
-            )
-        }
-    }
-}
-
-@Composable
-fun ThumbnailImage(
-    thumbnail: TdApi.File,
-    imageWidth: Int,
-    imageHeight: Int,
-    textColor: Color,
-    modifier: Modifier = Modifier,
-    loadingText: String = stringResource(id = R.string.loading)
-) {
-    val heightDp = with(LocalDensity.current) { imageHeight.toDp() }
-    val widthDp = with(LocalDensity.current) { imageWidth.toDp() }
-    var imagePath by remember { mutableStateOf<String?>(null) }
-    val painter = rememberAsyncImagePainter(model = imagePath) // 在Composable作用域
-
-    LaunchedEffect(thumbnail.id) {
-        //println("执行")
-        while (true) {
-            if (thumbnail.local.isDownloadingCompleted) {
-                try {
-                    imagePath = thumbnail.local.path // 更新状态触发重组
-                    println("下载完成")
-                    println(imagePath)
-                    break
-                } catch (e: IOException) {
-                    println("Image load failed: ${e.message}")
-                    // 处理错误，例如显示占位符
-                    break
-                }
-            } else {
-                //println("本地没图片，正在下载图片")
-                try {
-                    tgApi!!.downloadPhoto(thumbnail) { success, path ->
-                        if (success) {
-                            thumbnail.local.isDownloadingCompleted = true
-                            thumbnail.local.path = path
-                        } else {
-                            println("Download failed")
-
-                        }
-                    }
-                } catch (e: Exception) {
-                    println("Download error: ${e.message}")
-
-                }
-                delay(1000)
-            }
-        }
-    }
-
-    if (imagePath != null) {
-        Box(
-            modifier = modifier
-                .background(Color.Black.copy(alpha = 0.5f)) // 设置半透明黑色背景
-        )
-        Image(
-            painter = painter,
-            contentDescription = "Thumbnail",
-            modifier = Modifier.size(width = widthDp, height = heightDp)
-        )
-    } else {
-        Box(
-            modifier = Modifier.size(width = widthDp, height = heightDp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = loadingText,
-                color = textColor,
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }
@@ -2273,7 +492,7 @@ fun SplashChatScreenPreview() {
             inputText = mutableStateOf(""),
             onLinkClick = {},
             chatTitleClick = {},
-            currentUserId = mutableStateOf(-1L)
+            currentUserId = mutableLongStateOf(-1L)
         )
     }
 }

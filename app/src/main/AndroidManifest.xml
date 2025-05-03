@@ -109,9 +109,9 @@
             android:label="@string/allow_data_Collection"
             android:theme="@style/Theme.Telewatch" />
         <activity
-            android:name=".ImgViewActivity"
+            android:name=".ViewActivity"
             android:exported="false"
-            android:label="@string/img_activity_view"
+            android:label="@string/view_activity"
             android:theme="@style/Theme.Telewatch" />
         <activity
             android:name=".AboutActivity"
@@ -151,11 +151,11 @@
 
         <receiver
             android:name=".utils.notification.NotificationActionReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
         <receiver
             android:name=".utils.notification.NotificationDismissReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

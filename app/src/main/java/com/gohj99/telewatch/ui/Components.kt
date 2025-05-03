@@ -55,6 +55,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -66,12 +68,14 @@ import kotlinx.coroutines.flow.first
 fun CustomButton(
     onClick: () -> Unit,
     text: String,
+    textColor: Color = Color.White,
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(10.dp),
     color: Color = Color(0xFF2397D3),
+    enabled: Boolean = true
 ) {
     var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (isPressed) 0.9f else 1f)
+    val scale by animateFloatAsState(if (isPressed && enabled) 0.9f else 1f, label = "")
 
     Box(
         modifier = modifier
@@ -80,25 +84,27 @@ fun CustomButton(
             .clip(shape)
             .background(color)
             .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        isPressed = true
-                        try {
-                            awaitRelease()
-                        } finally {
-                            isPressed = false
+                if (enabled) {
+                    detectTapGestures(
+                        onPress = {
+                            isPressed = true
+                            try {
+                                awaitRelease()
+                            } finally {
+                                isPressed = false
+                            }
+                        },
+                        onTap = {
+                            onClick()
                         }
-                    },
-                    onTap = {
-                        onClick()
-                    }
-                )
+                    )
+                }
             },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = Color.White
+            color = textColor
         )
     }
 }
@@ -146,11 +152,11 @@ fun InputIntBar(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp) // 调整内边距，使文本框和图标之间有空间
+                .padding(start = 8.dp, end = 8.dp) // 调整内边距，使文本框和图标之间有空间
                 .align(Alignment.CenterStart), // 文本垂直居中
             singleLine = true,
             textStyle = LocalTextStyle.current.copy(
-                color = Color(0xFF4E5C67),
+                color = Color.White,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize
             ),
             cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
@@ -295,7 +301,7 @@ suspend fun LazyListState.animateScrollToItemCentered(itemIndex: Int) {
 @Preview(showBackground = true)
 @Composable
 fun InputBarPreview() {
-    InputBar(query = "", onQueryChange = {})
+    InputBar(query = "", onQueryChange = {}, placeholder = "InputBar")
 }
 
 @Composable
@@ -326,7 +332,7 @@ fun SearchBar(
                 .align(Alignment.CenterStart), // 文本垂直居中
             singleLine = true,
             textStyle = LocalTextStyle.current.copy(
-                color = Color(0xFF4E5C67),
+                color = Color.White,
                 fontSize = MaterialTheme.typography.titleMedium.fontSize
             ),
             cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
@@ -359,9 +365,76 @@ fun SearchBar(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun SearchBarPreview() {
     SearchBar(query = "", onQueryChange = {})
+}
+
+@Composable
+fun InputRoundBar(
+    query: String,
+    isPassword: Boolean = false,
+    onQueryChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .border(
+                width = 2.dp,
+                color = Color(0xFF2C323A), // 灰色边框
+                shape = RoundedCornerShape(15.5.dp)
+            )
+            .clip(RoundedCornerShape(15.5.dp))
+            .height(40.dp) // 固定高度
+    ) {
+        BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp) // 调整内边距，使文本框和图标之间有空间
+                .align(Alignment.CenterStart), // 文本垂直居中
+            singleLine = true,
+            visualTransformation = if (isPassword) {
+                PasswordVisualTransformation()
+            } else {
+                VisualTransformation.None
+            },
+            textStyle = LocalTextStyle.current.copy(
+                color = Color.White,
+                fontSize = MaterialTheme.typography.titleMedium.fontSize
+            ),
+            cursorBrush = SolidColor(Color(0.0f, 0.0f, 0.0f, 0.0f)),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (query.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                color = Color(0xFF4E5C67),
+                                fontSize = MaterialTheme.typography.titleMedium.fontSize
+                            )
+                        }
+                        innerTextField() // 输入框内容
+                    }
+                }
+            }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InputRoundBarPreview() {
+    InputRoundBar(query = "", onQueryChange = {}, placeholder = "InputRoundBar")
 }

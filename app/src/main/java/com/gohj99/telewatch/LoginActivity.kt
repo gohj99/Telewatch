@@ -18,12 +18,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.gohj99.telewatch.ui.login.SplashLoginQRScreen
 import com.gohj99.telewatch.ui.login.SplashLoginScreen
 import com.gohj99.telewatch.ui.login.SplashPasswordScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
@@ -38,6 +40,7 @@ import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
+import java.security.SecureRandom
 import java.util.Properties
 
 class LoginActivity : ComponentActivity() {
@@ -45,14 +48,19 @@ class LoginActivity : ComponentActivity() {
     private lateinit var languageCode: String
     private lateinit var appVersion: String
     private var qrCodeLink by mutableStateOf<String?>(null)
-    private var showPasswordScreen by mutableStateOf(false)
+    private var showPasswordScreen = mutableStateOf(false)
     private var passwordHint by mutableStateOf("")
     private var doneStr = mutableStateOf("")
+    private var loginWay = mutableStateOf("PhoneNumber")
+    private var showSendCode by mutableStateOf(true)
 
     override fun onDestroy() {
         super.onDestroy()
         // 在这里释放 TDLib 资源
         runBlocking {
+            if (!showPasswordScreen.value && loginWay.value == "QrCode") {
+                client.send(TdApi.LogOut()) {}
+            }
             client.send(TdApi.Close()) {}
         }
     }
@@ -66,7 +74,7 @@ class LoginActivity : ComponentActivity() {
 
         setContent {
             TelewatchTheme {
-                if (showPasswordScreen) {
+                if (showPasswordScreen.value) {
                     SplashPasswordScreen(
                         onDoneClick = { password ->
                             client.send(TdApi.CheckAuthenticationPassword(password)) {
@@ -79,7 +87,47 @@ class LoginActivity : ComponentActivity() {
                         doneStr = doneStr
                     )
                 } else {
-                    SplashLoginScreen(qrCodeLink = qrCodeLink)
+                    if (loginWay.value == "PhoneNumber") {
+                        SplashLoginScreen(
+                            showSendCode = showSendCode,
+                            onLoginWithQR = {
+                                loginWay.value = "QrCode"
+                                client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
+                                    if (!(it is TdApi.Ok)) {
+                                        loginWay.value = "PhoneNumber"
+                                    }
+                                    authRequestHandler(
+                                        it
+                                    )
+                                }
+                            },
+                            onSendVerifyCode = { phoneNumber ->
+                                showSendCode = false
+                                client.send(TdApi.SetAuthenticationPhoneNumber(phoneNumber, null)) {
+                                    if (it is TdApi.Ok) {
+                                        // 发送验证码成功
+                                        runOnUiThread {
+                                            Toast.makeText(this@LoginActivity, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
+                                        }
+                                    } else {
+                                        showSendCode = true
+                                    }
+                                    authRequestHandler(
+                                        it
+                                    )
+                                }
+                            },
+                            onDone = { code ->
+                                client.send(TdApi.CheckAuthenticationCode(code)) {
+                                    authRequestHandler(
+                                        it
+                                    )
+                                }
+                            },
+                        )
+                    } else if (loginWay.value == "QrCode") {
+                        SplashLoginQRScreen(qrCodeLink = qrCodeLink)
+                    }
                 }
             }
         }
@@ -144,8 +192,10 @@ class LoginActivity : ComponentActivity() {
                                 // 检查本地是否有加密密钥
                                 encryptionKeyString.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
                             } else {
-                                // 生成一个新的加密密钥并保存
-                                val newKeyBytes = ByteArray(32).apply { (0..31).forEach { this[it] = (it * 7).toByte() } }
+                                // 生成一个新的随机加密密钥并保存
+                                val newKeyBytes = ByteArray(32).also {
+                                    SecureRandom().nextBytes(it)
+                                }
                                 val newKeyString = newKeyBytes.joinToString("") { "%02x".format(it) }
                                 with(sharedPref.edit()) {
                                     putString("encryption_key", newKeyString)
@@ -159,16 +209,18 @@ class LoginActivity : ComponentActivity() {
                     }
 
                     TdApi.AuthorizationStateWaitPhoneNumber.CONSTRUCTOR -> {
+                        loginWay.value = "PhoneNumber"
                         // 请求二维码认证
-                        client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
+                        /*client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
                             authRequestHandler(
                                 it
                             )
-                        }
+                        }*/
                     }
                     TdApi.AuthorizationStateWaitOtherDeviceConfirmation.CONSTRUCTOR -> {
                         val link = (authorizationState as TdApi.AuthorizationStateWaitOtherDeviceConfirmation).link
                         println(link)
+                        loginWay.value = "QrCode"
                         // 展示二维码
                         runOnUiThread {
                             qrCodeLink = link
@@ -268,7 +320,7 @@ class LoginActivity : ComponentActivity() {
 
                         // 进入密码输入处理
                         runOnUiThread {
-                            showPasswordScreen = true
+                            showPasswordScreen.value = true
                         }
                     }
                     // 处理其他授权状态...

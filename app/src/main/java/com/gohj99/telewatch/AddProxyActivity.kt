@@ -275,7 +275,7 @@ fun SplashAddProxyScreen(add: (String, Int, TdApi.ProxyType) -> Unit, parseServe
                 item {
                     // 完成添加
                     if (server.isNotEmpty() &&  port != null &&  useProxy != "") {
-                        if (!(useProxy == "MTPROTO" && !password.startsWith("ee") && (password.length != 22 && password.length != 32 && password.length != 44 && password.length != 64))) {
+                        if (!(useProxy == "MTPROTO" && !(password.startsWith("ee") || password.startsWith("dd")) && (password.length != 22 && password.length != 32 && password.length != 44 && password.length != 64))) {
                             Spacer(modifier = Modifier.height(16.dp))
                             Box(
                                 modifier = Modifier.fillMaxWidth(),

@@ -40,6 +40,7 @@ import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.MainScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
+import com.gohj99.telewatch.utils.notification.TgApiForPushNotificationManager
 import com.gohj99.telewatch.utils.telegram.TgApi
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
     private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolder>())
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
+    private var onPaused = mutableStateOf(false)
     private val contacts = mutableStateOf(listOf<Chat>())
     private val currentUserId = mutableStateOf(-1L)
     private val settingsSharedPref: SharedPreferences by lazy {
@@ -82,6 +84,16 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         TgApiManager.tgApi?.close()
         TgApiManager.tgApi = null
+    }
+
+    override fun onPause() {
+        super.onPause()
+        onPaused.value = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        onPaused.value = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -165,6 +177,10 @@ class MainActivity : ComponentActivity() {
         }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                if (TgApiForPushNotificationManager.tgApi != null) {
+                    TgApiForPushNotificationManager.tgApi?.close()
+                    TgApiForPushNotificationManager.tgApi = null
+                }
                 val gson = Gson()
                 val sharedPref = getSharedPreferences("LoginPref", MODE_PRIVATE)
                 var userList = sharedPref.getString("userList", "")
@@ -174,7 +190,8 @@ class MainActivity : ComponentActivity() {
                         this@MainActivity,
                         chatsList = tempChatsList,
                         topTitle = topTitle,
-                        chatsFoldersList = chatsFoldersList
+                        chatsFoldersList = chatsFoldersList,
+                        onPaused = onPaused
                     )
 
                     // 调用重试机制来获取用户信息
@@ -319,7 +336,8 @@ class MainActivity : ComponentActivity() {
                     chatsList = chatsList,
                     userId = jsonObject.keySet().firstOrNull().toString(),
                     topTitle = topTitle,
-                    chatsFoldersList = chatsFoldersList
+                    chatsFoldersList = chatsFoldersList,
+                    onPaused = onPaused
                 )
                 ChatsListManager.chatsList = chatsList
                 TgApiManager.tgApi?.loadChats(15)
