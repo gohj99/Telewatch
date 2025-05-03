@@ -8,8 +8,12 @@
 
 package com.gohj99.telewatch.utils.telegram
 
+import android.content.ContentResolver
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.MutableState
@@ -23,8 +27,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.core.content.edit
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
+import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.model.ChatMessagesSave
+import com.gohj99.telewatch.utils.generateChatTitleIconBitmap
+import com.gohj99.telewatch.utils.notification.drawableToBitmap
+import com.gohj99.telewatch.utils.notification.sendChatMessageNotification
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -50,7 +58,8 @@ class TgApi(
     var chatsList: MutableState<List<Chat>>,
     private val userId: String = "",
     private val topTitle: MutableState<String>,
-    private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>
+    private val chatsFoldersList: MutableState<List<TdApi.ChatFolder>>,
+    private val onPaused: MutableState<Boolean>
 ) {
     var saveChatId = 0L
     var replyMessage = mutableStateOf<TdApi.Message?>(null)
@@ -568,6 +577,97 @@ class TgApi(
                 saveChatIdList[chatId]?.add(message.id)
             }
         }
+
+        // 消息通知
+        if (onPaused.value) {
+            fun loadBitmapFromUri(contentResolver: ContentResolver, uri: Uri): Bitmap? {
+                return try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        val source = android.graphics.ImageDecoder.createSource(contentResolver, uri)
+                        android.graphics.ImageDecoder.decodeBitmap(source)
+                    } else {
+                        contentResolver.openInputStream(uri)?.use { inputStream ->
+                            BitmapFactory.decodeStream(inputStream)
+                        }
+                    }
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+            // 如果是已经打开的聊天，则不处理
+            CoroutineScope(Dispatchers.IO).launch {
+                if (chatId != saveChatId) {
+                    // 如果是自己发的内容，则不处理
+                    if (message.senderId is TdApi.MessageSenderUser) {
+                        if ((message.senderId as TdApi.MessageSenderUser).userId != userId.toLong()) {
+                            // 判断是否启用通知
+                            if (settingsSharedPref.getBoolean("Use_Notification", false)) {
+                                val chat = chatsList.value.find { it.id == chatId }
+                                if (chat != null && chat.needNotification) {
+                                    val chatTitle = chat.title
+                                    val accentColorId = chat.accentColorId
+                                    val isGroup = chat.isGroup
+                                    // 获取聊天图片
+                                    var bmp = drawableToBitmap(context, R.mipmap.ic_launcher)!!
+                                    val photoFile = chat.chatPhoto
+                                    if (photoFile?.local?.isDownloadingCompleted == true) {
+                                        val filePath = photoFile.local.path
+                                        val file = File(filePath)
+                                        if (file.exists()) {
+                                            // 这里可以处理图片文件，例如显示或使用
+                                            loadBitmapFromUri(context.contentResolver, Uri.fromFile(file))?.let {
+                                                bmp = it
+                                            }
+                                        }
+                                    } else {
+                                        // 使用默认图标
+                                        bmp = generateChatTitleIconBitmap(
+                                            context,
+                                            chatTitle,
+                                            accentColorId
+                                        )
+                                    }
+                                    // 获取发送者名称
+                                    var senderName = chatTitle
+                                    if (isGroup) {
+                                        when (val senderId = message.senderId) {
+                                            is TdApi.MessageSenderUser -> {
+                                                val userId = senderId.userId
+                                                val userResult = sendRequest(TdApi.GetUser(userId))
+                                                if (userResult is TdApi.User) {
+                                                    senderName = "${userResult.firstName} ${userResult.lastName}"
+                                                }
+                                            }
+                                            is TdApi.MessageSenderChat -> {
+                                                // 处理群组消息的发送者
+                                                if (senderId.chatId == chatId) {
+                                                    senderName = chatTitle
+                                                } else {
+                                                    val itChat = tgApi?.getChat(senderId.chatId)
+                                                    itChat.let {
+                                                        senderName = it!!.title
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    context.sendChatMessageNotification(
+                                        title = chatTitle,
+                                        message = handleAllMessages(messageContext = message.content).toString(),
+                                        senderName = senderName,
+                                        conversationId = chatId.toString(),
+                                        timestamp = message.date * 1000L,
+                                        isGroupChat = isGroup,
+                                        chatIconBitmap = bmp // 这里可以传入群组图标的 Uri
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // 处理消息内容更新
@@ -1016,6 +1116,20 @@ class TgApi(
         }
     }
 
+    // 获取FCM接受到的消息的相应账号
+    fun getPushReceiverId(payload: String, callback: (Long) -> Unit) {
+        client.send(TdApi.GetPushReceiverId(payload)) { receiverId ->
+            if (receiverId is TdApi.PushReceiverId) {
+                callback(receiverId.id)
+            }
+        }
+    }
+
+    // 处理加密消息
+    fun processPushNotification(payload: String) {
+        client.send(TdApi.ProcessPushNotification(payload)) {}
+    }
+
     // 加载配置
     private fun loadConfig(context: Context): Properties {
         val properties = Properties()
@@ -1458,7 +1572,7 @@ class TgApi(
     suspend fun getProxy() : TdApi.Proxies? {
         try {
             val getResult = sendRequest(TdApi.GetProxies())
-            println(getResult)
+            //println(getResult)
             return getResult
         } catch (e: Exception) {
             println("GetUser request failed: ${e.message}")
@@ -1586,21 +1700,55 @@ class TgApi(
     }
 
     // 标记已读
-    fun markMessagesAsRead(messageId: Long, forceRead: Boolean = false) {
-        // 创建 ViewMessages 请求
-        val viewMessagesRequest = TdApi.ViewMessages(
-            saveChatId,
-            longArrayOf(messageId),
-            null,
-            forceRead
-        )
+    fun markMessagesAsRead(messageId: Long? = null, chatId: Long = saveChatId, forceRead: Boolean = false) {
+        if (messageId != null) {
+            // 创建 ViewMessages 请求
+            val viewMessagesRequest = TdApi.ViewMessages(
+                chatId,
+                longArrayOf(messageId),
+                null,
+                forceRead
+            )
 
-        // 发送 ViewMessages 请求
-        client.send(viewMessagesRequest) { response ->
-            if (response is TdApi.Ok) {
-                //println("Messages successfully marked as read in chat ID $saveChatId")
-            } else {
-                println("Failed to mark messages as read: $response")
+            // 发送 ViewMessages 请求
+            client.send(viewMessagesRequest) { response ->
+                if (response is TdApi.Ok) {
+                    //println("Messages successfully marked as read in chat ID $saveChatId")
+                } else {
+                    println("Failed to mark messages as read: $response")
+                }
+            }
+        } else {
+            // 异步执行
+            CoroutineScope(Dispatchers.IO).launch {
+                // 获取消息 ID
+                try {
+                    val chatResult = sendRequest(TdApi.GetChat(chatId))
+                    val messageId = chatResult.lastMessage?.id
+
+                    if (chatResult.constructor == TdApi.Chat.CONSTRUCTOR) {
+                        // 创建 ViewMessages 请求
+                        val viewMessagesRequest = messageId?.let {
+                            TdApi.ViewMessages(
+                                chatId,
+                                longArrayOf(it),
+                                null,
+                                forceRead
+                            )
+                        }
+
+                        // 发送 ViewMessages 请求
+                        client.send(viewMessagesRequest) { response ->
+                            if (response is TdApi.Ok) {
+                                println("Messages successfully marked as read in chat ID $chatId")
+                            } else {
+                                println("Failed to mark messages as read: $response")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    println("HandleNewChat failed: ${e.message}")
+                }
             }
         }
     }

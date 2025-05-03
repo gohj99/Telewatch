@@ -175,7 +175,7 @@
     <string name="Key">Key</string>
     <string name="password">Password</string>
     <string name="Optional">Optional</string>
-    <string name="Connecting_Proxy">ConnProxy</string>
+    <string name="Connecting_Proxy">Connecting Proxy</string>
     <string name="View_Tips">View Tips</string>
     <string name="Delete_Chat">Delete chat</string>
     <string name="Deleted_User">Deleted user</string>
@@ -210,4 +210,10 @@
     <string name="test_notification">Test notification</string>
     <string name="FCM_state">FCM state</string>
     <string name="mark_as_read">Mark as Read</string>
+    <string name="view_activity">View Activity</string>
+    <string name="Login">Login</string>
+    <string name="Phone_Number">Phone Number</string>
+    <string name="Verify_Code">Verify Code</string>
+    <string name="Send_Verify_Code">Send Code</string>
+    <string name="Login_With_QR">Login With QR</string>
 </resources>

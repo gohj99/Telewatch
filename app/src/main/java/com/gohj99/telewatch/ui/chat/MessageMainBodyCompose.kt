@@ -40,7 +40,6 @@ import org.drinkless.tdlib.TdApi
 @Composable
 fun MessageMainBodyCompose(
     message: TdApi.Message,
-    isCurrentUser: Boolean,
     modifier: Modifier = Modifier,
     alignment: Arrangement.Horizontal = Arrangement.End,
     textColor: Color = Color.White,
@@ -55,6 +54,15 @@ fun MessageMainBodyCompose(
     onLinkClick: (String) -> Unit,
     press: (TdApi.Message) -> Unit
 ) {
+    val forwardInfo = message.forwardInfo
+    var authorSignature: String? = null
+    if (!message.authorSignature.isEmpty()) authorSignature = message.authorSignature
+    else if (forwardInfo != null) {
+        if (forwardInfo.origin is TdApi.MessageOriginChannel) {
+            authorSignature = (forwardInfo.origin as TdApi.MessageOriginChannel).authorSignature
+        }
+    }
+
     Row(
         modifier = Modifier
             .padding(5.dp)
@@ -167,22 +175,16 @@ fun MessageMainBodyCompose(
                         }
                     }
 
-                    if (!isCurrentUser) {
-                        val forwardInfo = message.forwardInfo
-                        forwardInfo?.origin?.let { origin ->
-                            if (origin is TdApi.MessageOriginChannel) {
-                                // 署名
-                                Text(
-                                    text = origin.authorSignature,
-                                    color = Color(0xFF6A86A3),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier
-                                        .align(Alignment.CenterVertically)
-                                        .weight(1f)
-                                        .wrapContentWidth(Alignment.End) // 向右对齐
-                                )
-                            }
-                        }
+                    // 署名
+                    authorSignature?.let { origin ->
+                        Text(
+                            text = authorSignature,
+                            color = Color(0xFF6A86A3),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier
+                                .weight(1f)
+                                .wrapContentWidth(Alignment.End) // 向右对齐
+                        )
                     }
                 }
             }

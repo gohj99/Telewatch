@@ -14,6 +14,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
+import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.utils.telegram.TgApiForPushNotification
 import org.drinkless.tdlib.TdApi
 
@@ -36,15 +37,20 @@ class NotificationActionReceiver : BroadcastReceiver() {
                 if (TgApiForPushNotificationManager.tgApi != null) {
                     TgApiForPushNotificationManager.tgApi?.markMessagesAsRead(conversationId.toLongOrNull()?: -1L)
                 } else {
-                    val tgApi = TgApiForPushNotification(context)
-                    TgApiForPushNotificationManager.tgApi = tgApi
-                    tgApi.markMessagesAsRead(conversationId.toLongOrNull()?: -1L)
-                    Thread.sleep(10 * 1000)
-                    TgApiForPushNotificationManager.tgApi = null
-                    tgApi.close()
+                    if (TgApiManager.tgApi != null) {
+                        TgApiManager.tgApi?.markMessagesAsRead(conversationId.toLongOrNull()?: -1L)
+                    } else {
+                        val tgApi = TgApiForPushNotification(context)
+                        TgApiForPushNotificationManager.tgApi = tgApi
+                        tgApi.markMessagesAsRead(conversationId.toLongOrNull()?: -1L)
+                        Thread.sleep(10 * 1000)
+                        TgApiForPushNotificationManager.tgApi = null
+                        tgApi.close()
+                    }
+
                 }
 
-                // 清除此对话的 SharedPreferences 历史 (如果需要)
+                // 清除此对话的 SharedPreferences 历史
                 val convId = intent.getStringExtra(EXTRA_CONVERSATION_ID)
                 if (!convId.isNullOrEmpty()) {
                     val prefs = context.getSharedPreferences("chat_prefs", Context.MODE_PRIVATE)
@@ -78,19 +84,30 @@ class NotificationActionReceiver : BroadcastReceiver() {
                         }
                     )
                 } else {
-                    val tgApi = TgApiForPushNotification(context)
-                    TgApiForPushNotificationManager.tgApi = tgApi
-                    tgApi.sendMessage(
-                        chatId = conversationId.toLongOrNull()?: -1L,
-                        message = TdApi.InputMessageText().apply {
-                            text = TdApi.FormattedText().apply {
-                                this.text = replyText.toString()
+                    if (TgApiManager.tgApi != null) {
+                        TgApiManager.tgApi?.sendMessage(
+                            chatId = conversationId.toLongOrNull()?: -1L,
+                            message = TdApi.InputMessageText().apply {
+                                text = TdApi.FormattedText().apply {
+                                    this.text = replyText.toString()
+                                }
                             }
-                        }
-                    )
-                    Thread.sleep(10 * 1000)
-                    TgApiForPushNotificationManager.tgApi = null
-                    tgApi.close()
+                        )
+                    } else {
+                        val tgApi = TgApiForPushNotification(context)
+                        TgApiForPushNotificationManager.tgApi = tgApi
+                        tgApi.sendMessage(
+                            chatId = conversationId.toLongOrNull()?: -1L,
+                            message = TdApi.InputMessageText().apply {
+                                text = TdApi.FormattedText().apply {
+                                    this.text = replyText.toString()
+                                }
+                            }
+                        )
+                        Thread.sleep(10 * 1000)
+                        TgApiForPushNotificationManager.tgApi = null
+                        tgApi.close()
+                    }
                 }
 
                 // 发送回复后，通常也应该取消原通知

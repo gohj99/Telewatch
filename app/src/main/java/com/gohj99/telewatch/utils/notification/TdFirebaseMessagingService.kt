@@ -91,6 +91,13 @@ class TdFirebaseMessagingService : FirebaseMessagingService() {
                             //sendNotification("测试通知2", id.toString())
                         }
                     }
+                } else {
+                    TgApiManager.tgApi?.getPushReceiverId(JSONObject(remoteMessage.data).toString()) { id->
+                        if (id == settingsSharedPref.getLong("userPushReceiverId", 0L)) {
+                            TgApiManager.tgApi?.processPushNotification(JSONObject(remoteMessage.data).toString())
+                        }
+                        //sendNotification("测试通知2", id.toString())
+                    }
                 }
 
                 // 检查数据是否需要通过长期运行的工作处理

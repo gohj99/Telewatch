@@ -54,6 +54,13 @@ class SetProxyActivity : ComponentActivity() {
     private var tgApi: TgApi? = null
     private var tgProxies = mutableStateOf(TdApi.Proxies())
 
+    override fun onResume() {
+        super.onResume()
+        lifecycleScope.launch(Dispatchers.IO) {
+            updateProxies()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

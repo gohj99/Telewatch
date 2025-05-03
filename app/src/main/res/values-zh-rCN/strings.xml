@@ -208,5 +208,11 @@
     <string name="Remind2">你好！\n欢迎使用 Telewatch 应用！\n\n我们建议你完整阅读说明，以避免出现不必要的帮助\n\n首先，我们建议您加入我们的官方 Telegram 群组以获得支持。您可以点击以下链接加入:\nhttps://t.me/teleAndroidwatch\n\n以下是帮助您使用该应用的快速指南：\n\n在初次使用的时候，请你在UI设置手动调整到最佳显示缩放\n长按消息边框以显示更多功能\n在聊天页面，向左滑动屏幕以进入消息发送页面，点击标题进入聊天消息以获取更多详细信息。\n在某些页面长按并拖动文本以选择和复制。\n在图像查看器中，长按图像可将其保存到您的图库。\n长按代理页面上的某个项目可删除代理\n\nTelewatch 是开源且免费的。如果您想支持我们的开发，请考虑点击下面的按钮进行捐赠。\n\n我们希望您喜欢使用 Telewatch！</string>  
     <string name="test_notification">测试通知</string>  
     <string name="FCM_state">FCM状态</string>  
-    <string name="mark_as_read">标记为阅读</string>
+    <string name="mark_as_read">标记为阅读</string>  
+    <string name="view_activity">查看活动</string>
+    <string name="Login">登录</string>
+    <string name="Phone_Number">电话号码</string>
+    <string name="Verify_Code">验证码</string>
+    <string name="Send_Verify_Code">发送验证码</string>
+    <string name="Login_With_QR">二维码登录</string>
 </resources>

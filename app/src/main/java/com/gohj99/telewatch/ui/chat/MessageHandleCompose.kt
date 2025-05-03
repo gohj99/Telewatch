@@ -89,7 +89,6 @@ fun MessageHandleCompose(
         // 正文
         MessageMainBodyCompose(
             message = message,
-            isCurrentUser = isCurrentUser,
             modifier = modifier,
             alignment = alignment,
             textColor = textColor,

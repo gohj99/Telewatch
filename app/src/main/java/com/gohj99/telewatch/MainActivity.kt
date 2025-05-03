@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
     private var chatsFoldersList = mutableStateOf(listOf<TdApi.ChatFolder>())
     private var settingList = mutableStateOf(listOf<SettingItem>())
     private var topTitle = mutableStateOf("")
+    private var onPaused = mutableStateOf(false)
     private val contacts = mutableStateOf(listOf<Chat>())
     private val currentUserId = mutableStateOf(-1L)
     private val settingsSharedPref: SharedPreferences by lazy {
@@ -83,6 +84,16 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         TgApiManager.tgApi?.close()
         TgApiManager.tgApi = null
+    }
+
+    override fun onPause() {
+        super.onPause()
+        onPaused.value = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        onPaused.value = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -179,7 +190,8 @@ class MainActivity : ComponentActivity() {
                         this@MainActivity,
                         chatsList = tempChatsList,
                         topTitle = topTitle,
-                        chatsFoldersList = chatsFoldersList
+                        chatsFoldersList = chatsFoldersList,
+                        onPaused = onPaused
                     )
 
                     // 调用重试机制来获取用户信息
@@ -324,7 +336,8 @@ class MainActivity : ComponentActivity() {
                     chatsList = chatsList,
                     userId = jsonObject.keySet().firstOrNull().toString(),
                     topTitle = topTitle,
-                    chatsFoldersList = chatsFoldersList
+                    chatsFoldersList = chatsFoldersList,
+                    onPaused = onPaused
                 )
                 ChatsListManager.chatsList = chatsList
                 TgApiManager.tgApi?.loadChats(15)

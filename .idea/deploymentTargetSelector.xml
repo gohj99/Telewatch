@@ -38,7 +38,7 @@
       <SelectionState runConfigName="SplashRemindScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="SplashDonateScreenPreview">
+      <SelectionState runConfigName="SplashPasswordScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

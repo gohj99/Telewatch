@@ -71,7 +71,7 @@ import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.FileOutputStream
 
-class ImgViewActivity : ComponentActivity() {
+class ViewActivity : ComponentActivity() {
     private var tgApi: TgApi? = null
     private var exceptionState by mutableStateOf<Exception?>(null)
 
