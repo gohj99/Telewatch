@@ -38,13 +38,24 @@ import com.gohj99.telewatch.ui.chat.SplashChatScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
-import com.gohj99.telewatch.utils.telegram.*
+import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.telegram.createPrivateChat
+import com.gohj99.telewatch.utils.telegram.deleteMessageById
+import com.gohj99.telewatch.utils.telegram.getChat
+import com.gohj99.telewatch.utils.telegram.getCurrentUser
+import com.gohj99.telewatch.utils.telegram.getLastReadInboxMessageId
+import com.gohj99.telewatch.utils.telegram.getLastReadOutboxMessageId
+import com.gohj99.telewatch.utils.telegram.getMessageLink
+import com.gohj99.telewatch.utils.telegram.getMessageTypeById
+import com.gohj99.telewatch.utils.telegram.reloadMessageById
 import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.FileInputStream
@@ -94,16 +105,18 @@ class ChatActivity : ComponentActivity() {
             if (it.saveChatId == -1L) {
                 tgApi?.saveChatId = 0L
                 finish()
+            } else {
+                if (goToChat.value) {
+                    // 标记打开聊天
+                    // 启动协程，不阻塞主线程
+                    lifecycleScope.launch {
+                        waitForSaveChatIdReady()
+                        // 最后打开新聊天
+                        TgApiManager.tgApi!!.openChatPage(chat!!.id, chatList)
+                    }
+                    goToChat.value = false
+                }
             }
-        }
-
-        if (goToChat.value) {
-            // 标记打开聊天
-            runBlocking {
-                tgApi!!.openChatPage(chat!!.id, chatList)
-            }
-
-            goToChat.value = false
         }
     }
 
@@ -150,6 +163,16 @@ class ChatActivity : ComponentActivity() {
 
         // 如果 chat 为 null，直接退出页面
         if (chat == null) {
+            finish()
+            return
+        }
+
+        if (tgApi == null) {
+            // 如果 tgApi 为 null，打开主页面
+            val openChatIntent = Intent(this, MainActivity::class.java).apply {
+                putExtra("chatId", chat!!.id)
+            }
+            startActivity(openChatIntent)
             finish()
             return
         }
@@ -660,6 +683,17 @@ class ChatActivity : ComponentActivity() {
 
         // 返回Uri
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }
+
+    /** 每 50ms 检查一次 saveChatId，直到它回到 0L 或 -1L */
+    private suspend fun waitForSaveChatIdReady() {
+        withContext(Dispatchers.Default) {
+            while (true) {
+                val id = TgApiManager.tgApi?.saveChatId
+                if (id == 0L || id == -1L) break
+                delay(50)
+            }
+        }
     }
 }
 

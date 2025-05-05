@@ -35,6 +35,64 @@ import org.drinkless.tdlib.TdApi
 import java.io.File
 import java.io.IOException
 
+/*
+ * 更新函数功能注释区：
+ *
+ * 1. handleAuthorizationState - 处理授权状态更新
+ *   (处理 TdApi.UpdateAuthorizationState，管理登录/登出状态变更)
+ *
+ * 2. handleNewMessage - 处理新消息接收
+ *   (处理 TdApi.UpdateNewMessage，管理消息存储、通知触发逻辑)
+ *
+ * 3. handleMessageContentUpdate - 处理消息内容更新
+ *   (处理 TdApi.UpdateMessageContent，更新本地消息缓存内容)
+ *
+ * 4. handleMessageEdited - 处理消息编辑事件
+ *   (处理 TdApi.UpdateMessageEdited，更新消息编辑时间和内容)
+ *
+ * 5. handleDeleteMessages - 处理消息删除事件
+ *   (处理 TdApi.UpdateDeleteMessages，清理本地消息缓存)
+ *
+ * 6. handleNewChat - 处理新聊天创建
+ *   (处理 TdApi.UpdateNewChat，管理聊天列表更新和分类逻辑)
+ *
+ * 7. handleConnectionUpdate - 处理网络连接状态变化
+ *   (处理 TdApi.UpdateConnectionState，管理网络状态提示和FCM令牌更新)
+ *
+ * 8. handleChatReadInboxUpdate - 处理收件箱已读状态更新
+ *   (处理 TdApi.UpdateChatReadInbox，更新未读消息计数)
+ *
+ * 9. handleChatFoldersUpdate - 处理聊天文件夹更新
+ *   (处理 TdApi.UpdateChatFolders，异步加载文件夹结构)
+ *
+ * 10. handleChatTitleUpdate - 处理聊天标题变更
+ *   (处理 TdApi.UpdateChatTitle，更新聊天列表标题显示)
+ *
+ * 11. handleUpdateUser - 处理用户信息更新
+ *   (处理 TdApi.UpdateUser，更新用户类型和显示名称)
+ *
+ * 12. handleChatLastMessageUpdate - 处理最后消息更新
+ *   (处理 TdApi.UpdateChatLastMessage，维护聊天列表最新消息预览)
+ *
+ * 13. handleChatPositionUpdate - 处理聊天排序变更
+ *   (处理 TdApi.UpdateChatPosition，管理置顶/归档等排序逻辑)
+ *
+ * 14. handleMessageSendSucceededUpdate - 处理消息发送成功
+ *   (处理 TdApi.UpdateMessageSendSucceeded，更新消息发送状态)
+ *
+ * 15. handleFileUpdate - 处理文件下载状态更新
+ *   (处理 TdApi.UpdateFile，管理文件下载回调)
+ *
+ * 16. handleChatPhotoUpdate - 处理聊天图片变更
+ *   (处理 TdApi.UpdateChatPhoto，更新聊天头像显示)
+ *
+ * 17. handleChatNotificationSettingsUpdate - 处理通知设置变更
+ *   (处理 TdApi.UpdateChatNotificationSettings，管理消息免打扰状态)
+ *
+ * 18. handleChatDraftMessageUpdate - 处理草稿消息更新
+ *   (处理 TdApi.UpdateChatDraftMessage，维护聊天草稿状态显示)
+ */
+
 // 处理授权状态更新
 internal fun TgApi.handleAuthorizationState(update: TdApi.UpdateAuthorizationState) {
     val authorizationState = update.authorizationState

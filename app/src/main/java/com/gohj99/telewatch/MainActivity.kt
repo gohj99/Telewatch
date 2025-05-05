@@ -401,6 +401,17 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+
+                // 调整聊天页面
+                intent.getLongExtra("chatId", 0L).let { chatId ->
+                    if (chatId != 0L) {
+                        startActivity(
+                            Intent(this@MainActivity, ChatActivity::class.java).apply {
+                                putExtra("chat", Chat(chatId, title = ""))
+                            }
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 exceptionState = e
                 Log.e("MainActivity", "Error initializing app: ${e.message}")

@@ -22,6 +22,58 @@ import org.drinkless.tdlib.TdApi.InputMessageContent
 import java.io.File
 import kotlin.coroutines.resume
 
+/*
+ * 包含Client请求函数功能注释区：
+ *
+ * 1. getPushReceiverId()
+ *    - 作用: 通过FCM推送payload获取对应的账号ID
+ *
+ * 2. processPushNotification()
+ *    - 作用: 处理加密的推送通知内容
+ *
+ * 3. getArchiveChats()
+ *    - 作用: 获取归档聊天列表并更新UI（自动管理聊天项的排序和状态）
+ *
+ * 4. getMessageLink()
+ *    - 作用: 生成指定消息的公开分享链接
+ *
+ * 5. downloadFile()
+ *    - 作用: 通用文件下载器（支持进度回调、断点续传、异步/同步模式）
+ *
+ * 6. cancelDownloadFile()
+ *    - 作用: 取消正在进行的文件下载任务
+ *
+ * 7. downloadPhoto()
+ *    - 作用: 照片专用下载器（简化版的downloadFile封装）
+ *
+ * 8. searchPublicChat()
+ *    - 作用: 根据用户名搜索公开的频道/群组
+ *
+ * 9. joinChat()
+ *    - 作用: 加入指定聊天并触发UI刷新
+ *
+ * 10. getUserName()
+ *    - 作用: 通过用户ID获取用户全名（firstName + lastName）
+ *
+ * 11. addProxy()
+ *    - 作用: 添加网络代理服务器配置
+ *
+ * 12. getChat()（挂起函数）
+ *    - 作用: 协程方式获取聊天详细信息
+ *
+ * 13. logOut()
+ *    - 作用: 执行账号登出操作
+ *
+ * 14. sendMessage()
+ *    - 作用: 发送消息到指定聊天（支持消息回复）
+ *
+ * 15. editMessageText()
+ *    - 作用: 修改已发送消息的文本内容
+ *
+ * 16. setFCMToken()
+ *    - 作用: 注册/更新设备的FCM推送令牌
+ */
+
 // 获取FCM接受到的消息的相应账号
 fun TgApi.getPushReceiverId(payload: String, callback: (Long) -> Unit) {
     client.send(TdApi.GetPushReceiverId(payload)) { receiverId ->

@@ -19,6 +19,58 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.TdApi
 
+/*
+ * 包含sendRequest请求函数功能注释区：
+ *
+ * 1. sendRequest
+ *   作用: 通用TDLib请求发送器，支持自动重试机制。处理响应并返回结果对象，自动处理404等错误
+ *
+ * 2. deleteMessageById
+ *   作用: 根据消息ID删除指定消息，操作结果通过日志输出
+ *
+ * 3. loadChats
+ *   作用: 加载指定数量的聊天列表（默认15条），用于初始化或刷新聊天界面
+ *
+ * 4. reloadMessageById
+ *   作用: 强制重新加载指定消息并更新本地消息列表，支持消息位置调整
+ *
+ * 5. createPrivateChat
+ *   作用: 创建与指定用户的私密聊天会话，返回Chat对象
+ *
+ * 6. getChatFolderInfo
+ *   作用: 获取指定ID的聊天分组配置信息
+ *
+ * 7. getCurrentUser
+ *   作用: 获取当前登录用户的ID和姓名信息，带缓存机制
+ *
+ * 8. deleteChat
+ *   作用: 删除指定聊天并重置当前选中聊天ID
+ *
+ * 9. getMessageTypeById
+ *   作用: 根据消息ID获取完整消息对象及其类型信息
+ *
+ * 10. addNewChat
+ *    作用: 强制加载新聊天到列表，包含聊天类型判断（频道/群组/私聊）和UI更新
+ *
+ * 11. getBasicGroup/getSupergroup 系列
+ *    作用: 获取基础群组/超级群组的详细信息（基础信息+完整信息）
+ *
+ * 12. searchPublicChats
+ *    作用: 根据关键词搜索公开聊天/频道，结果更新到可观察状态列表
+ *
+ * 13. getUser 系列
+ *    作用: 获取用户基础信息+完整档案信息
+ *
+ * 14. 代理管理系列 (removeProxy/disableProxy/enableProxy/getProxy)
+ *    作用: 代理服务器的增删改查和状态管理
+ *
+ * 15. getContacts
+ *    作用: 获取联系人列表并维护可观察状态
+ *
+ * 16. markMessagesAsRead
+ *    作用: 标记消息为已读，支持指定消息或最后一条消息的自动识别
+ */
+
 // 发送请求并返回结果
 internal suspend fun <R : TdApi.Object> TgApi.sendRequest(
     request: TdApi.Function<R>,

@@ -139,6 +139,7 @@ class TgApi(
     // 进入聊天页面
     suspend fun openChatPage(openChatId: Long, chatList: MutableState<List<TdApi.Message>>) {
         chatMutex.withLock {
+            //println("进入聊天页面开始执行")
             if (saveChatId != openChatId) {
                 client.send(TdApi.OpenChat(openChatId)) { result ->
                     if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
@@ -163,6 +164,7 @@ class TgApi(
                     lastReadInboxMessageId.value = 0L
                     lastReadOutboxMessageId.value = 0L
                 } else {
+                    saveChatMessagesList.remove(openChatId)
                     chatList.value = oldChatList.messages.toMutableList()
                     saveChatList = chatList
                     lastReadInboxMessageId.value = oldChatList.lastReadInboxMessageId
@@ -170,12 +172,14 @@ class TgApi(
                 }
                 isExitChatPage = false
             }
+            //println("进入聊天页面结束执行")
         }
     }
 
     // 退出聊天页面
     suspend fun exitChatPage(draftMessage: TdApi.DraftMessage? = null) {
         chatMutex.withLock {
+            //println("退出聊天页面开始执行")
             val closeChatId = saveChatId
             client.send(TdApi.SetChatDraftMessage(closeChatId, 0, draftMessage)) { result ->
                 if (result.constructor == TdApi.Ok.CONSTRUCTOR) {
@@ -192,12 +196,11 @@ class TgApi(
                 }
             }
             if (closeChatId != 0L && closeChatId != -1L){
-                saveChatMessagesList = saveChatMessagesList.toMutableMap().apply {
-                    remove(closeChatId)
-                }
+                saveChatMessagesList.remove(closeChatId)
             }
             isExitChatPage = true
             saveChatId = 0L
+            //println("退出聊天页面结束执行")
         }
     }
 
