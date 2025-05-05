@@ -209,10 +209,11 @@
     <string name="test_notification">テスト通知</string>  
     <string name="FCM_state">FCM状態</string>  
     <string name="mark_as_read">読んだことをマークします</string>  
-    <string name="view_activity">アクティビティを表示します</string>
-    <string name="Login">ログイン</string>
-    <string name="Phone_Number">電話番号</string>
-    <string name="Verify_Code">コードを確認します</string>
-    <string name="Send_Verify_Code">コードを送信します</string>
-    <string name="Login_With_QR">QRでログインします</string>
+    <string name="view_activity">アクティビティを表示します</string>  
+    <string name="Login">ログイン</string>  
+    <string name="Phone_Number">電話番号</string>  
+    <string name="Verify_Code">コードを確認します</string>  
+    <string name="Send_Verify_Code">コードを送信します</string>  
+    <string name="Login_With_QR">QRでログインします</string>  
+    <string name="Remind3">こんにちは！ \nwelcome to telewatchアプリ！ \n \nwe不必要な問題を回避するために、指示を完全に読むことをお勧めします。以下のリンクをクリックして参加できます。メッセージページ。ヘッダーをタップして、チャットメッセージの詳細を表示します。\non \non nons cress、long -press and drag text textを選択してコピーします。画像ビューアーを長引かせてギャラリーに保存してプロキシページに保存します。開発をサポートしたい場合は、下のボタンをクリックして寄付をすることを検討してください。</string>
 </resources>
