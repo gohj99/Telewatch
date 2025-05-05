@@ -45,6 +45,10 @@ import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.telegram.disableProxy
+import com.gohj99.telewatch.utils.telegram.enableProxy
+import com.gohj99.telewatch.utils.telegram.getProxy
+import com.gohj99.telewatch.utils.telegram.removeProxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

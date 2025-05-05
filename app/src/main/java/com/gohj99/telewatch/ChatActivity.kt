@@ -38,7 +38,7 @@ import com.gohj99.telewatch.ui.chat.SplashChatScreen
 import com.gohj99.telewatch.ui.main.ErrorScreen
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
-import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.telegram.*
 import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -67,20 +67,24 @@ class ChatActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         if (inputText.value != "") {
-            TgApiManager.tgApi?.exitChatPage(
-                TdApi.DraftMessage(
-                    null,
-                    (System.currentTimeMillis() / 1000).toInt(),
-                    TdApi.InputMessageText(
-                        TdApi.FormattedText(inputText.value, null),
-                        TdApi.LinkPreviewOptions(),
-                        false
-                    ),
-                    0L
+            runBlocking {
+                TgApiManager.tgApi?.exitChatPage(
+                    TdApi.DraftMessage(
+                        null,
+                        (System.currentTimeMillis() / 1000).toInt(),
+                        TdApi.InputMessageText(
+                            TdApi.FormattedText(inputText.value, null),
+                            TdApi.LinkPreviewOptions(),
+                            false
+                        ),
+                        0L
+                    )
                 )
-            )
+            }
         } else {
-            TgApiManager.tgApi?.exitChatPage()
+            runBlocking {
+                TgApiManager.tgApi?.exitChatPage()
+            }
         }
     }
 
@@ -88,17 +92,19 @@ class ChatActivity : ComponentActivity() {
         super.onResume()
         tgApi?.let {
             if (it.saveChatId == -1L) {
+                tgApi?.saveChatId = 0L
                 finish()
             }
         }
 
         if (goToChat.value) {
             // 标记打开聊天
-            tgApi!!.openChatPage(chat!!.id, chatList)
+            runBlocking {
+                tgApi!!.openChatPage(chat!!.id, chatList)
+            }
 
             goToChat.value = false
         }
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -156,7 +162,7 @@ class ChatActivity : ComponentActivity() {
         lastReadInboxMessageId = tgApi!!.getLastReadInboxMessageId()
 
         // 清空旧的聊天消息
-        chatList.value = emptyList()
+        //chatList.value = emptyList()
 
         // 异步获取当前用户 ID 和聊天记录
         lifecycleScope.launch {

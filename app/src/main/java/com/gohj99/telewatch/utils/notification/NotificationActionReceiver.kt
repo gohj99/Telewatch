@@ -15,7 +15,8 @@ import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
 import com.gohj99.telewatch.TgApiManager
-import com.gohj99.telewatch.utils.telegram.TgApiForPushNotification
+import com.gohj99.telewatch.utils.telegram.markMessagesAsRead
+import com.gohj99.telewatch.utils.telegram.sendMessage
 import org.drinkless.tdlib.TdApi
 
 private const val EXTRA_CONVERSATION_ID = "extra_conversation_id"

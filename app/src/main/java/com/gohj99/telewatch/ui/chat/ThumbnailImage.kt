@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import coil.compose.rememberAsyncImagePainter
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
+import com.gohj99.telewatch.utils.telegram.downloadPhoto
 import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
 import java.io.IOException

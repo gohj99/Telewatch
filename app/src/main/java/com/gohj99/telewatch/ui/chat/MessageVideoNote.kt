@@ -42,6 +42,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.utils.formatDuration
+import com.gohj99.telewatch.utils.telegram.downloadFile
 import kotlinx.coroutines.delay
 import org.drinkless.tdlib.TdApi
 import java.io.File

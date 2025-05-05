@@ -22,6 +22,14 @@ import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.formatTimestampToDateAndTime
 import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.telegram.deleteChat
+import com.gohj99.telewatch.utils.telegram.getBasicGroup
+import com.gohj99.telewatch.utils.telegram.getBasicGroupFullInfo
+import com.gohj99.telewatch.utils.telegram.getChat
+import com.gohj99.telewatch.utils.telegram.getSupergroup
+import com.gohj99.telewatch.utils.telegram.getSupergroupFullInfo
+import com.gohj99.telewatch.utils.telegram.getUser
+import com.gohj99.telewatch.utils.telegram.getUserFullInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

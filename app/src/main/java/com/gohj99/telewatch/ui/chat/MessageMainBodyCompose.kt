@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.utils.formatTimestampToTime
+import com.gohj99.telewatch.utils.telegram.downloadFile
 import org.drinkless.tdlib.TdApi
 
 @Composable

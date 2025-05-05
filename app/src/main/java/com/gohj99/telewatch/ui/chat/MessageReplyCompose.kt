@@ -45,6 +45,10 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.animateScrollToItemCentered
+import com.gohj99.telewatch.utils.telegram.createPrivateChat
+import com.gohj99.telewatch.utils.telegram.getChat
+import com.gohj99.telewatch.utils.telegram.getMessageTypeById
+import com.gohj99.telewatch.utils.telegram.getUserName
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 

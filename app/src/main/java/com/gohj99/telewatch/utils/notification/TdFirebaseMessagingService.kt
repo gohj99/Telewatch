@@ -12,7 +12,9 @@ import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.gohj99.telewatch.TgApiManager
-import com.gohj99.telewatch.utils.telegram.TgApiForPushNotification
+import com.gohj99.telewatch.utils.telegram.getPushReceiverId
+import com.gohj99.telewatch.utils.telegram.processPushNotification
+import com.gohj99.telewatch.utils.telegram.setFCMToken
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import org.json.JSONObject

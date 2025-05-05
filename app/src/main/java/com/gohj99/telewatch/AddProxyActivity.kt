@@ -47,6 +47,7 @@ import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
 import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.telegram.addProxy
 import org.drinkless.tdlib.TdApi
 
 fun parseProxyUrl(url: String): Map<String, String> {

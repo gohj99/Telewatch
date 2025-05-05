@@ -29,6 +29,7 @@ import com.gohj99.telewatch.ui.setting.SplashSettingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.notification.drawableToBitmap
 import com.gohj99.telewatch.utils.notification.sendChatMessageNotification
+import com.gohj99.telewatch.utils.telegram.setFCMToken
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject

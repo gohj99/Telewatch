@@ -42,6 +42,11 @@ import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.utils.notification.TgApiForPushNotificationManager
 import com.gohj99.telewatch.utils.telegram.TgApi
+import com.gohj99.telewatch.utils.telegram.getArchiveChats
+import com.gohj99.telewatch.utils.telegram.getContacts
+import com.gohj99.telewatch.utils.telegram.getCurrentUser
+import com.gohj99.telewatch.utils.telegram.loadChats
+import com.gohj99.telewatch.utils.telegram.setFCMToken
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.google.gson.JsonObject
