@@ -124,6 +124,28 @@ class ChatActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // 接收传递的 Chat 对象
+        chat = intent.getParcelableExtra("chat")
+
+        // 获取 TgApi 实例
+        tgApi = TgApiManager.tgApi
+
+        // 如果 chat 为 null，直接退出页面
+        if (chat == null) {
+            finish()
+            return
+        }
+
+        if (tgApi == null) {
+            // 如果 tgApi 为 null，打开主页面
+            val openChatIntent = Intent(this, MainActivity::class.java).apply {
+                putExtra("chatId", chat!!.id)
+            }
+            startActivity(openChatIntent)
+            finish()
+            return
+        }
+
         // 显示加载页面
         setContent {
             TelewatchTheme {
@@ -156,27 +178,6 @@ class ChatActivity : ComponentActivity() {
     }
 
     private suspend fun init(parameter: String? = null) {
-        tgApi = TgApiManager.tgApi
-
-        // 接收传递的 Chat 对象
-        chat = intent.getParcelableExtra("chat")
-
-        // 如果 chat 为 null，直接退出页面
-        if (chat == null) {
-            finish()
-            return
-        }
-
-        if (tgApi == null) {
-            // 如果 tgApi 为 null，打开主页面
-            val openChatIntent = Intent(this, MainActivity::class.java).apply {
-                putExtra("chatId", chat!!.id)
-            }
-            startActivity(openChatIntent)
-            finish()
-            return
-        }
-
         // 标记打开聊天
         tgApi!!.openChatPage(chat!!.id, chatList)
 
@@ -225,7 +226,7 @@ class ChatActivity : ComponentActivity() {
                     setContent {
                         TelewatchTheme {
                             SplashChatScreen(
-                                chatTitle = chat!!.title,
+                                chatTitle = itChatObject.title,
                                 chatList = chatList,
                                 chatId = chat!!.id,
                                 goToChat = { chat ->

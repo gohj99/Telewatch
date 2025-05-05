@@ -290,7 +290,7 @@ fun SplashChatScreen(
                             // 消息正文
                             itemsIndexed(
                                 chatList.value,
-                                key = { _, message -> message.id.toString() + message.date.toString() }
+                                key = { _, message -> "${message.id}-${message.date}-${message.editDate}" }
                             ) { index, message ->
                                 val isCurrentUser = message.isOutgoing
                                 val backgroundColor =

@@ -291,9 +291,7 @@ internal fun TgApi.handleMessageEdited(update: TdApi.UpdateMessageEdited) {
             val messageIndex = indexOfFirst { it.id == messageId }
             if (messageIndex >= 0) {
                 // 合并旧消息的元数据和新内容
-                val updatedMessage = get(messageIndex).apply {
-                    date = editDate
-                }
+                val updatedMessage = get(messageIndex).copy(editDate = editDate)
                 set(messageIndex, updatedMessage)
             }
         }
