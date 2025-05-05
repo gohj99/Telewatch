@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,11 +36,13 @@ import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.utils.formatTimestampToTime
+import com.gohj99.telewatch.utils.telegram.downloadFile
 import org.drinkless.tdlib.TdApi
 
 @Composable
 fun MessageMainBodyCompose(
     message: TdApi.Message,
+    editDate: Int,
     modifier: Modifier = Modifier,
     alignment: Arrangement.Horizontal = Arrangement.End,
     textColor: Color = Color.White,
@@ -62,6 +65,9 @@ fun MessageMainBodyCompose(
             authorSignature = (forwardInfo.origin as TdApi.MessageOriginChannel).authorSignature
         }
     }
+    val editText = stringResource(R.string.edit)
+    val timeShowText = remember(editDate) { if (editDate == 0) formatTimestampToTime(message.date)
+    else "$editText ${formatTimestampToTime(editDate)}" }
 
     Row(
         modifier = Modifier
@@ -132,10 +138,9 @@ fun MessageMainBodyCompose(
                         .padding(top = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween // 两端对齐
                 ) {
-                    // 时间
+                    // 时间和已修改标记
                     Text(
-                        text = if (message.editDate == 0) formatTimestampToTime(message.date)
-                        else stringResource(id = R.string.edit) + " " + formatTimestampToTime(message.editDate),
+                        text = timeShowText,
                         modifier = modifier,
                         color = Color(0xFF6A86A3),
                         style = MaterialTheme.typography.bodySmall

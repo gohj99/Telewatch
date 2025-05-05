@@ -34,6 +34,7 @@ import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.SearchBar
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import com.gohj99.telewatch.utils.telegram.loadChats
 import org.drinkless.tdlib.TdApi
 
 // 字符串匹配

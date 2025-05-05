@@ -6,22 +6,22 @@
  * Vestibulum commodo. Ut rhoncus gravida arcu.
  */
 
-package com.gohj99.telewatch.utils.telegram
+package com.gohj99.telewatch.utils.notification
 
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import com.gohj99.telewatch.R
-import com.gohj99.telewatch.TgApiManager.tgApi
+import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.getAppVersion
 import com.gohj99.telewatch.loadConfig
 import com.gohj99.telewatch.utils.generateChatTitleIconBitmap
-import com.gohj99.telewatch.utils.notification.drawableToBitmap
-import com.gohj99.telewatch.utils.notification.sendChatMessageNotification
+import com.gohj99.telewatch.utils.telegram.getChat
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CompletableDeferred
@@ -32,7 +32,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.drinkless.tdlib.Client
 import org.drinkless.tdlib.TdApi
-import org.drinkless.tdlib.TdApi.InputMessageContent
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CountDownLatch
@@ -211,7 +210,7 @@ class TgApiForPushNotification(private val context: Context) {
                                 if (senderId.chatId == chatId) {
                                     senderName = chatTitle
                                 } else {
-                                    val itChat = tgApi?.getChat(senderId.chatId)
+                                    val itChat = TgApiManager.tgApi?.getChat(senderId.chatId)
                                     itChat.let {
                                         senderName = it!!.title
                                     }
@@ -241,8 +240,8 @@ class TgApiForPushNotification(private val context: Context) {
     private fun loadBitmapFromUri(contentResolver: ContentResolver, uri: Uri): Bitmap? {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = android.graphics.ImageDecoder.createSource(contentResolver, uri)
-                android.graphics.ImageDecoder.decodeBitmap(source)
+                val source = ImageDecoder.createSource(contentResolver, uri)
+                ImageDecoder.decodeBitmap(source)
             } else {
                 contentResolver.openInputStream(uri)?.use { inputStream ->
                     BitmapFactory.decodeStream(inputStream)
@@ -290,7 +289,7 @@ class TgApiForPushNotification(private val context: Context) {
     }
 
     // 发送消息
-    fun sendMessage(chatId: Long, message: InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null) {
+    fun sendMessage(chatId: Long, message: TdApi.InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null) {
         val message = TdApi.SendMessage().apply {
             this.chatId = chatId
             this.replyTo = replyTo
@@ -403,6 +402,7 @@ class TgApiForPushNotification(private val context: Context) {
                         )
                     }
                 }
+
                 else -> {
                     // 成功时，完成请求
                     @Suppress("UNCHECKED_CAST")

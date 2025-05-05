@@ -53,6 +53,9 @@ import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.InputBar
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.main.MessageView
+import com.gohj99.telewatch.utils.telegram.editMessageText
+import com.gohj99.telewatch.utils.telegram.handleAllMessages
+import com.gohj99.telewatch.utils.telegram.sendMessage
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 

@@ -89,6 +89,7 @@ fun MessageHandleCompose(
         // 正文
         MessageMainBodyCompose(
             message = message,
+            editDate = message.editDate,
             modifier = modifier,
             alignment = alignment,
             textColor = textColor,

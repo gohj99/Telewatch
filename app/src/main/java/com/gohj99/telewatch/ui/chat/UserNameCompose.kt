@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.ui.AutoScrollingText
+import com.gohj99.telewatch.utils.telegram.getChat
+import com.gohj99.telewatch.utils.telegram.getUserName
 import org.drinkless.tdlib.TdApi
 
 @Composable

@@ -59,6 +59,7 @@ import com.gohj99.telewatch.model.tgFile
 import com.gohj99.telewatch.ui.main.LinkText
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.utils.getColorById
+import com.gohj99.telewatch.utils.telegram.downloadFile
 import com.gohj99.telewatch.utils.urlHandle
 import com.google.gson.Gson
 import org.drinkless.tdlib.TdApi

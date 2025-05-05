@@ -24,8 +24,9 @@ import androidx.core.app.Person
 import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import com.gohj99.telewatch.MainActivity
+import com.gohj99.telewatch.ChatActivity
 import com.gohj99.telewatch.R
+import com.gohj99.telewatch.model.Chat
 import com.gohj99.telewatch.model.NotificationMessage
 import com.google.gson.Gson
 
@@ -162,8 +163,8 @@ fun Context.sendChatMessageNotification(
 
     // —— 8. 发通知 (添加了 Actions) ——
     // 点击通知主体的 Intent (通常是打开对应的聊天界面)
-    val openChatIntent = Intent(this, MainActivity::class.java).apply {
-        putExtra(EXTRA_CONVERSATION_ID, conversationId)
+    val openChatIntent = Intent(this, ChatActivity::class.java).apply {
+        conversationId.toLongOrNull()?.let { putExtra("chat", Chat(id = it, title = title)) }
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
     val openChatPendingIntent = PendingIntent.getActivity(this, notificationId + 3, openChatIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

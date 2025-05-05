@@ -59,6 +59,10 @@ import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.CustomButton
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.gohj99.telewatch.ui.verticalRotaryScroll
+import com.gohj99.telewatch.utils.telegram.getChat
+import com.gohj99.telewatch.utils.telegram.getUserName
+import com.gohj99.telewatch.utils.telegram.joinChat
+import com.gohj99.telewatch.utils.telegram.markMessagesAsRead
 import kotlinx.coroutines.launch
 import org.drinkless.tdlib.TdApi
 
@@ -205,7 +209,7 @@ fun SplashChatScreen(
         snapshotFlow { listState.firstVisibleItemIndex }
             .collect { index ->
                 if (index >= chatList.value.size - messagePreloadQuantity) {
-                    tgApi?.fetchMessages()
+                    tgApi?.fetchMessages(fromMessageId =  chatList.value.lastOrNull()?.id ?: -1L,nowChatId = chatId)
                 }
             }
     }
@@ -286,7 +290,7 @@ fun SplashChatScreen(
                             // 消息正文
                             itemsIndexed(
                                 chatList.value,
-                                key = { _, message -> message.id.toString() + message.date.toString() }
+                                key = { _, message -> "${message.id}-${message.date}-${message.editDate}" }
                             ) { index, message ->
                                 val isCurrentUser = message.isOutgoing
                                 val backgroundColor =
@@ -297,7 +301,7 @@ fun SplashChatScreen(
                                 var stateDownloadDone = rememberSaveable { mutableStateOf(false) }
                                 var stateDownload = rememberSaveable { mutableStateOf(false) }
 
-                                tgApi?.markMessagesAsRead(message.id)
+                                tgApi?.markMessagesAsRead(messageId = message.id, chatId = chatId)
 
                                 MessageHandleCompose(
                                     message = message,

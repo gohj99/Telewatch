@@ -53,7 +53,7 @@ class RemindActivity : ComponentActivity() {
             TelewatchTheme {
                 SplashRemindScreen { donate ->
                     with(settingsSharedPref.edit()) {
-                        putBoolean("Remind2_read", true)
+                        putBoolean("Remind3_read", true)
                         commit()
                         finish()
                     }
@@ -105,7 +105,7 @@ fun SplashRemindScreen(done: (Boolean) -> Unit) {
         ) {
             // 主要说明部分
             LinkText(
-                text = stringResource(id = R.string.Remind2),
+                text = stringResource(id = R.string.Remind3),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 modifier = Modifier.padding(16.dp),

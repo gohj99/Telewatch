@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.utils.formatSize
+import com.gohj99.telewatch.utils.telegram.cancelDownloadFile
+import com.gohj99.telewatch.utils.telegram.downloadFile
 import org.drinkless.tdlib.TdApi
 
 @Composable

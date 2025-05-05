@@ -21,6 +21,7 @@ import com.gohj99.telewatch.ChatActivity
 import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager
 import com.gohj99.telewatch.model.Chat
+import com.gohj99.telewatch.utils.telegram.searchPublicChat
 
 fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = null) {
     if (url.isEmpty()) return
