@@ -43,6 +43,7 @@ import com.gohj99.telewatch.utils.telegram.createPrivateChat
 import com.gohj99.telewatch.utils.telegram.deleteMessageById
 import com.gohj99.telewatch.utils.telegram.getChat
 import com.gohj99.telewatch.utils.telegram.getCurrentUser
+import com.gohj99.telewatch.utils.telegram.getForumTopics
 import com.gohj99.telewatch.utils.telegram.getLastReadInboxMessageId
 import com.gohj99.telewatch.utils.telegram.getLastReadOutboxMessageId
 import com.gohj99.telewatch.utils.telegram.getMessageLink
@@ -71,6 +72,7 @@ class ChatActivity : ComponentActivity() {
     private var goToChat = mutableStateOf(false)
     private val listState = LazyListState()
     private var inputText = mutableStateOf("")
+    private var chatTopics = mutableMapOf<Long, String>()
 
     @SuppressLint("AutoboxingStateCreation")
     private var currentUserId = mutableStateOf(-1L) // 使用 MutableState 来持有当前用户 ID
@@ -214,6 +216,14 @@ class ChatActivity : ComponentActivity() {
                 lastReadInboxMessageId.value = itChatObject.lastReadInboxMessageId
 
                 TgApiManager.tgApi!!.saveChatId = itChatObject.id
+
+                // 获取主题信息
+                TgApiManager.tgApi!!.getForumTopics(itChatObject.id) ?.let { it ->
+                    val topics = it.topics
+                    topics.forEach { topic ->
+                        chatTopics[topic.info.messageThreadId] = topic.info.name
+                    }
+                }
 
                 // 获取聊天草稿
                 val draftMessage = itChatObject.draftMessage?.inputMessageText
@@ -478,7 +488,8 @@ class ChatActivity : ComponentActivity() {
                                     )
                                     goToChat.value = true
                                 },
-                                currentUserId = currentUserId
+                                currentUserId = currentUserId,
+                                chatTopics = chatTopics
                             )
                         }
                     }

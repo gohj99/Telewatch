@@ -71,9 +71,11 @@ fun SendMessageCompose(
     listState: LazyListState,
     pagerState: PagerState,
     showUnknownMessageType: Boolean,
+    chatTopics: Map<Long, String>,
     onLinkClick: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    var item by remember { mutableStateOf(false) }
 
     if (planEditMessage.value != null) {
         Box (
@@ -221,36 +223,63 @@ fun SendMessageCompose(
                 .padding(end = 10.dp)
                 .fillMaxWidth()
         ) {
-            IconButton(
-                onClick = {
-                    if (planEditMessage.value != null) {
-                        tgApi?.editMessageText(
-                            chatId = chatId,
-                            messageId = planEditMessage.value!!.id,
-                            message = TdApi.InputMessageText().apply {
-                                text = TdApi.FormattedText().apply {
-                                    this.text = planEditMessageText.value
-                                }
-                            }
-                        )
-                    }
-                    planEditMessage.value = null
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(0)
-                        listState.animateScrollToItem(0)
-                    }
-                },
-                modifier = Modifier
-                    .size(45.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween // 左右对齐
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.done_icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(45.dp)
-                )
+                // 换行按钮
+                IconButton(
+                    onClick = {
+                        planEditMessageText.value += "\n"
+                    },
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(45.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.enter_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(45.dp)
+                    )
+                }
+
+                // 完成编辑按钮
+                IconButton(
+                    onClick = {
+                        if (planEditMessage.value != null) {
+                            tgApi?.editMessageText(
+                                chatId = chatId,
+                                messageId = planEditMessage.value!!.id,
+                                message = TdApi.InputMessageText().apply {
+                                    text = TdApi.FormattedText().apply {
+                                        this.text = planEditMessageText.value
+                                    }
+                                }
+                            )
+                        }
+                        planEditMessage.value = null
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(0)
+                            listState.animateScrollToItem(0)
+                        }
+                    },
+                    modifier = Modifier
+                        .size(45.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.done_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(45.dp)
+                    )
+                }
             }
         }
     } else {
+        // 消息主题选择
+        if (chatTopics.keys.size > 0) {
+
+        }
+
         InputBar(
             query = inputText.value,
             onQueryChange = { inputText.value = it },

@@ -107,7 +107,8 @@ fun SplashChatScreen(
     listState: LazyListState = rememberLazyListState(),
     onLinkClick: (String) -> Unit,
     chatTitleClick: () -> Unit,
-    currentUserId: MutableState<Long>
+    currentUserId: MutableState<Long>,
+    chatTopics: Map<Long, String>
 ) {
     // 获取context
     val context = LocalContext.current
@@ -326,6 +327,7 @@ fun SplashChatScreen(
                                     lastReadInboxMessageId = lastReadInboxMessageId,
                                     onLinkClick = onLinkClick,
                                     goToChat = goToChat,
+                                    chatTopics = chatTopics
                                 )
                             }
                         }
@@ -356,6 +358,7 @@ fun SplashChatScreen(
                                 pagerState = pagerState,
                                 showUnknownMessageType = showUnknownMessageType,
                                 onLinkClick = onLinkClick,
+                                chatTopics = chatTopics
                             )
                         }
                     }
@@ -496,7 +499,8 @@ fun SplashChatScreenPreview() {
             inputText = mutableStateOf(""),
             onLinkClick = {},
             chatTitleClick = {},
-            currentUserId = mutableLongStateOf(-1L)
+            currentUserId = mutableLongStateOf(-1L),
+            chatTopics = mutableMapOf<Long, String>()
         )
     }
 }

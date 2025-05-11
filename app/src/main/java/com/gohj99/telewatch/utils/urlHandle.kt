@@ -46,7 +46,7 @@ fun urlHandle(url: String, context: Context, callback: ((Boolean) -> Unit)? = nu
         TgApiManager.tgApi!!.searchPublicChat(username) { tdChat ->
             //println(tdChat)
             if (tdChat != null) {
-                if (tdChat.id == TgApiManager.tgApi!!.saveChatId) {
+                if (tdChat.id == TgApiManager.tgApi!!.saveChatId && tdChat.id !in TgApiManager.tgApi!!.saveChatMessagesList.keys) {
                     callback?.invoke(false)
                     println("Same chat: $username")
                     Handler(Looper.getMainLooper()).post {

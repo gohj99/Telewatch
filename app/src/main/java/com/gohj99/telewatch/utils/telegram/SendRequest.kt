@@ -638,3 +638,14 @@ fun TgApi.markMessagesAsRead(messageId: Long? = null, chatId: Long = saveChatId,
         }
     }
 }
+
+// 获取聊天主题信息
+suspend fun TgApi.getForumTopics(chatId: Long): TdApi.ForumTopics? {
+    try {
+        val getResult = sendRequest(TdApi.GetForumTopics(chatId, "", 0, 0, 0, 100))
+        return getResult
+    } catch (e: Exception) {
+        println("GetChatTheme request failed: ${e.message}")
+        return null
+    }
+}
