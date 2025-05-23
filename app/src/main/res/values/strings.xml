@@ -217,4 +217,5 @@
     <string name="Verify_Code">Verify Code</string>
     <string name="Send_Verify_Code">Send Code</string>
     <string name="Login_With_QR">Login With QR</string>
+    <string name="Connecting_Telegram_Sever">Connect to Telegram server…</string>
 </resources>

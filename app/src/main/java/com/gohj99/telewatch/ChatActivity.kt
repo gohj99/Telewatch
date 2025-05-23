@@ -219,9 +219,16 @@ class ChatActivity : ComponentActivity() {
 
                 // 获取主题信息
                 TgApiManager.tgApi!!.getForumTopics(itChatObject.id) ?.let { it ->
+                    //println("ForumTopics")
+                    //println(it)
                     val topics = it.topics
                     topics.forEach { topic ->
-                        chatTopics[topic.info.messageThreadId] = topic.info.name
+                        val lastMessage = topic.lastMessage
+                        if (lastMessage != null) {
+                            if (lastMessage.messageThreadId != topic.info.messageThreadId) {
+                                chatTopics[0L] = topic.info.name
+                            } else chatTopics[topic.info.messageThreadId] = topic.info.name
+                        } else chatTopics[topic.info.messageThreadId] = topic.info.name
                     }
                 }
 
@@ -241,26 +248,6 @@ class ChatActivity : ComponentActivity() {
                                 chatId = chat!!.id,
                                 goToChat = { chat ->
                                     goToChat.value = true
-                                    runBlocking {
-                                        lifecycleScope.launch {
-                                            if (inputText.value != "") {
-                                                TgApiManager.tgApi?.exitChatPage(
-                                                    TdApi.DraftMessage(
-                                                        null,
-                                                        (System.currentTimeMillis() / 1000).toInt(),
-                                                        TdApi.InputMessageText(
-                                                            TdApi.FormattedText(inputText.value, null),
-                                                            TdApi.LinkPreviewOptions(),
-                                                            false
-                                                        ),
-                                                        0L
-                                                    )
-                                                )
-                                            } else {
-                                                TgApiManager.tgApi?.exitChatPage()
-                                            }
-                                        }.join() // 等待协程执行完毕
-                                    }
                                     startActivity(
                                         Intent(this@ChatActivity, ChatActivity::class.java).apply {
                                             putExtra("chat", chat)

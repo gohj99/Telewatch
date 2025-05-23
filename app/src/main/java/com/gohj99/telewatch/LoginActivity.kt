@@ -22,12 +22,21 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import com.gohj99.telewatch.ui.login.SplashLoginQRScreen
 import com.gohj99.telewatch.ui.login.SplashLoginScreen
 import com.gohj99.telewatch.ui.login.SplashPasswordScreen
+import com.gohj99.telewatch.ui.main.SplashLoadingScreen
 import com.gohj99.telewatch.ui.theme.TelewatchTheme
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -53,6 +62,7 @@ class LoginActivity : ComponentActivity() {
     private var doneStr = mutableStateOf("")
     private var loginWay = mutableStateOf("PhoneNumber")
     private var showSendCode by mutableStateOf(true)
+    private var showLoading by mutableStateOf(true)
 
     override fun onDestroy() {
         super.onDestroy()
@@ -74,59 +84,73 @@ class LoginActivity : ComponentActivity() {
 
         setContent {
             TelewatchTheme {
-                if (showPasswordScreen.value) {
-                    SplashPasswordScreen(
-                        onDoneClick = { password ->
-                            client.send(TdApi.CheckAuthenticationPassword(password)) {
-                                authRequestHandler(
-                                    it
-                                )
-                            }
-                        },
-                        passwordHint = passwordHint,
-                        doneStr = doneStr
-                    )
-                } else {
-                    if (loginWay.value == "PhoneNumber") {
-                        SplashLoginScreen(
-                            showSendCode = showSendCode,
-                            onLoginWithQR = {
-                                loginWay.value = "QrCode"
-                                client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
-                                    if (!(it is TdApi.Ok)) {
-                                        loginWay.value = "PhoneNumber"
-                                    }
-                                    authRequestHandler(
-                                        it
-                                    )
-                                }
-                            },
-                            onSendVerifyCode = { phoneNumber ->
-                                showSendCode = false
-                                client.send(TdApi.SetAuthenticationPhoneNumber(phoneNumber, null)) {
-                                    if (it is TdApi.Ok) {
-                                        // 发送验证码成功
-                                        runOnUiThread {
-                                            Toast.makeText(this@LoginActivity, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
-                                        }
-                                    } else {
-                                        showSendCode = true
-                                    }
-                                    authRequestHandler(
-                                        it
-                                    )
-                                }
-                            },
-                            onDone = { code ->
-                                client.send(TdApi.CheckAuthenticationCode(code)) {
-                                    authRequestHandler(
-                                        it
-                                    )
-                                }
-                            },
+                if (showLoading) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        SplashLoadingScreen()
+                        Text(
+                            text = stringResource(R.string.Connecting_Telegram_Sever),
+                            color = Color.White
                         )
-                    } else if (loginWay.value == "QrCode") {
-                        SplashLoginQRScreen(qrCodeLink = qrCodeLink)
+                    }
+                } else {
+                    if (showPasswordScreen.value) {
+                        SplashPasswordScreen(
+                            onDoneClick = { password ->
+                                client.send(TdApi.CheckAuthenticationPassword(password)) {
+                                    authRequestHandler(
+                                        it
+                                    )
+                                }
+                            },
+                            passwordHint = passwordHint,
+                            doneStr = doneStr
+                        )
+                    } else {
+                        if (loginWay.value == "PhoneNumber") {
+                            SplashLoginScreen(
+                                showSendCode = showSendCode,
+                                onLoginWithQR = {
+                                    loginWay.value = "QrCode"
+                                    client.send(TdApi.RequestQrCodeAuthentication(LongArray(0))) {
+                                        if (!(it is TdApi.Ok)) {
+                                            loginWay.value = "PhoneNumber"
+                                        }
+                                        authRequestHandler(
+                                            it
+                                        )
+                                    }
+                                },
+                                onSendVerifyCode = { phoneNumber ->
+                                    showSendCode = false
+                                    client.send(TdApi.SetAuthenticationPhoneNumber(phoneNumber, null)) {
+                                        if (it is TdApi.Ok) {
+                                            // 发送验证码成功
+                                            runOnUiThread {
+                                                Toast.makeText(this@LoginActivity, getString(R.string.Successful), Toast.LENGTH_SHORT).show()
+                                            }
+                                        } else {
+                                            showSendCode = true
+                                        }
+                                        authRequestHandler(
+                                            it
+                                        )
+                                    }
+                                },
+                                onDone = { code ->
+                                    client.send(TdApi.CheckAuthenticationCode(code)) {
+                                        authRequestHandler(
+                                            it
+                                        )
+                                    }
+                                },
+                            )
+                        } else if (loginWay.value == "QrCode") {
+                            SplashLoginQRScreen(qrCodeLink = qrCodeLink)
+                        }
                     }
                 }
             }
@@ -347,6 +371,39 @@ class LoginActivity : ComponentActivity() {
                     TdApi.AuthorizationStateWaitRegistration.CONSTRUCTOR -> {
                         // 请求注册
                         println("请求注册")
+                    }
+                }
+            }
+
+            TdApi.UpdateConnectionState.CONSTRUCTOR -> {
+                when ((update as TdApi.UpdateConnectionState).state.constructor) {
+                    TdApi.ConnectionStateReady.CONSTRUCTOR -> {
+                        // 已经成功连接到 Telegram 服务器
+                        showLoading = false
+                    }
+
+                    TdApi.ConnectionStateConnecting.CONSTRUCTOR -> {
+                        // 正在尝试连接到 Telegram 服务器
+                        showLoading = true
+                    }
+
+                    TdApi.ConnectionStateConnectingToProxy.CONSTRUCTOR -> {
+                        // 正在尝试通过代理连接到 Telegram 服务器
+                        showLoading = true
+                    }
+
+                    TdApi.ConnectionStateUpdating.CONSTRUCTOR -> {
+                        // 正在更新 Telegram 数据库
+                        showLoading = false
+                    }
+
+                    TdApi.ConnectionStateWaitingForNetwork.CONSTRUCTOR -> {
+                        // 正在等待网络连接
+                        showLoading = true
+                    }
+                    else -> {
+                        // 其他网络状态处理
+                        showLoading = false
                     }
                 }
             }

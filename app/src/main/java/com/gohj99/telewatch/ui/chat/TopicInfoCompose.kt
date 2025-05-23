@@ -8,39 +8,34 @@
 
 package com.gohj99.telewatch.ui.chat
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.gohj99.telewatch.ui.AutoScrollingText
 
 @Composable
 fun TopicInfoCompose(
     topicName: String,
-    isCurrentUser: Boolean
+    color: Color = Color(0xFF49617A)
 ) {
-    if (isCurrentUser) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End // 将所有子项对齐到右侧
-        ) {
-            AutoScrollingText(
-                text = topicName,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-    } else {
+    Surface(
+        modifier = Modifier.wrapContentSize(),
+        color = color,
+        shape = RoundedCornerShape(50)
+    ) {
         AutoScrollingText(
-            text = topicName,
+            text = "# $topicName",
             color = Color.White,
             fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 1.dp, bottom = 1.dp, start = 5.dp, end = 6.dp)
         )
     }
 }

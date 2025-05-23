@@ -69,9 +69,15 @@ import org.drinkless.tdlib.TdApi
  *
  * 16. markMessagesAsRead
  *    作用: 标记消息为已读，支持指定消息或最后一条消息的自动识别
+ *
+ * 17. getForumTopics
+ *    作用：获取聊天会话的主题信息
+ *
+ * 18. getForumTopic
+ *    作用：获取聊天指定的主题信息
  */
 
-// 发送请求并返回结果
+// 1. 发送请求并返回结果
 internal suspend fun <R : TdApi.Object> TgApi.sendRequest(
     request: TdApi.Function<R>,
     retryCount: Int = 3 // 重试次数限制
@@ -112,7 +118,7 @@ internal suspend fun <R : TdApi.Object> TgApi.sendRequest(
     return@withContext result.await()
 }
 
-// 根据消息id删除消息
+// 2. 根据消息id删除消息
 fun TgApi.deleteMessageById(messageId: Long) {
     println("Deleting message")
     runBlocking {
@@ -131,7 +137,7 @@ fun TgApi.deleteMessageById(messageId: Long) {
     }
 }
 
-// 加载聊天列表
+// 3. 加载聊天列表
 suspend fun TgApi.loadChats(limit: Int = 15){
     val loadChats = TdApi.LoadChats(TdApi.ChatListFolder(0), limit)
     try {
@@ -142,7 +148,7 @@ suspend fun TgApi.loadChats(limit: Int = 15){
     }
 }
 
-// 根据消息id更新消息
+// 4. 根据消息id更新消息
 fun TgApi.reloadMessageById(messageId: Long) {
     println("Reloading message")
     CoroutineScope(Dispatchers.IO).launch {
@@ -178,6 +184,7 @@ fun TgApi.reloadMessageById(messageId: Long) {
     }
 }
 
+// 5. 创建与指定用户的私人聊天会话，返回Chat对象
 suspend fun TgApi.createPrivateChat(userId: Long) : TdApi.Chat? {
     try {
         return sendRequest(TdApi.CreatePrivateChat(userId, false))
@@ -187,7 +194,7 @@ suspend fun TgApi.createPrivateChat(userId: Long) : TdApi.Chat? {
     }
 }
 
-// 获取分组信息
+// 6. 获取分组信息
 internal suspend fun TgApi.getChatFolderInfo(chatFolderId: Int): TdApi.ChatFolder? {
     try {
         val result = sendRequest(TdApi.GetChatFolder(chatFolderId))
@@ -198,7 +205,7 @@ internal suspend fun TgApi.getChatFolderInfo(chatFolderId: Int): TdApi.ChatFolde
     return null
 }
 
-// 获取当前用户 ID 的方法
+// 7. 获取当前用户 ID 的方法
 suspend fun TgApi.getCurrentUser(): List<String>? {
     if (currentUser.isEmpty()) {
         try {
@@ -225,13 +232,13 @@ suspend fun TgApi.getCurrentUser(): List<String>? {
     }
 }
 
-// 删除聊天
+// 8. 删除聊天
 suspend fun TgApi.deleteChat(chatId: Long){
     saveChatId = -1L
     sendRequest(TdApi.DeleteChat(chatId))
 }
 
-// 根据消息id获取消息
+// 9. 根据消息id获取消息
 suspend fun TgApi.getMessageTypeById(messageId: Long, chatId: Long = saveChatId): TdApi.Message? {
     val getMessageRequest = TdApi.GetMessage(chatId, messageId)
 
@@ -250,7 +257,7 @@ suspend fun TgApi.getMessageTypeById(messageId: Long, chatId: Long = saveChatId)
     }
 }
 
-// 强制加载消息
+// 10. 强制加载消息
 internal fun TgApi.addNewChat(chatId: Long){
     // 异步获取聊天标题
     CoroutineScope(Dispatchers.IO).launch {
@@ -639,13 +646,24 @@ fun TgApi.markMessagesAsRead(messageId: Long? = null, chatId: Long = saveChatId,
     }
 }
 
-// 获取聊天主题信息
+// 获取聊天会话的主题信息
 suspend fun TgApi.getForumTopics(chatId: Long): TdApi.ForumTopics? {
     try {
         val getResult = sendRequest(TdApi.GetForumTopics(chatId, "", 0, 0, 0, 100))
         return getResult
     } catch (e: Exception) {
-        println("GetChatTheme request failed: ${e.message}")
+        println("GetForumTopics request failed: ${e.message}")
+        return null
+    }
+}
+
+// 获取聊天指定的主题信息
+suspend fun TgApi.getForumTopic(chatId: Long, messageThreadId: Long): TdApi.ForumTopic? {
+    try {
+        val getResult = sendRequest(TdApi.GetForumTopic(chatId, messageThreadId))
+        return getResult
+    } catch (e: Exception) {
+        println("GetForumTopic request failed: ${e.message}")
         return null
     }
 }

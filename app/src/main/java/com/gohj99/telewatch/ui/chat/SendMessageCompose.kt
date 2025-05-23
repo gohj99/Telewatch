@@ -51,6 +51,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.InputBar
+import com.gohj99.telewatch.ui.TextDropdown
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.main.MessageView
 import com.gohj99.telewatch.utils.telegram.editMessageText
@@ -72,10 +73,10 @@ fun SendMessageCompose(
     pagerState: PagerState,
     showUnknownMessageType: Boolean,
     chatTopics: Map<Long, String>,
-    onLinkClick: (String) -> Unit
+    onLinkClick: (String) -> Unit,
+    selectTopicId: MutableState<Long>
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var item by remember { mutableStateOf(false) }
 
     if (planEditMessage.value != null) {
         Box (
@@ -132,8 +133,8 @@ fun SendMessageCompose(
                 .fillMaxWidth()
         )
         var parentHeight by remember { mutableIntStateOf(0) }
-        var stateDownloadDone = rememberSaveable { mutableStateOf(false) }
-        var stateDownload = rememberSaveable { mutableStateOf(false) }
+        val stateDownloadDone = rememberSaveable { mutableStateOf(false) }
+        val stateDownload = rememberSaveable { mutableStateOf(false) }
 
         Row(
             modifier = Modifier
@@ -276,8 +277,14 @@ fun SendMessageCompose(
         }
     } else {
         // 消息主题选择
-        if (chatTopics.keys.size > 0) {
-
+        if (chatTopics.keys.isNotEmpty()) {
+            TextDropdown(
+                options = chatTopics,
+                onItemSelected = { select ->
+                    selectTopicId.value = select
+                },
+                select = selectTopicId
+            )
         }
 
         InputBar(
@@ -323,7 +330,8 @@ fun SendMessageCompose(
                                     text = TdApi.FormattedText().apply {
                                         this.text = inputText.value
                                     }
-                                }
+                                },
+                                messageThreadId = selectTopicId.value
                             )
                         } else {
                             if (planReplyMessage.value!!.chatId != chatId) {
@@ -337,7 +345,8 @@ fun SendMessageCompose(
                                     replyTo = TdApi.InputMessageReplyToExternalMessage(
                                         planReplyMessage.value!!.chatId,
                                         planReplyMessage.value!!.id, null
-                                    )
+                                    ),
+                                    messageThreadId = selectTopicId.value
                                 )
                             } else {
                                 tgApi?.sendMessage(
@@ -349,7 +358,8 @@ fun SendMessageCompose(
                                     },
                                     replyTo = TdApi.InputMessageReplyToMessage(
                                         planReplyMessage.value!!.id, null
-                                    )
+                                    ),
+                                    messageThreadId = selectTopicId.value
                                 )
                             }
                             planReplyMessage.value = null

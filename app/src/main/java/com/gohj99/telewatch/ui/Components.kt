@@ -29,11 +29,18 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -252,7 +259,7 @@ fun AutoScrollingText(
     color: Color = Color.White,
     fontWeight: FontWeight = FontWeight.Bold,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    widthInMax: Dp = 100.dp,
+    widthInMax: Dp = 10000.dp,
     spacing: Dp = 50.dp
 ) {
     Text(
@@ -276,7 +283,7 @@ fun AutoScrollingText(
  */
 suspend fun LazyListState.animateScrollToItemCentered(itemIndex: Int) {
     // 先滚动到目标项（不设置偏移），确保该项被测量
-    scrollToItem(itemIndex)
+    animateScrollToItem(itemIndex)
 
     // 等待目标项进入可见范围
     snapshotFlow { layoutInfo.visibleItemsInfo.any { it.index == itemIndex } }
@@ -437,4 +444,68 @@ fun InputRoundBar(
 @Composable
 fun InputRoundBarPreview() {
     InputRoundBar(query = "", onQueryChange = {}, placeholder = "InputRoundBar")
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TextDropdown(
+    options: Map<Long, String>,
+    onItemSelected: (Long) -> Unit,
+    select: MutableState<Long>,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    // 默认显示第一个选项的文本
+    var selectedOptionText by remember {
+        mutableStateOf(options[select.value])
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        TextField(
+            readOnly = true,
+            value = selectedOptionText?: "",
+            onValueChange = { /* 不允许手动输入 */ },
+            label = { Text("选择") },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            modifier = Modifier.menuAnchor()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.entries.forEach { entry ->
+                DropdownMenuItem(
+                    text = { Text(entry.value) },
+                    onClick = {
+                        selectedOptionText = entry.value
+                        onItemSelected(entry.key)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TextDropdownPreview() {
+    val options = mapOf(1L to "123", 2L to "456")
+
+    TextDropdown(
+        options = options,
+        onItemSelected = { option ->
+            println("选择了: $option")
+        },
+        select = remember { mutableLongStateOf(1L) }
+    )
 }

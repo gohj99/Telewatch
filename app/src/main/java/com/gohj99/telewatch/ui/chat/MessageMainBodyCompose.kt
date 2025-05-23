@@ -55,7 +55,9 @@ fun MessageMainBodyCompose(
     lastReadOutboxMessageId: MutableState<Long>,
     lastReadInboxMessageId: MutableState<Long>,
     onLinkClick: (String) -> Unit,
-    press: (TdApi.Message) -> Unit
+    press: (TdApi.Message) -> Unit,
+    chatTopics: Map<Long, String>,
+    isCurrentUser: Boolean
 ) {
     val forwardInfo = message.forwardInfo
     var authorSignature: String? = null
@@ -124,6 +126,24 @@ fun MessageMainBodyCompose(
         ) {
             Column {
                 val content = message.content
+                // 渲染话题信息
+                if (chatTopics.keys.isNotEmpty()) {
+                    val messageThreadId = message.messageThreadId
+                    if (messageThreadId in chatTopics.keys) {
+                        chatTopics[messageThreadId]?.let {
+                            TopicInfoCompose(
+                                it,
+                                if (isCurrentUser) Color(0xFF49617A) else Color(0xFF344350))
+                        }
+                    } else {
+                        chatTopics[0L]?.let {
+                            TopicInfoCompose(it,
+                                if (isCurrentUser) Color(0xFF49617A) else Color(0xFF344350))
+                        }
+                    }
+                }
+
+                // 绘制消息
                 messageDrawer(
                     content = content,
                     onLinkClick = onLinkClick,
@@ -147,7 +167,7 @@ fun MessageMainBodyCompose(
                     )
 
                     // 已读未读标识
-                    // 确定消息是否为自己发的
+                    // 确定消息是否已经发送出去
                     if (message.isOutgoing) {
                         //println("read.message.id: ${chatObject.lastReadInboxMessageId}")
                         if (message.id <= lastReadOutboxMessageId.value) {

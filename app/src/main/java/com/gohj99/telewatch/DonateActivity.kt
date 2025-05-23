@@ -153,7 +153,7 @@ fun DonateLazyColumn() {
                 ) {
                     SelectionContainer {
                         LinkText(
-                            text = stringResource(id = R.string.Donate2),
+                            text = "Liberapay: https://liberapay.com/gohj99",
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium,
                             onLinkClick = { url ->
@@ -163,8 +163,8 @@ fun DonateLazyColumn() {
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Image(
-                        painter = painterResource(id = R.drawable.azz_qr),
-                        contentDescription = "azz_qr",
+                        painter = painterResource(id = R.drawable.liberapay_qr),
+                        contentDescription = "Liberapay_qr",
                         modifier = Modifier
                             .size(120.dp)
                             .fillMaxSize(), // 确保 Image 填充整个 Box

@@ -44,7 +44,7 @@ fun MessageHandleCompose(
     press: (TdApi.Message) -> Unit,
     onLinkClick: (String) -> Unit,
     goToChat: (Chat) -> Unit,
-    chatTopics: Map<Long, String>
+    chatTopics: Map<Long, String>,
 ) {
     Column {
         // 绘制日期
@@ -69,11 +69,6 @@ fun MessageHandleCompose(
             senderNameMap = senderNameMap,
             goToChat = goToChat
         )
-
-        // 渲染话题信息
-        chatTopics[message.messageThreadId]?.let {
-            TopicInfoCompose(it, isCurrentUser)
-        }
 
         // 回复
         MessageReplyCompose(
@@ -108,7 +103,9 @@ fun MessageHandleCompose(
             lastReadOutboxMessageId = lastReadOutboxMessageId,
             lastReadInboxMessageId = lastReadInboxMessageId,
             onLinkClick = onLinkClick,
-            press = press
+            press = press,
+            chatTopics = chatTopics,
+            isCurrentUser = isCurrentUser
         )
     }
 }
