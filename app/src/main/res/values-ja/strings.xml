@@ -216,5 +216,7 @@
     <string name="Send_Verify_Code">コードを送信します</string>  
     <string name="Login_With_QR">QRでログインします</string>  
     <string name="Remind3">こんにちは！ \nwelcome to telewatchアプリ！ \n \nwe不必要な問題を回避するために、指示を完全に読むことをお勧めします。以下のリンクをクリックして参加できます。メッセージページ。ヘッダーをタップして、チャットメッセージの詳細を表示します。\non \non nons cress、long -press and drag text textを選択してコピーします。画像ビューアーを長引かせてギャラリーに保存してプロキシページに保存します。開発をサポートしたい場合は、下のボタンをクリックして寄付をすることを検討してください。</string>  
-    <string name="Connecting_Telegram_Sever">Telegram Serverに接続してください…</string>
+    <string name="Connecting_Telegram_Sever">Telegram Serverに接続してください…</string>  
+    <string name="Topic">トピック</string>  
+    <string name="Remind4">テレワッチは更新を停止します。 tgwear \nhttps：//github.com/tgwear/tgwear \n \nhelloを使用してください！ \nwelcome to telewatchアプリ！ \n \nwe不必要な問題を回避するために、指示を完全に読むことをお勧めします。以下のリンクをクリックして参加できます。メッセージページ。ヘッダーをタップして、チャットメッセージの詳細を表示します。\non \non nons cress、long -press and drag text textを選択してコピーします。画像ビューアーを長引かせてギャラリーに保存してプロキシページに保存します。開発をサポートしたい場合は、下のボタンをクリックして寄付をすることを検討してください。</string>
 </resources>

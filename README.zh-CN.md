@@ -35,6 +35,10 @@
 
 ![Screenshot](Screenshot.png)
 
+## 公告
+
+Telewatch 将停止更新，请使用 [TGwear](https://github.com/tgwear/tgwear)以获得更好的支持
+
 ## 下载
 
 下载: [Telewatch](https://github.com/gohj99/Telewatch/releases)  

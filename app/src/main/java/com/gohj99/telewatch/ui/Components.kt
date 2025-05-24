@@ -37,6 +37,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -453,10 +454,10 @@ fun TextDropdown(
     options: Map<Long, String>,
     onItemSelected: (Long) -> Unit,
     select: MutableState<Long>,
+    title: String = "",
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    // 默认显示第一个选项的文本
     var selectedOptionText by remember {
         mutableStateOf(options[select.value])
     }
@@ -470,12 +471,50 @@ fun TextDropdown(
             readOnly = true,
             value = selectedOptionText?: "",
             onValueChange = { /* 不允许手动输入 */ },
-            label = { Text("选择") },
+            label = { Text(title, color = Color.White) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            modifier = Modifier.menuAnchor()
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.menuAnchor(),
+            colors = TextFieldDefaults.colors(
+                // 对于文本颜色
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White, // 你原来的 textColor
+                disabledTextColor = Color.Gray,
+                // errorTextColor = Color.Red, // 通常错误状态下文本颜色也会改变
+
+                // 对于背景/容器颜色
+                focusedContainerColor = Color.Black,
+                unfocusedContainerColor = Color.Black, // 你原来的 containerColor
+                disabledContainerColor = Color.Black, // 通常禁用状态颜色会更灰暗
+                // errorContainerColor = ...,
+
+                cursorColor = Color.Black,
+                errorCursorColor = Color.Black,
+
+                focusedIndicatorColor = Color.Gray,
+                unfocusedIndicatorColor = Color.Gray,
+                disabledIndicatorColor = Color.Gray, // 通常禁用状态颜色会更灰暗
+                errorIndicatorColor = Color.Red,
+
+                focusedLeadingIconColor = Color.Black,
+                unfocusedLeadingIconColor = Color.DarkGray,
+                disabledLeadingIconColor = Color.DarkGray, // 通常禁用状态颜色会更灰暗
+                errorLeadingIconColor = Color.Red,
+
+                focusedTrailingIconColor = Color.DarkGray,
+                unfocusedTrailingIconColor = Color.DarkGray,
+
+                focusedLabelColor = Color.Black,
+                unfocusedLabelColor = Color.Gray,
+
+                // 对于占位符颜色
+                focusedPlaceholderColor = Color.LightGray,
+                unfocusedPlaceholderColor = Color.LightGray,
+                disabledPlaceholderColor = Color.LightGray
+            ),
+            singleLine = true
         )
 
         ExposedDropdownMenu(

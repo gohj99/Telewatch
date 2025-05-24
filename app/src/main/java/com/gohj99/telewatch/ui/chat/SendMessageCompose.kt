@@ -283,7 +283,9 @@ fun SendMessageCompose(
                 onItemSelected = { select ->
                     selectTopicId.value = select
                 },
-                select = selectTopicId
+                title = stringResource(R.string.Topic),
+                select = selectTopicId,
+                modifier = Modifier.padding(10.dp)
             )
         }
 

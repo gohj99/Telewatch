@@ -35,6 +35,10 @@
 
 ![Screenshot](Screenshot.png)
 
+## announcement
+
+Telewatch will stop updating. Please use [TGwear](https://github.com/tgwear/tgwear)
+
 ## Download
 
 Download: [Telewatch](https://github.com/gohj99/Telewatch/releases)  

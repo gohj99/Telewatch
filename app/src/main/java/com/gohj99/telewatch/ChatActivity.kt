@@ -219,8 +219,6 @@ class ChatActivity : ComponentActivity() {
 
                 // 获取主题信息
                 TgApiManager.tgApi!!.getForumTopics(itChatObject.id) ?.let { it ->
-                    //println("ForumTopics")
-                    //println(it)
                     val topics = it.topics
                     topics.forEach { topic ->
                         val lastMessage = topic.lastMessage
