@@ -26,7 +26,7 @@
       </SelectionState>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-10-29T08:26:05.645395600Z">
+        <DropdownSelection timestamp="2025-05-24T03:05:46.984685700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\28180\.android\avd\Galaxy_watch_6_API_33.avd" />

@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write
-  gist: write
-  secrets: read
 
 jobs:
   build:

@@ -51,6 +51,7 @@ import com.gohj99.telewatch.R
 import com.gohj99.telewatch.TgApiManager.tgApi
 import com.gohj99.telewatch.ui.AutoScrollingText
 import com.gohj99.telewatch.ui.InputBar
+import com.gohj99.telewatch.ui.TextDropdown
 import com.gohj99.telewatch.ui.main.MainCard
 import com.gohj99.telewatch.ui.main.MessageView
 import com.gohj99.telewatch.utils.telegram.editMessageText
@@ -71,7 +72,9 @@ fun SendMessageCompose(
     listState: LazyListState,
     pagerState: PagerState,
     showUnknownMessageType: Boolean,
-    onLinkClick: (String) -> Unit
+    chatTopics: Map<Long, String>,
+    onLinkClick: (String) -> Unit,
+    selectTopicId: MutableState<Long>
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -130,8 +133,8 @@ fun SendMessageCompose(
                 .fillMaxWidth()
         )
         var parentHeight by remember { mutableIntStateOf(0) }
-        var stateDownloadDone = rememberSaveable { mutableStateOf(false) }
-        var stateDownload = rememberSaveable { mutableStateOf(false) }
+        val stateDownloadDone = rememberSaveable { mutableStateOf(false) }
+        val stateDownload = rememberSaveable { mutableStateOf(false) }
 
         Row(
             modifier = Modifier
@@ -221,36 +224,71 @@ fun SendMessageCompose(
                 .padding(end = 10.dp)
                 .fillMaxWidth()
         ) {
-            IconButton(
-                onClick = {
-                    if (planEditMessage.value != null) {
-                        tgApi?.editMessageText(
-                            chatId = chatId,
-                            messageId = planEditMessage.value!!.id,
-                            message = TdApi.InputMessageText().apply {
-                                text = TdApi.FormattedText().apply {
-                                    this.text = planEditMessageText.value
-                                }
-                            }
-                        )
-                    }
-                    planEditMessage.value = null
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(0)
-                        listState.animateScrollToItem(0)
-                    }
-                },
-                modifier = Modifier
-                    .size(45.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween // 左右对齐
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.done_icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(45.dp)
-                )
+                // 换行按钮
+                IconButton(
+                    onClick = {
+                        planEditMessageText.value += "\n"
+                    },
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .size(45.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.enter_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(45.dp)
+                    )
+                }
+
+                // 完成编辑按钮
+                IconButton(
+                    onClick = {
+                        if (planEditMessage.value != null) {
+                            tgApi?.editMessageText(
+                                chatId = chatId,
+                                messageId = planEditMessage.value!!.id,
+                                message = TdApi.InputMessageText().apply {
+                                    text = TdApi.FormattedText().apply {
+                                        this.text = planEditMessageText.value
+                                    }
+                                }
+                            )
+                        }
+                        planEditMessage.value = null
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(0)
+                            listState.animateScrollToItem(0)
+                        }
+                    },
+                    modifier = Modifier
+                        .size(45.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.done_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(45.dp)
+                    )
+                }
             }
         }
     } else {
+        // 消息主题选择
+        if (chatTopics.keys.isNotEmpty()) {
+            TextDropdown(
+                options = chatTopics,
+                onItemSelected = { select ->
+                    selectTopicId.value = select
+                },
+                title = stringResource(R.string.Topic),
+                select = selectTopicId,
+                modifier = Modifier.padding(10.dp)
+            )
+        }
+
         InputBar(
             query = inputText.value,
             onQueryChange = { inputText.value = it },
@@ -294,7 +332,8 @@ fun SendMessageCompose(
                                     text = TdApi.FormattedText().apply {
                                         this.text = inputText.value
                                     }
-                                }
+                                },
+                                messageThreadId = selectTopicId.value
                             )
                         } else {
                             if (planReplyMessage.value!!.chatId != chatId) {
@@ -308,7 +347,8 @@ fun SendMessageCompose(
                                     replyTo = TdApi.InputMessageReplyToExternalMessage(
                                         planReplyMessage.value!!.chatId,
                                         planReplyMessage.value!!.id, null
-                                    )
+                                    ),
+                                    messageThreadId = selectTopicId.value
                                 )
                             } else {
                                 tgApi?.sendMessage(
@@ -320,7 +360,8 @@ fun SendMessageCompose(
                                     },
                                     replyTo = TdApi.InputMessageReplyToMessage(
                                         planReplyMessage.value!!.id, null
-                                    )
+                                    ),
+                                    messageThreadId = selectTopicId.value
                                 )
                             }
                             planReplyMessage.value = null

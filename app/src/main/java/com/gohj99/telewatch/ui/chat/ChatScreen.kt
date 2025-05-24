@@ -107,7 +107,8 @@ fun SplashChatScreen(
     listState: LazyListState = rememberLazyListState(),
     onLinkClick: (String) -> Unit,
     chatTitleClick: () -> Unit,
-    currentUserId: MutableState<Long>
+    currentUserId: MutableState<Long>,
+    chatTopics: Map<Long, String>
 ) {
     // 获取context
     val context = LocalContext.current
@@ -115,7 +116,7 @@ fun SplashChatScreen(
     var isFloatingVisible by remember { mutableStateOf(true) }
     var isLongPressed = remember { mutableStateOf(false) }
     val selectMessage = remember {
-        mutableStateOf<TdApi.Message>(TdApi.Message())
+        mutableStateOf(TdApi.Message())
     }
     val senderNameMap = remember { mutableStateOf(mutableMapOf<Long, String?>()) }
     val pagerState = rememberPagerState(pageCount = { 2 }, initialPage = 0)
@@ -126,6 +127,7 @@ fun SplashChatScreen(
     var planEditMessage = remember { mutableStateOf<TdApi.Message?>((null)) }
     var planEditMessageText = remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
+    val selectTopicId = rememberSaveable { mutableLongStateOf(0L) }
     //var chatReadList = tgApi?.chatReadList!!
 
     // 获取show_unknown_message_type值
@@ -326,6 +328,7 @@ fun SplashChatScreen(
                                     lastReadInboxMessageId = lastReadInboxMessageId,
                                     onLinkClick = onLinkClick,
                                     goToChat = goToChat,
+                                    chatTopics = chatTopics
                                 )
                             }
                         }
@@ -356,6 +359,8 @@ fun SplashChatScreen(
                                 pagerState = pagerState,
                                 showUnknownMessageType = showUnknownMessageType,
                                 onLinkClick = onLinkClick,
+                                chatTopics = chatTopics,
+                                selectTopicId = selectTopicId
                             )
                         }
                     }
@@ -496,7 +501,8 @@ fun SplashChatScreenPreview() {
             inputText = mutableStateOf(""),
             onLinkClick = {},
             chatTitleClick = {},
-            currentUserId = mutableLongStateOf(-1L)
+            currentUserId = mutableLongStateOf(-1L),
+            chatTopics = mutableMapOf()
         )
     }
 }

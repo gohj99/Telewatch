@@ -261,7 +261,7 @@ fun MessageReplyCompose(
                     onClick = {
                         if (messagePosition != -1) {
                             coroutineScope.launch {
-                                listState.animateScrollToItem(messagePosition)
+                                listState.animateScrollToItemCentered(messagePosition + 1)
                             }
                         }
                     }
@@ -274,8 +274,8 @@ fun MessageReplyCompose(
                                 onClick = {
                                     if (messagePosition != -1) {
                                         coroutineScope.launch {
-                                            listState.animateScrollToItem(
-                                                messagePosition
+                                            listState.animateScrollToItemCentered(
+                                                messagePosition + 1
                                             )
                                         }
                                     }
@@ -295,8 +295,8 @@ fun MessageReplyCompose(
                                     onClick = {
                                         if (messagePosition != -1) {
                                             coroutineScope.launch {
-                                                listState.animateScrollToItem(
-                                                    messagePosition
+                                                listState.animateScrollToItemCentered(
+                                                    messagePosition + 1
                                                 )
                                             }
                                         }
@@ -336,8 +336,8 @@ fun MessageReplyCompose(
                                                 onClick = {
                                                     if (messagePosition != -1) {
                                                         coroutineScope.launch {
-                                                            listState.animateScrollToItem(
-                                                                messagePosition
+                                                            listState.animateScrollToItemCentered(
+                                                                messagePosition + 1
                                                             )
                                                         }
                                                     }
@@ -376,8 +376,8 @@ fun MessageReplyCompose(
                                                 onClick = {
                                                     if (messagePosition != -1) {
                                                         coroutineScope.launch {
-                                                            listState.animateScrollToItem(
-                                                                messagePosition
+                                                            listState.animateScrollToItemCentered(
+                                                                messagePosition + 1
                                                             )
                                                         }
                                                     }
@@ -426,8 +426,8 @@ fun MessageReplyCompose(
                                 onClick = {
                                     if (messagePosition != -1) {
                                         coroutineScope.launch {
-                                            listState.animateScrollToItem(
-                                                messagePosition
+                                            listState.animateScrollToItemCentered(
+                                                messagePosition + 1
                                             )
                                         }
                                     }
@@ -447,8 +447,8 @@ fun MessageReplyCompose(
                                     onClick = {
                                         if (messagePosition != -1) {
                                             coroutineScope.launch {
-                                                listState.animateScrollToItem(
-                                                    messagePosition
+                                                listState.animateScrollToItemCentered(
+                                                    messagePosition + 1
                                                 )
                                             }
                                         }
@@ -505,8 +505,8 @@ fun MessageReplyCompose(
                                                 onClick = {
                                                     if (messagePosition != -1) {
                                                         coroutineScope.launch {
-                                                            listState.animateScrollToItem(
-                                                                messagePosition
+                                                            listState.animateScrollToItemCentered(
+                                                                messagePosition + 1
                                                             )
                                                         }
                                                     }
@@ -544,8 +544,8 @@ fun MessageReplyCompose(
                                                 onClick = {
                                                     if (messagePosition != -1) {
                                                         coroutineScope.launch {
-                                                            listState.animateScrollToItem(
-                                                                messagePosition
+                                                            listState.animateScrollToItemCentered(
+                                                                messagePosition + 1
                                                             )
                                                         }
                                                     }

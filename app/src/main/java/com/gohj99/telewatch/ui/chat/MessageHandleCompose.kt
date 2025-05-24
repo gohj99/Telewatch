@@ -43,7 +43,8 @@ fun MessageHandleCompose(
     lastReadInboxMessageId: MutableState<Long>,
     press: (TdApi.Message) -> Unit,
     onLinkClick: (String) -> Unit,
-    goToChat: (Chat) -> Unit
+    goToChat: (Chat) -> Unit,
+    chatTopics: Map<Long, String>,
 ) {
     Column {
         // 绘制日期
@@ -102,7 +103,9 @@ fun MessageHandleCompose(
             lastReadOutboxMessageId = lastReadOutboxMessageId,
             lastReadInboxMessageId = lastReadInboxMessageId,
             onLinkClick = onLinkClick,
-            press = press
+            press = press,
+            chatTopics = chatTopics,
+            isCurrentUser = isCurrentUser
         )
     }
 }

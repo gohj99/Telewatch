@@ -43,6 +43,7 @@ import com.gohj99.telewatch.utils.telegram.createPrivateChat
 import com.gohj99.telewatch.utils.telegram.deleteMessageById
 import com.gohj99.telewatch.utils.telegram.getChat
 import com.gohj99.telewatch.utils.telegram.getCurrentUser
+import com.gohj99.telewatch.utils.telegram.getForumTopics
 import com.gohj99.telewatch.utils.telegram.getLastReadInboxMessageId
 import com.gohj99.telewatch.utils.telegram.getLastReadOutboxMessageId
 import com.gohj99.telewatch.utils.telegram.getMessageLink
@@ -71,6 +72,7 @@ class ChatActivity : ComponentActivity() {
     private var goToChat = mutableStateOf(false)
     private val listState = LazyListState()
     private var inputText = mutableStateOf("")
+    private var chatTopics = mutableMapOf<Long, String>()
 
     @SuppressLint("AutoboxingStateCreation")
     private var currentUserId = mutableStateOf(-1L) // 使用 MutableState 来持有当前用户 ID
@@ -215,6 +217,19 @@ class ChatActivity : ComponentActivity() {
 
                 TgApiManager.tgApi!!.saveChatId = itChatObject.id
 
+                // 获取主题信息
+                TgApiManager.tgApi!!.getForumTopics(itChatObject.id) ?.let { it ->
+                    val topics = it.topics
+                    topics.forEach { topic ->
+                        val lastMessage = topic.lastMessage
+                        if (lastMessage != null) {
+                            if (lastMessage.messageThreadId != topic.info.messageThreadId) {
+                                chatTopics[0L] = topic.info.name
+                            } else chatTopics[topic.info.messageThreadId] = topic.info.name
+                        } else chatTopics[topic.info.messageThreadId] = topic.info.name
+                    }
+                }
+
                 // 获取聊天草稿
                 val draftMessage = itChatObject.draftMessage?.inputMessageText
                 if (draftMessage is TdApi.InputMessageText) {
@@ -231,26 +246,6 @@ class ChatActivity : ComponentActivity() {
                                 chatId = chat!!.id,
                                 goToChat = { chat ->
                                     goToChat.value = true
-                                    runBlocking {
-                                        lifecycleScope.launch {
-                                            if (inputText.value != "") {
-                                                TgApiManager.tgApi?.exitChatPage(
-                                                    TdApi.DraftMessage(
-                                                        null,
-                                                        (System.currentTimeMillis() / 1000).toInt(),
-                                                        TdApi.InputMessageText(
-                                                            TdApi.FormattedText(inputText.value, null),
-                                                            TdApi.LinkPreviewOptions(),
-                                                            false
-                                                        ),
-                                                        0L
-                                                    )
-                                                )
-                                            } else {
-                                                TgApiManager.tgApi?.exitChatPage()
-                                            }
-                                        }.join() // 等待协程执行完毕
-                                    }
                                     startActivity(
                                         Intent(this@ChatActivity, ChatActivity::class.java).apply {
                                             putExtra("chat", chat)
@@ -478,7 +473,8 @@ class ChatActivity : ComponentActivity() {
                                     )
                                     goToChat.value = true
                                 },
-                                currentUserId = currentUserId
+                                currentUserId = currentUserId,
+                                chatTopics = chatTopics
                             )
                         }
                     }

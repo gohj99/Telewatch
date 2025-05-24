@@ -29,11 +29,19 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -252,7 +260,7 @@ fun AutoScrollingText(
     color: Color = Color.White,
     fontWeight: FontWeight = FontWeight.Bold,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    widthInMax: Dp = 100.dp,
+    widthInMax: Dp = 10000.dp,
     spacing: Dp = 50.dp
 ) {
     Text(
@@ -276,7 +284,7 @@ fun AutoScrollingText(
  */
 suspend fun LazyListState.animateScrollToItemCentered(itemIndex: Int) {
     // 先滚动到目标项（不设置偏移），确保该项被测量
-    scrollToItem(itemIndex)
+    animateScrollToItem(itemIndex)
 
     // 等待目标项进入可见范围
     snapshotFlow { layoutInfo.visibleItemsInfo.any { it.index == itemIndex } }
@@ -437,4 +445,106 @@ fun InputRoundBar(
 @Composable
 fun InputRoundBarPreview() {
     InputRoundBar(query = "", onQueryChange = {}, placeholder = "InputRoundBar")
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TextDropdown(
+    options: Map<Long, String>,
+    onItemSelected: (Long) -> Unit,
+    select: MutableState<Long>,
+    title: String = "",
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionText by remember {
+        mutableStateOf(options[select.value])
+    }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        TextField(
+            readOnly = true,
+            value = selectedOptionText?: "",
+            onValueChange = { /* 不允许手动输入 */ },
+            label = { Text(title, color = Color.White) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.menuAnchor(),
+            colors = TextFieldDefaults.colors(
+                // 对于文本颜色
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White, // 你原来的 textColor
+                disabledTextColor = Color.Gray,
+                // errorTextColor = Color.Red, // 通常错误状态下文本颜色也会改变
+
+                // 对于背景/容器颜色
+                focusedContainerColor = Color.Black,
+                unfocusedContainerColor = Color.Black, // 你原来的 containerColor
+                disabledContainerColor = Color.Black, // 通常禁用状态颜色会更灰暗
+                // errorContainerColor = ...,
+
+                cursorColor = Color.Black,
+                errorCursorColor = Color.Black,
+
+                focusedIndicatorColor = Color.Gray,
+                unfocusedIndicatorColor = Color.Gray,
+                disabledIndicatorColor = Color.Gray, // 通常禁用状态颜色会更灰暗
+                errorIndicatorColor = Color.Red,
+
+                focusedLeadingIconColor = Color.Black,
+                unfocusedLeadingIconColor = Color.DarkGray,
+                disabledLeadingIconColor = Color.DarkGray, // 通常禁用状态颜色会更灰暗
+                errorLeadingIconColor = Color.Red,
+
+                focusedTrailingIconColor = Color.DarkGray,
+                unfocusedTrailingIconColor = Color.DarkGray,
+
+                focusedLabelColor = Color.Black,
+                unfocusedLabelColor = Color.Gray,
+
+                // 对于占位符颜色
+                focusedPlaceholderColor = Color.LightGray,
+                unfocusedPlaceholderColor = Color.LightGray,
+                disabledPlaceholderColor = Color.LightGray
+            ),
+            singleLine = true
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.entries.forEach { entry ->
+                DropdownMenuItem(
+                    text = { Text(entry.value) },
+                    onClick = {
+                        selectedOptionText = entry.value
+                        onItemSelected(entry.key)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TextDropdownPreview() {
+    val options = mapOf(1L to "123", 2L to "456")
+
+    TextDropdown(
+        options = options,
+        onItemSelected = { option ->
+            println("选择了: $option")
+        },
+        select = remember { mutableLongStateOf(1L) }
+    )
 }

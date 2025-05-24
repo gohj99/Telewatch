@@ -378,11 +378,12 @@ fun TgApi.logOut() {
 }
 
 // 发送消息
-fun TgApi.sendMessage(chatId: Long, message: InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null) {
+fun TgApi.sendMessage(chatId: Long, message: InputMessageContent, replyTo: TdApi.InputMessageReplyTo? = null, messageThreadId: Long = 0L) {
     val message = TdApi.SendMessage().apply {
         this.chatId = chatId
         this.replyTo = replyTo
         inputMessageContent = message
+        if (messageThreadId != 0L) this.messageThreadId = messageThreadId
     }
     client.send(message) { result ->
         //println("SendMessage result: $result")

@@ -34,6 +34,9 @@
 </div>
 
 ![Screenshot](Screenshot.png)
+## 公告
+
+Telewatch 將停止更新，請使用 [TGwear](https://github.com/tgwear/tgwear) 以獲得更好的支持
 
 ## 下載
 

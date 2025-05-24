@@ -35,6 +35,10 @@
 
 ![Screenshot](Screenshot.png)
 
+## 発表
+
+Telewatchは更新を停止します。より良いサポートのために [TGwear](https://github.com/tgwear/tgwear) をご利用ください。
+
 ## ダウンロード
 
 ダウンロード: [Telewatch](https://github.com/gohj99/Telewatch/releases)  
